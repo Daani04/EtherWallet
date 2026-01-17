@@ -1,0 +1,9 @@
+npm install @react-navigation/native
+npm install @react-navigation/bottom-tabs
+npm install @react-navigation/stack
+npm install @react-navigation/drawer
+npx expo install expo-av
+npx expo install expo-linear-gradient
+npx expo install @expo/vector-icons
+npx expo install expo-local-authentication  //Face Id
+
