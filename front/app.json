@@ -13,7 +13,7 @@
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "bundleIdentifier": "com.tunombre.cryptobit",
+      "bundleIdentifier": "com.cryptobit",
       "supportsTablet": true,
       "infoPlist": {
         "NSFaceIDUsageDescription": "Necesitamos usar Face ID para desbloquear tu cartera de forma segura.",
@@ -21,6 +21,7 @@
       }
     },
     "android": {
+      "package": "com.cryptobit.front",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
