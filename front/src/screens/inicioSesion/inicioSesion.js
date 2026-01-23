@@ -15,11 +15,13 @@ import {
 import { LinearGradient } from "expo-linear-gradient";
 import { MaterialIcons } from "@expo/vector-icons";
 import * as LocalAuthentication from 'expo-local-authentication';
+import { useTranslation } from 'react-i18next';
 
 const { width } = Dimensions.get("window");
 
 export default function InicioSesion() {
   const [isBiometricSupported, setIsBiometricSupported] = useState(false);
+  const { t } = useTranslation();
 
   useEffect(() => {
     (async () => {
@@ -148,7 +150,8 @@ export default function InicioSesion() {
             {/* Footer */}
             <View style={styles.footer}>
               <Text style={styles.footerText}>
-                ¿No tienes una cuenta?{" "}
+                {t('NoAccount.Question')}
+                {" "}
                 <Text style={styles.footerLink}>Regístrate</Text>
               </Text>
             </View>

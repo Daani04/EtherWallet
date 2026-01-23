@@ -1,6 +1,6 @@
 import { createStackNavigator } from "@react-navigation/stack";
 import { NavigationContainer } from "@react-navigation/native";
-
+import './assets/i18n';
 import { Provider } from './src/context/Context';
 
 import InicioSesion from "./src/screens/inicioSesion/inicioSesion";

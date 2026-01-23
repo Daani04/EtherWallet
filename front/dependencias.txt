@@ -1,9 +1,15 @@
+//NAVEGACION
 npm install @react-navigation/native
 npm install @react-navigation/bottom-tabs
 npm install @react-navigation/stack
 npm install @react-navigation/drawer
+//ICONOS
+npx expo install @expo/vector-icons
+//COLORES
 npx expo install expo-av
 npx expo install expo-linear-gradient
-npx expo install @expo/vector-icons
-npx expo install expo-local-authentication  //Face Id
+//FACE ID
+npx expo install expo-local-authentication
+//i18n
+npm install react-i18next i18next --save
 
