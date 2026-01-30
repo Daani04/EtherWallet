@@ -10,7 +10,8 @@ import {
   ScrollView,
   KeyboardAvoidingView,
   Platform,
-  Alert
+  Alert,
+  Pressable
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { MaterialIcons } from "@expo/vector-icons";
@@ -19,9 +20,11 @@ import { useTranslation } from 'react-i18next';
 
 const { width } = Dimensions.get("window");
 
-export default function InicioSesion() {
+const InicioSesion = (props) => {
   const [isBiometricSupported, setIsBiometricSupported] = useState(false);
   const { t } = useTranslation();
+  const [showPassword, setShowPassword] = useState(false);
+
 
   useEffect(() => {
     (async () => {
@@ -117,13 +120,21 @@ export default function InicioSesion() {
               <View style={styles.inputContainer}>
                 <MaterialIcons name="lock-outline" size={20} color="#9db9a8" style={styles.inputIcon} />
                 <TextInput
-                  placeholder="Contraseña"
-                  placeholderTextColor="#9db9a8"
+                  placeholder="••••••••••••"
+                  placeholderTextColor="rgba(157,185,168,0.55)"
                   style={styles.input}
-                  secureTextEntry={true}
+                  secureTextEntry={!showPassword}
                 />
-                <TouchableOpacity style={styles.eyeIcon}>
-                  <MaterialIcons name="visibility" size={20} color="#9db9a8" />
+                <TouchableOpacity
+                  style={styles.eyeIcon}
+                  activeOpacity={0.7}
+                  onPress={() => setShowPassword((v) => !v)}
+                >
+                  <MaterialIcons
+                    name={showPassword ? "visibility" : "visibility-off"}
+                    size={20}
+                    color={COLORS.textMuted}
+                  />
                 </TouchableOpacity>
               </View>
 
@@ -152,7 +163,9 @@ export default function InicioSesion() {
               <Text style={styles.footerText}>
                 {t('NoAccount.Question')}
                 {" "}
-                <Text style={styles.footerLink}>Regístrate</Text>
+                <Pressable onPress={() => props.navigation.navigate('RegistroUsuario')}>
+                  <Text style={styles.footerLink}>Regístrate</Text>
+                </Pressable>
               </Text>
             </View>
           </View>
@@ -269,3 +282,5 @@ const styles = StyleSheet.create({
   footerText: { color: COLORS.textMuted, fontSize: 14 },
   footerLink: { color: COLORS.primary, fontWeight: "700" },
 });
+
+export default InicioSesion;

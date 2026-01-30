@@ -4,6 +4,8 @@ import './assets/i18n';
 import { Provider } from './src/context/Context';
 
 import InicioSesion from "./src/screens/inicioSesion/inicioSesion";
+import RegistroUsuario from "./src/screens/registroUsuario/registroUsuario";
+
 
 const Stack = createStackNavigator();
 
@@ -12,6 +14,7 @@ const App = () => (
     <NavigationContainer>
       <Stack.Navigator screenOptions={{ headerShown: false }}>
         <Stack.Screen name="InicioSesion" component={InicioSesion} />
+        <Stack.Screen name="RegistroUsuario" component={RegistroUsuario} />
       </Stack.Navigator>
     </NavigationContainer>
   </Provider>
