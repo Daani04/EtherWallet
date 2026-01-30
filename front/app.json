@@ -4,11 +4,11 @@
     "slug": "front",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/logo.jpeg",
+    "icon": "./assets/logo.png",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "splash": {
-      "image": "./assets/logo.jpeg",
+      "image": "./assets/logo.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
@@ -23,13 +23,13 @@
     "android": {
       "package": "com.cryptobit.front",
       "adaptiveIcon": {
-        "foregroundImage": "./assets/logo.jpeg",
+        "foregroundImage": "./assets/logo.png",
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true
     },
     "web": {
-      "favicon": "./assets/logo.jpeg"
+      "favicon": "./assets/logo.png"
     },
     "extra": {
       "eas": {

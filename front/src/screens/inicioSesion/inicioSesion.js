@@ -84,7 +84,7 @@ const InicioSesion = (props) => {
             <View style={styles.heroWrap}>
               <View style={styles.heroCard}>
                 <ImageBackground
-                  source={require("../../../assets/logo.jpeg")}
+                  source={require("../../../assets/logo.png")}
                   style={styles.heroImg}
                 >
                   <LinearGradient
@@ -202,9 +202,8 @@ const styles = StyleSheet.create({
   },
   heroCard: {
     width: "90%", // Deja un pequeño margen a los lados
-    aspectRatio: 15.3 / 9, // Mantiene una proporción de aspecto cinematográfica
+    aspectRatio: 16.4 / 12, // Mantiene una proporción de aspecto cinematográfica
     borderRadius: 24,
-    overflow: "hidden",
     backgroundColor: 'transparent',
     // Sombra para dar profundidad
     shadowColor: COLORS.primary,
@@ -220,13 +219,6 @@ const styles = StyleSheet.create({
   heroImgRadius: {
     borderRadius: 24,
     resizeMode: "contain", // "contain" asegura que se vea todo el logo sin cortarse
-  },
-  heroGradient: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    bottom: 0,
-    height: "30%", // El degradado solo cubre la parte inferior para no tapar el logo
   },
 
   head: { marginBottom: 32, alignItems: "center" },
