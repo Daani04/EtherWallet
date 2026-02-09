@@ -5,7 +5,7 @@ import { Provider } from './src/context/Context';
 
 import InicioSesion from "./src/screens/inicioSesion/inicioSesion";
 import RegistroUsuario from "./src/screens/registroUsuario/registroUsuario";
-import MenuTransacciones from "./src/screens/menuTransacciones/menuTransacciones";
+import HomeNav from './src/screens/HomeNav';import MenuTransacciones from "./src/screens/menuTransacciones/menuTransacciones";
 
 
 const Stack = createStackNavigator();
@@ -16,6 +16,7 @@ const App = () => (
       <Stack.Navigator screenOptions={{ headerShown: false }}>
         <Stack.Screen name="InicioSesion" component={InicioSesion} />
         <Stack.Screen name="RegistroUsuario" component={RegistroUsuario} />
+        <Stack.Screen name="HomeNav" component={HomeNav} />
         <Stack.Screen name="MenuTransacciones" component={MenuTransacciones} />
       </Stack.Navigator>
     </NavigationContainer>
