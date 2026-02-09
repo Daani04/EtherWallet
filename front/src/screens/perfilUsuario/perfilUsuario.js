@@ -7,72 +7,70 @@ import {
   TouchableOpacity,
   ScrollView,
   Switch,
+  SafeAreaView,
+  Pressable
 } from "react-native";
 import Icon from "react-native-vector-icons/MaterialIcons";
 
-export default function PerfilUsuario() {
+const COLORS = {
+  primary: "#2bee79",
+  bg: "#0d1a12",
+  card: "rgba(255, 255, 255, 0.08)",
+  border: "rgba(255, 255, 255, 0.15)",
+  white: "#ffffff",
+  muted: "rgba(255, 255, 255, 0.6)",
+};
+
+export default function PerfilUsuario(props) {
   const [faceId, setFaceId] = useState(true);
 
   return (
-    <View style={styles.container}>
-      {/* HEADER */}
+    <SafeAreaView style={styles.container}>
+      {/* CABECERA */}
       <View style={styles.header}>
         <TouchableOpacity>
-          <Icon name="arrow-back-ios-new" size={22} />
+          <Icon name="arrow-back-ios-new" size={22} color={COLORS.white} />
         </TouchableOpacity>
-
         <Text style={styles.headerTitle}>Configuración</Text>
         <View style={{ width: 24 }} />
       </View>
 
-      <ScrollView contentContainerStyle={{ paddingBottom: 120 }}>
-        {/* PROFILE */}
+      <ScrollView contentContainerStyle={{ paddingBottom: 100 }}>
+        {/* PERFIL */}
         <View style={styles.profileContainer}>
           <View>
             <Image
-              source={{
-                uri: "https://lh3.googleusercontent.com/aida-public/AB6AXuAXlT2t3CCBzn1ROAG64iHWKQJvLfVEx3fr1enuLVw-tMmEUcwtzj6qArBhkvlvjDJLr1BXAazKv1iC1TO0A-yCMH2okfsLx9_TwFLwHeCdN3qTr1j1G-liNDHvz11QQPcDKMUTa6LH8aP0OZHxxE5fYJ7xmQM7f61Rl3uJPRDhuMJ6-0Tgy9Jlt3w4R6tGddWcOHgQO_qbf2-8GnAH8pcdC9yLYCAmMdGySOb8mPOtH0hx1cr07k9IFcSjaEjUGRpifmXehKC1zWI",
-              }}
+              source={{ uri: "https://randomuser.me/api/portraits/men/1.jpg" }}
               style={styles.avatar}
             />
             <View style={styles.editBadge}>
-              <Icon name="edit" size={14} />
+              <Icon name="edit" size={14} color="#000" />
             </View>
           </View>
-
           <Text style={styles.name}>Juan Pérez</Text>
-
           <View style={styles.walletRow}>
             <View style={styles.dot} />
             <Text style={styles.walletText}>0x71C...9A21</Text>
-            <Icon name="content-copy" size={14} color="#777" />
+            <Icon name="content-copy" size={14} color={COLORS.muted} />
           </View>
         </View>
 
-        {/* SECTION */}
+        {/* SECCIONES */}
         <Section title="Cuenta">
           <Item icon="person" label="Editar Perfil" />
-          <Item
-            icon="badge"
-            label="Verificación KYC"
-            subLabel="Verificado nivel 2"
-          />
+          <Item icon="badge" label="Verificación KYC" subLabel="Verificado nivel 2" />
         </Section>
 
         <Section title="Seguridad">
-          <View style={styles.item}>
-            <View style={styles.itemLeft}>
-              <Icon name="face" size={22} />
-              <Text style={styles.itemText}>Face ID</Text>
-            </View>
-            <Switch value={faceId} onValueChange={setFaceId} />
-          </View>
-
-          <Item
-            icon="shield"
-            label="Autenticación 2FA"
-            rightText="Activado"
-          />
+          <Item icon="face" label="Face ID">
+            <Switch
+              value={faceId}
+              onValueChange={setFaceId}
+              trackColor={{ false: "#3e3e3e", true: COLORS.primary }}
+              thumbColor="#fff"
+            />
+          </Item>
+          <Item icon="shield" label="Autenticación 2FA" rightText="Activado" />
         </Section>
 
         <Section title="Preferencias">
@@ -80,74 +78,90 @@ export default function PerfilUsuario() {
           <Item icon="currency-exchange" label="Moneda Local" rightText="USD" />
         </Section>
 
-        <Section title="Soporte">
-          <Item icon="support-agent" label="Centro de Ayuda" />
-        </Section>
-
-        {/* LOGOUT */}
+        {/* CERRAR SESIÓN */}
         <TouchableOpacity style={styles.logoutBtn}>
-          <Icon name="logout" size={20} />
+          <Icon name="logout" size={20} color="#ff4444" />
           <Text style={styles.logoutText}>Cerrar Sesión</Text>
         </TouchableOpacity>
 
         <Text style={styles.version}>Versión 2.4.0 (Build 592)</Text>
       </ScrollView>
 
-      {/* BOTTOM BAR */}
+      {/* BARRA INFERIOR */}
       <View style={styles.bottomBar}>
-        <BottomItem icon="account-balance-wallet" label="Billetera" />
+        <Pressable onPress={() => props.navigation.navigate('HomeNav')}>
+          <BottomItem icon="account-balance-wallet" label="Billetera" />
+        </Pressable>
+
+        <Pressable onPress={() => props.navigation.navigate('HomeNav')}>
         <BottomItem icon="candlestick-chart" label="Mercado" />
-        <View style={styles.centerButton}>
-          <Icon name="swap-vert" size={28} color="#000" />
-        </View>
-        <BottomItem icon="history" label="Historial" />
-        <BottomItem icon="settings" label="Ajustes" active />
+        </Pressable>
+
+        <Pressable onPress={() => props.navigation.navigate('HomeNav')}>
+          <View style={styles.centerButton}>
+            <Icon name="swap-vert" size={28} color="#000" />
+          </View>
+        </Pressable>
+
+        <Pressable onPress={() => props.navigation.navigate('HomeNav')}>
+          <BottomItem icon="history" label="Historial" />
+        </Pressable>
+
+        <Pressable onPress={() => props.navigation.navigate('HomeNav')}>
+          <BottomItem icon="settings" label="Ajustes" active />
+        </Pressable>
       </View>
-    </View>
+    </SafeAreaView>
   );
 }
 
-/* ================= COMPONENTS ================= */
+/* ================= COMPONENTES ================= */
 
 const Section = ({ title, children }) => (
   <View style={styles.section}>
     <Text style={styles.sectionTitle}>{title}</Text>
-    <View style={styles.card}>{children}</View>
+    <View style={styles.cardBox}>{children}</View>
   </View>
 );
 
-const Item = ({ icon, label, subLabel, rightText }) => (
-  <TouchableOpacity style={styles.item}>
-    <View style={styles.itemLeft}>
-      <Icon name={icon} size={22} />
-      <View>
+const Item = ({ icon, label, subLabel, rightText, children }) => (
+  <TouchableOpacity style={styles.item} disabled={!!children}>
+    <View style={styles.row}>
+      <Icon name={icon} size={22} color={COLORS.white} />
+      <View style={{ marginLeft: 12 }}>
         <Text style={styles.itemText}>{label}</Text>
         {subLabel && <Text style={styles.subLabel}>{subLabel}</Text>}
       </View>
     </View>
-
-    {rightText ? (
-      <Text style={styles.rightText}>{rightText}</Text>
-    ) : (
-      <Icon name="chevron-right" size={22} />
+    {children || (
+      <View style={styles.row}>
+        {rightText && <Text style={styles.rightText}>{rightText}</Text>}
+        <Icon name="chevron-right" size={22} color="rgba(255,255,255,0.2)" />
+      </View>
     )}
   </TouchableOpacity>
 );
 
 const BottomItem = ({ icon, label, active }) => (
   <TouchableOpacity style={styles.bottomItem}>
-    <Icon name={icon} size={24} color={active ? "#2bee79" : "#888"} />
-    <Text style={[styles.bottomText, active && { color: "#2bee79" }]}>
+    <Icon name={icon} size={24} color={active ? COLORS.primary : "#888"} />
+    <Text style={[styles.bottomText, active && { color: COLORS.primary }]}>
       {label}
     </Text>
   </TouchableOpacity>
 );
 
-/* ================= STYLES ================= */
+/* ================= ESTILOS ================= */
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#f6f8f7" },
-
+  container: {
+    flex: 1,
+    backgroundColor: COLORS.bg,
+  },
+  row: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
   header: {
     flexDirection: "row",
     alignItems: "center",
@@ -158,121 +172,137 @@ const styles = StyleSheet.create({
     textAlign: "center",
     fontSize: 18,
     fontWeight: "700",
+    color: COLORS.white,
   },
-
   profileContainer: {
     alignItems: "center",
-    paddingVertical: 24,
+    paddingVertical: 20,
   },
   avatar: {
-    width: 112,
-    height: 112,
-    borderRadius: 56,
+    width: 90,
+    height: 90,
+    borderRadius: 45,
+    borderWidth: 2,
+    borderColor: COLORS.primary,
   },
   editBadge: {
     position: "absolute",
     bottom: 0,
     right: 0,
-    backgroundColor: "#2bee79",
-    padding: 6,
-    borderRadius: 20,
+    backgroundColor: COLORS.primary,
+    padding: 5,
+    borderRadius: 15,
   },
-
   name: {
     fontSize: 22,
     fontWeight: "700",
     marginTop: 10,
+    color: COLORS.white,
   },
-
   walletRow: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#fff",
+    backgroundColor: "rgba(255,255,255,0.1)",
     paddingHorizontal: 12,
-    paddingVertical: 6,
+    paddingVertical: 5,
     borderRadius: 20,
-    marginTop: 6,
+    marginTop: 8,
   },
-
   dot: {
-    width: 8,
-    height: 8,
-    backgroundColor: "#2bee79",
+    width: 7,
+    height: 7,
+    backgroundColor: COLORS.primary,
     borderRadius: 4,
     marginRight: 6,
   },
-
-  walletText: { marginHorizontal: 6 },
-
-  section: { paddingHorizontal: 16, marginTop: 24 },
+  walletText: {
+    color: COLORS.white,
+    fontSize: 12,
+  },
+  section: {
+    paddingHorizontal: 16,
+    marginTop: 20,
+  },
   sectionTitle: {
     fontSize: 12,
-    color: "#777",
-    marginBottom: 6,
+    color: COLORS.muted,
+    marginBottom: 8,
+    marginLeft: 4,
+    textTransform: "uppercase",
   },
-
-  card: {
-    backgroundColor: "#fff",
-    borderRadius: 16,
+  cardBox: {
+    backgroundColor: COLORS.card,
+    borderRadius: 20,
     overflow: "hidden",
+    borderWidth: 1,
+    borderColor: COLORS.border,
   },
-
   item: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
     padding: 16,
-    borderBottomWidth: 0.5,
-    borderColor: "#eee",
+    borderBottomWidth: 1,
+    borderColor: "rgba(255,255,255,0.05)",
   },
-
-  itemLeft: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
+  itemText: {
+    fontSize: 16,
+    color: COLORS.white,
   },
-
-  itemText: { fontSize: 16 },
-  subLabel: { fontSize: 12, color: "#2bee79" },
-  rightText: { color: "#777" },
-
+  subLabel: {
+    fontSize: 12,
+    color: COLORS.primary,
+  },
+  rightText: {
+    color: COLORS.muted,
+    marginRight: 4,
+  },
   logoutBtn: {
     flexDirection: "row",
     justifyContent: "center",
+    alignItems: "center",
     gap: 8,
-    backgroundColor: "#ffecec",
-    margin: 16,
-    padding: 14,
-    borderRadius: 14,
+    backgroundColor: "rgba(255, 70, 70, 0.1)",
+    margin: 20,
+    padding: 16,
+    borderRadius: 16,
   },
-
-  logoutText: { color: "#d00", fontWeight: "600" },
-  version: { textAlign: "center", fontSize: 12, color: "#999" },
-
+  logoutText: {
+    color: "#ff4444",
+    fontWeight: "600",
+  },
+  version: {
+    textAlign: "center",
+    fontSize: 12,
+    color: COLORS.muted,
+  },
   bottomBar: {
     position: "absolute",
     bottom: 0,
     width: "100%",
-    height: 70,
+    height: 75,
     flexDirection: "row",
     justifyContent: "space-around",
     alignItems: "center",
-    backgroundColor: "#fff",
+    backgroundColor: "rgba(13, 26, 18, 0.98)",
+    borderTopWidth: 1,
+    borderTopColor: "rgba(255,255,255,0.05)",
   },
-
   bottomItem: {
     alignItems: "center",
   },
-
-  bottomText: { fontSize: 10, color: "#888" },
-
+  bottomText: {
+    fontSize: 10,
+    marginTop: 4,
+    color: "#888",
+  },
   centerButton: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: "#2bee79",
+    width: 54,
+    height: 54,
+    borderRadius: 27,
+    backgroundColor: COLORS.primary,
     alignItems: "center",
     justifyContent: "center",
-    marginBottom: 30,
+    marginBottom: 25,
   },
 });
