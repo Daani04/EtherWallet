@@ -41,7 +41,7 @@ const BottomBar = () => {
       <TabItem 
         icon="article" 
         label="Noticias" 
-        onPress={() => {}} 
+        onPress={() => navigation.navigate('MenuNoticias')} 
       />
 
       <TabItem 
