@@ -7,11 +7,11 @@ import {
     Pressable,
     Platform,
     Dimensions,
+    SafeAreaView
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import Nav from "../../components/Nav"; 
-
 
 const Billetera = (props) => {
     const [ocultarSaldo, setOcultarSaldo] = useState(false);
@@ -26,31 +26,14 @@ const Billetera = (props) => {
         };
     }, []);
 
-    // ====== Responsive con IF/ELSE ======
-    let esWeb = false;
-    if (Platform.OS === "web") esWeb = true;
-    else esWeb = false;
+    // ====== Responsive ======
+    const esWeb = Platform.OS === "web";
+    const esPC = esWeb && screenW >= 900;
 
-    let esPC = false;
-    if (esWeb && screenW >= 900) esPC = true;
-    else esPC = false;
-
-    let titleSize = 28;
-    let balanceSize = 32;
-    let padH = 24;
-    let cardPad = 18;
-
-    if (esPC) {
-        titleSize = 30;
-        balanceSize = 34;
-        padH = 28;
-        cardPad = 20;
-    } else {
-        titleSize = 28;
-        balanceSize = 32;
-        padH = 24;
-        cardPad = 18;
-    }
+    let titleSize = esPC ? 30 : 28;
+    let balanceSize = esPC ? 34 : 32;
+    let padH = esPC ? 28 : 24;
+    let cardPad = esPC ? 20 : 18;
 
     // ====== Datos demo ======
     const saldoTotal = 2450.35;
@@ -76,86 +59,41 @@ const Billetera = (props) => {
         return s + " €";
     };
 
-    let saldoTexto = "";
-    if (ocultarSaldo) saldoTexto = "•••••";
-    else saldoTexto = formatEUR(saldoTotal);
+    const saldoTexto = ocultarSaldo ? "•••••" : formatEUR(saldoTotal);
+    const sube = variacion24h >= 0;
 
-    let sube = true;
-    if (variacion24h >= 0) sube = true;
-    else sube = false;
-
-    let iconTrend = "trending-up";
-    let colorTrend = COLORS.primary;
-    let bordeTrend = "rgba(43,238,121,0.35)";
-    let fondoTrend = "rgba(43,238,121,0.08)";
-
-    if (sube) {
-        iconTrend = "trending-up";
-        colorTrend = COLORS.primary;
-        bordeTrend = "rgba(43,238,121,0.35)";
-        fondoTrend = "rgba(43,238,121,0.08)";
-    } else {
-        iconTrend = "trending-down";
-        colorTrend = "#ff6b6b";
-        bordeTrend = "rgba(255,107,107,0.35)";
-        fondoTrend = "rgba(255,107,107,0.07)";
-    }
-
-    let textoVariacion = "";
-    if (ocultarSaldo) textoVariacion = "•••";
-    else {
-        if (sube) textoVariacion = "+" + variacion24h.toFixed(2) + "%";
-        else textoVariacion = variacion24h.toFixed(2) + "%";
-    }
+    const colorTrend = sube ? COLORS.primary : "#ff6b6b";
+    const bordeTrend = sube ? "rgba(43,238,121,0.35)" : "rgba(255,107,107,0.35)";
+    const fondoTrend = sube ? "rgba(43,238,121,0.08)" : "rgba(255,107,107,0.07)";
+    const textoVariacion = ocultarSaldo ? "•••" : (sube ? "+" : "") + variacion24h.toFixed(2) + "%";
 
     const iconMovimiento = (tipo) => {
-        let icon = "swap-horiz";
-        if (tipo === "receive") icon = "south-west";
-        else if (tipo === "send") icon = "north-east";
-        else icon = "swap-horiz";
-        return icon;
+        if (tipo === "receive") return "south-west";
+        if (tipo === "send") return "north-east";
+        return "swap-horiz";
     };
 
-    // ====== Estilos dinámicos (IF/ELSE) ======
+    // ====== Estilos dinámicos ======
     const dyn = {
-        safeWeb: {},
-        container: {},
-        title: {},
-        balanceValue: {},
-        balanceCard: {},
-        twoCols: {},
-        col: {},
+        safeWeb: esWeb ? { height: "100vh" } : {},
+        container: { paddingHorizontal: padH },
+        title: { fontSize: titleSize },
+        balanceValue: { fontSize: balanceSize },
+        balanceCard: { padding: cardPad },
+        twoCols: esPC ? { flexDirection: "row", gap: 14, alignItems: "flex-start" } : { flexDirection: "column" },
+        col: esPC ? { flex: 1 } : { width: "100%" },
     };
-
-    if (esWeb) {
-        dyn.safeWeb = { height: "100vh", overflow: "auto" };
-    } else {
-        dyn.safeWeb = {};
-    }
-
-    dyn.container = { paddingHorizontal: padH };
-    dyn.title = { fontSize: titleSize };
-    dyn.balanceValue = { fontSize: balanceSize };
-    dyn.balanceCard = { padding: cardPad };
-
-    if (esPC) {
-        dyn.twoCols = { flexDirection: "row", gap: 14, alignItems: "flex-start" };
-        dyn.col = { flex: 1 };
-    } else {
-        dyn.twoCols = { flexDirection: "column" };
-        dyn.col = { width: "100%" };
-    }
 
     return (
         <View style={[styles.safe, dyn.safeWeb]}>
-            {/* blobs */}
+            {/* Blobs de fondo (ahora fijos) */}
             <View style={[styles.blob, styles.blobTopRight]} />
             <View style={[styles.blob, styles.blobBottomLeft]} />
 
             <ScrollView
                 style={styles.scroll}
                 contentContainerStyle={styles.scrollContainer}
-                bounces={false}
+                bounces={true}
                 showsVerticalScrollIndicator={false}
             >
                 <View style={[styles.container, dyn.container]}>
@@ -169,7 +107,6 @@ const Billetera = (props) => {
                         <Pressable
                             onPress={() => setOcultarSaldo(!ocultarSaldo)}
                             style={styles.iconBtn}
-                            android_ripple={{ color: "rgba(255,255,255,0.08)", borderless: true }}
                         >
                             <MaterialIcons
                                 name={ocultarSaldo ? "visibility-off" : "visibility"}
@@ -179,130 +116,85 @@ const Billetera = (props) => {
                         </Pressable>
                     </View>
 
-                    {/* Card saldo (SIN acciones) */}
+                    {/* Card saldo */}
                     <View style={[styles.balanceCard, dyn.balanceCard]}>
                         <LinearGradient
                             colors={["rgba(43,238,121,0.18)", "rgba(16,34,23,0.0)"]}
                             locations={[0, 1]}
                             style={styles.balanceGlow}
                         />
-
                         <Text style={styles.balanceLabel}>Balance total</Text>
-
                         <View style={styles.balanceRow}>
                             <Text style={[styles.balanceValue, dyn.balanceValue]}>{saldoTexto}</Text>
-
                             <View style={[styles.pill, { borderColor: bordeTrend, backgroundColor: fondoTrend }]}>
-                                <MaterialIcons name={iconTrend} size={16} color={colorTrend} />
+                                <MaterialIcons name={sube ? "trending-up" : "trending-down"} size={16} color={colorTrend} />
                                 <Text style={[styles.pillText, { color: colorTrend }]}>{textoVariacion}</Text>
                             </View>
                         </View>
-
                         <Text style={styles.balanceSub}>
                             {ocultarSaldo ? "Últimas 24h" : "Últimas 24h · variación estimada"}
                         </Text>
                     </View>
 
-                    {/* ✅ 2 columnas en PC, 1 en móvil */}
+                    {/* Contenido principal */}
                     <View style={[styles.twoColsWrap, dyn.twoCols]}>
-                        {/* Columna Activos */}
                         <View style={dyn.col}>
-                            {/* ✅ MISMA ALTURA en PC */}
-                            <View style={esPC ? styles.sectionRowPC : styles.sectionRow}>
+                            <View style={styles.sectionRow}>
                                 <Text style={styles.sectionTitle}>Activos</Text>
                             </View>
-
                             <View style={styles.card}>
-                                {activos.map((a, index) => {
-                                    let subeAct = true;
-                                    if (a.change24h >= 0) subeAct = true;
-                                    else subeAct = false;
-
-                                    let changeColor = COLORS.primary;
-                                    if (!subeAct) changeColor = "#ff6b6b";
-
-                                    let textoValor = "";
-                                    let textoCambio = "";
-                                    let textoSub = "";
-
-                                    if (ocultarSaldo) {
-                                        textoValor = "••••";
-                                        textoCambio = "•••";
-                                        textoSub = "•••";
-                                    } else {
-                                        textoValor = formatEUR(a.valueEUR);
-                                        if (subeAct) textoCambio = "+" + a.change24h.toFixed(1) + "%";
-                                        else textoCambio = a.change24h.toFixed(1) + "%";
-                                        textoSub = a.amount + " " + a.symbol;
-                                    }
-
-                                    return (
-                                        <View key={a.symbol} style={styles.assetRow}>
-                                            <View style={styles.assetLeft}>
-                                                <View style={styles.coinBadge}>
-                                                    <Text style={styles.coinBadgeText}>{a.symbol}</Text>
-                                                </View>
-
-                                                <View style={{ flex: 1 }}>
-                                                    <Text style={styles.assetName}>{a.name}</Text>
-                                                    <Text style={styles.assetSub}>{textoSub}</Text>
-                                                </View>
+                                {activos.map((a, index) => (
+                                    <View key={a.symbol} style={styles.assetRow}>
+                                        <View style={styles.assetLeft}>
+                                            <View style={styles.coinBadge}><Text style={styles.coinBadgeText}>{a.symbol}</Text></View>
+                                            <View style={{ flex: 1 }}>
+                                                <Text style={styles.assetName}>{a.name}</Text>
+                                                <Text style={styles.assetSub}>{ocultarSaldo ? "•••" : `${a.amount} ${a.symbol}`}</Text>
                                             </View>
-
-                                            <View style={styles.assetRight}>
-                                                <Text style={styles.assetValue}>{textoValor}</Text>
-                                                <Text style={[styles.assetChange, { color: changeColor }]}>{textoCambio}</Text>
-                                            </View>
-
-                                            {index !== activos.length - 1 ? <View style={styles.divider} /> : null}
                                         </View>
-                                    );
-                                })}
+                                        <View style={styles.assetRight}>
+                                            <Text style={styles.assetValue}>{ocultarSaldo ? "••••" : formatEUR(a.valueEUR)}</Text>
+                                            <Text style={[styles.assetChange, { color: a.change24h >= 0 ? COLORS.primary : "#ff6b6b" }]}>
+                                                {ocultarSaldo ? "•••" : (a.change24h >= 0 ? "+" : "") + a.change24h + "%"}
+                                            </Text>
+                                        </View>
+                                        {index !== activos.length - 1 && <View style={styles.divider} />}
+                                    </View>
+                                ))}
                             </View>
                         </View>
 
-                        {/* Columna Movimientos */}
                         <View style={dyn.col}>
-                            {/* ✅ MISMA ALTURA en PC */}
-                            <View style={esPC ? styles.sectionRowPC : [styles.sectionRow, { marginTop: 18 }]}>
+                            <View style={[styles.sectionRow, !esPC && { marginTop: 18 }]}>
                                 <Text style={styles.sectionTitle}>Movimientos</Text>
                             </View>
-
                             <View style={styles.card}>
-                                {movimientos.map((m, index) => {
-                                    let valorMov = "";
-                                    if (ocultarSaldo) valorMov = "••••";
-                                    else valorMov = m.value;
-
-                                    return (
-                                        <View key={m.type + "-" + index} style={styles.movRow}>
-                                            <View style={styles.movLeft}>
-                                                <View style={styles.movIconWrap}>
-                                                    <MaterialIcons name={iconMovimiento(m.type)} size={20} color={COLORS.primary} />
-                                                </View>
-
-                                                <View style={{ flex: 1 }}>
-                                                    <Text style={styles.movTitle}>{m.title}</Text>
-                                                    <Text style={styles.movSub}>
-                                                        {m.subtitle} · {m.date}
-                                                    </Text>
-                                                </View>
+                                {movimientos.map((m, index) => (
+                                    <View key={m.type + "-" + index} style={styles.movRow}>
+                                        <View style={styles.movLeft}>
+                                            <View style={styles.movIconWrap}>
+                                                <MaterialIcons name={iconMovimiento(m.type)} size={20} color={COLORS.primary} />
                                             </View>
-
-                                            <Text style={styles.movValue}>{valorMov}</Text>
-
-                                            {index !== movimientos.length - 1 ? <View style={styles.divider} /> : null}
+                                            <View style={{ flex: 1 }}>
+                                                <Text style={styles.movTitle}>{m.title}</Text>
+                                                <Text style={styles.movSub}>{m.subtitle} · {m.date}</Text>
+                                            </View>
                                         </View>
-                                    );
-                                })}
+                                        <Text style={styles.movValue}>{ocultarSaldo ? "••••" : m.value}</Text>
+                                        {index !== movimientos.length - 1 && <View style={styles.divider} />}
+                                    </View>
+                                ))}
                             </View>
                         </View>
                     </View>
 
-                    <View style={{ height: 30 }} />
+                    {/* Espaciado para que el Nav no tape nada */}
+                    <View style={{ height: 120 }} />
                 </View>
-                      <Nav />
             </ScrollView>
+
+            {/* Nav fijo al fondo */}
+            <Nav />
         </View>
     );
 };
@@ -318,20 +210,18 @@ const COLORS = {
 
 const styles = StyleSheet.create({
     safe: { flex: 1, backgroundColor: COLORS.backgroundDark },
-
     blob: { position: "absolute", backgroundColor: "rgba(43,238,121,0.08)", borderRadius: 999 },
     blobTopRight: { width: 400, height: 400, top: -110, right: -120 },
     blobBottomLeft: { width: 300, height: 300, bottom: -60, left: -120 },
-
     scroll: { flex: 1 },
-    scrollContainer: { flexGrow: 1, paddingVertical: 26 },
-
+    scrollContainer: { 
+        flexGrow: 1, 
+        paddingTop: Platform.OS === 'ios' ? 60 : 20, 
+    },
     container: { width: "100%", maxWidth: 980, alignSelf: "center" },
-
     topRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 16 },
     kicker: { color: COLORS.textMuted, fontSize: 13, letterSpacing: 0.8, textTransform: "uppercase" },
     title: { color: "#fff", fontWeight: "800", marginTop: 4 },
-
     iconBtn: {
         width: 46,
         height: 46,
@@ -341,56 +231,27 @@ const styles = StyleSheet.create({
         backgroundColor: COLORS.inputBg,
         alignItems: "center",
         justifyContent: "center",
-        overflow: Platform.OS === "android" ? "hidden" : "visible",
     },
-
     balanceCard: {
         backgroundColor: COLORS.inputBg,
         borderWidth: 1,
         borderColor: COLORS.border,
         borderRadius: 22,
         overflow: "hidden",
-        shadowColor: COLORS.primary,
-        shadowOpacity: 0.16,
-        shadowRadius: 16,
-        shadowOffset: { width: 0, height: 6 },
         elevation: 8,
     },
     balanceGlow: { position: "absolute", left: 0, right: 0, top: 0, height: 120 },
     balanceLabel: { color: COLORS.textMuted, fontSize: 14, fontWeight: "600" },
-
     balanceRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginTop: 10 },
     balanceValue: { color: "#fff", fontWeight: "900" },
-
     pill: { flexDirection: "row", alignItems: "center", paddingHorizontal: 10, paddingVertical: 6, borderRadius: 999, borderWidth: 1 },
     pillText: { fontSize: 13, fontWeight: "800", marginLeft: 6 },
     balanceSub: { marginTop: 6, color: COLORS.textMutedSoft, fontSize: 13 },
-
     twoColsWrap: { marginTop: 10 },
-
-    // ✅ sección normal (móvil)
-    sectionRow: {
-        flexDirection: "row",
-        alignItems: "center",
-        justifyContent: "space-between",
-        marginTop: 18,
-        marginBottom: 10,
-    },
-
-    // ✅ sección PC (alineación perfecta)
-    sectionRowPC: {
-        flexDirection: "row",
-        alignItems: "center",
-        justifyContent: "space-between",
-        marginTop: 18,
-        marginBottom: 10,
-    },
-
+    sectionRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginTop: 18, marginBottom: 10 },
     sectionTitle: { color: "#fff", fontSize: 18, fontWeight: "800" },
-
     card: { backgroundColor: COLORS.inputBg, borderWidth: 1, borderColor: COLORS.border, borderRadius: 20, overflow: "hidden" },
     divider: { height: 1, backgroundColor: "rgba(59,84,69,0.7)", marginLeft: 16 },
-
     assetRow: { paddingHorizontal: 16, paddingVertical: 14 },
     assetLeft: { flexDirection: "row", alignItems: "center" },
     coinBadge: {
@@ -407,11 +268,9 @@ const styles = StyleSheet.create({
     coinBadgeText: { color: "#fff", fontWeight: "900", letterSpacing: 0.6 },
     assetName: { color: "#fff", fontSize: 15, fontWeight: "800" },
     assetSub: { color: COLORS.textMutedSoft, fontSize: 13, marginTop: 2 },
-
     assetRight: { position: "absolute", right: 16, top: 14, alignItems: "flex-end" },
     assetValue: { color: "#fff", fontSize: 15, fontWeight: "900" },
     assetChange: { marginTop: 4, fontSize: 13, fontWeight: "800" },
-
     movRow: { paddingHorizontal: 16, paddingVertical: 14 },
     movLeft: { flexDirection: "row", alignItems: "center" },
     movIconWrap: {

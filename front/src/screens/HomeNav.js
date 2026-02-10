@@ -4,6 +4,7 @@ import PerfilUsuario from './perfilUsuario/perfilUsuario';
 import MenuTransacciones from './menuTransacciones/menuTransacciones'
 import MenuPrincipal from './menuPrincipal/menuPrincipal';
 import Billetera from './billetera/billetera';
+import MenuNoticias from './menuNoticias/menuNoticias'
 
 const Stack = createStackNavigator();
 
@@ -13,6 +14,7 @@ const HomeNav = () => {
         <Stack.Screen name="PerfilUsuario" component={PerfilUsuario} />
         <Stack.Screen name="MenuTransacciones" component={MenuTransacciones} />
         <Stack.Screen name="Billetera" component={Billetera} />
+        <Stack.Screen name="MenuNoticias" component={MenuNoticias} />
       </Stack.Navigator>
   );
 };
