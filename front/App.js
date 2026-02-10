@@ -5,8 +5,10 @@ import { Provider } from "./src/context/Context";
 
 import InicioSesion from "./src/screens/inicioSesion/inicioSesion";
 import RegistroUsuario from "./src/screens/registroUsuario/registroUsuario";
-import Billetera from "./src/screens/billetera/billetera";
+import HomeNav from './src/screens/HomeNav';
+import MenuTransacciones from "./src/screens/menuTransacciones/menuTransacciones";
 import MenuPrincipal from "./src/screens/menuPrincipal/menuPrincipal";
+
 
 const Stack = createStackNavigator();
 
@@ -18,6 +20,8 @@ const App = () => (
         <Stack.Screen name="Billetera" component={Billetera} />
         <Stack.Screen name="InicioSesion" component={InicioSesion} />
         <Stack.Screen name="RegistroUsuario" component={RegistroUsuario} />
+        <Stack.Screen name="HomeNav" component={HomeNav} />
+        <Stack.Screen name="MenuTransacciones" component={MenuTransacciones} />
       </Stack.Navigator>
     </NavigationContainer>
   </Provider>
