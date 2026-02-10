@@ -13,7 +13,7 @@ import {
 import { MaterialIcons } from "@expo/vector-icons";
 import Nav from "../../components/Nav";
 
-const API_KEY = "TU_API_KEY_AQUI"; 
+const API_KEY = "698b5155dbadb1.67947020"; 
 const API_URL = `https://www.alphavantage.co/query?function=NEWS_SENTIMENT&topics=economy_macro,finance&apikey=${API_KEY}`;
 
 const menuNoticias = () => {
