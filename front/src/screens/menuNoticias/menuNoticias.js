@@ -13,9 +13,10 @@ import {
 import { MaterialIcons } from "@expo/vector-icons";
 import Nav from "../../components/Nav";
 
-const API_KEY = "698b5155dbadb1.67947020"; 
-const API_URL = `https://www.alphavantage.co/query?function=NEWS_SENTIMENT&topics=economy_macro,finance&apikey=${API_KEY}`;
+import getData from "../../services/services"; 
 
+const API_KEY = "698b5155dbadb1.67947020"; 
+const API_URL = `https://www.alphavantage.co/query?function=NEWS_SENTIMENT&topics=economy_macro,finance&limit=15&apikey=${API_KEY}`;
 const menuNoticias = () => {
   const [news, setNews] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -24,22 +25,27 @@ const menuNoticias = () => {
     fetchNews();
   }, []);
 
-  const fetchNews = async () => {
-    try {
-      const response = await fetch(API_URL);
-      const data = await response.json();
-      setNews(data.feed || []);
-      setLoading(false);
-    } catch (error) {
-      console.error("Error cargando menuNoticias:", error);
-      setLoading(false);
-    }
-  };
+const fetchNews = async () => {
+  setLoading(true);
+  const data = await getData(API_URL, null); 
+  
+  if (data && data.feed) {
+    setNews(data.feed);
+  } else {
+    console.log("Error de la API:", data); 
+  }
+  setLoading(false);
+};
 
   const getSentimentStyle = (score) => {
     if (score > 0.15) return { color: "#2bee79", label: "Optimista" };
     if (score < -0.15) return { color: "#ff6b6b", label: "Bajista" };
     return { color: "#9db9a8", label: "Neutral" };
+  };
+
+  const formatFecha = (str) => {
+    // Transforma 20240520T1030 -> 20/05/2024
+    return str.replace(/^(\d{4})(\d{2})(\d{2}).*/, '$3/$2/$1');
   };
 
   return (
@@ -75,7 +81,9 @@ const menuNoticias = () => {
                     <Text style={[styles.sentimentLabel, { color: sentiment.color }]}>
                       {sentiment.label}
                     </Text>
-                    <Text style={styles.newsSource}>{item.source} • {item.time_published.slice(0,8)}</Text>
+                    <Text style={styles.newsSource}>
+                        {item.source} • {formatFecha(item.time_published)}
+                    </Text>
                   </View>
 
                   <Text style={styles.newsTitle} numberOfLines={2}>
