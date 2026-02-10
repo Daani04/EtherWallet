@@ -8,9 +8,9 @@ import {
   ScrollView,
   Switch,
   SafeAreaView,
-  Pressable
 } from "react-native";
 import Icon from "react-native-vector-icons/MaterialIcons";
+import Nav from "../../components/Nav"; 
 
 const COLORS = {
   primary: "#2bee79",
@@ -87,35 +87,13 @@ export default function PerfilUsuario(props) {
         <Text style={styles.version}>Versión 2.4.0 (Build 592)</Text>
       </ScrollView>
 
-      {/* BARRA INFERIOR */}
-      <View style={styles.bottomBar}>
-        <Pressable onPress={() => props.navigation.navigate('HomeNav')}>
-          <BottomItem icon="account-balance-wallet" label="Billetera" />
-        </Pressable>
-
-        <Pressable onPress={() => props.navigation.navigate('HomeNav')}>
-        <BottomItem icon="candlestick-chart" label="Mercado" />
-        </Pressable>
-
-        <Pressable onPress={() => props.navigation.navigate('HomeNav')}>
-          <View style={styles.centerButton}>
-            <Icon name="swap-vert" size={28} color="#000" />
-          </View>
-        </Pressable>
-
-        <Pressable onPress={() => props.navigation.navigate('HomeNav')}>
-          <BottomItem icon="history" label="Historial" />
-        </Pressable>
-
-        <Pressable onPress={() => props.navigation.navigate('HomeNav')}>
-          <BottomItem icon="settings" label="Ajustes" active />
-        </Pressable>
-      </View>
+      {/* LLAMADA AL COMPONENTE DE NAVEGACIÓN */}
+      <Nav />
     </SafeAreaView>
   );
 }
 
-/* ================= COMPONENTES ================= */
+/* ================= COMPONENTES INTERNOS ================= */
 
 const Section = ({ title, children }) => (
   <View style={styles.section}>
@@ -139,15 +117,6 @@ const Item = ({ icon, label, subLabel, rightText, children }) => (
         <Icon name="chevron-right" size={22} color="rgba(255,255,255,0.2)" />
       </View>
     )}
-  </TouchableOpacity>
-);
-
-const BottomItem = ({ icon, label, active }) => (
-  <TouchableOpacity style={styles.bottomItem}>
-    <Icon name={icon} size={24} color={active ? COLORS.primary : "#888"} />
-    <Text style={[styles.bottomText, active && { color: COLORS.primary }]}>
-      {label}
-    </Text>
   </TouchableOpacity>
 );
 
@@ -275,34 +244,5 @@ const styles = StyleSheet.create({
     textAlign: "center",
     fontSize: 12,
     color: COLORS.muted,
-  },
-  bottomBar: {
-    position: "absolute",
-    bottom: 0,
-    width: "100%",
-    height: 75,
-    flexDirection: "row",
-    justifyContent: "space-around",
-    alignItems: "center",
-    backgroundColor: "rgba(13, 26, 18, 0.98)",
-    borderTopWidth: 1,
-    borderTopColor: "rgba(255,255,255,0.05)",
-  },
-  bottomItem: {
-    alignItems: "center",
-  },
-  bottomText: {
-    fontSize: 10,
-    marginTop: 4,
-    color: "#888",
-  },
-  centerButton: {
-    width: 54,
-    height: 54,
-    borderRadius: 27,
-    backgroundColor: COLORS.primary,
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: 25,
   },
 });
