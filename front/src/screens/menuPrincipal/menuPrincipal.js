@@ -9,6 +9,8 @@ import {
 import { MaterialIcons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 
+import Nav from "../../components/Nav"
+
 const MenuPrincipal = ({ navigation }) => {
   const saldoTotal = 4906.0;
   const variacion24h = 2.84;
@@ -118,6 +120,7 @@ const MenuPrincipal = ({ navigation }) => {
           </ScrollView>
         </View>
       </ScrollView>
+        <Nav />
     </View>
   );
 };

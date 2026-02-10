@@ -20,8 +20,8 @@ const BottomBar = () => {
     <View style={styles.bottomBar}>
       <TabItem 
         icon="candlestick-chart" 
-        label="Mercado"
-        onPress={() => {}}  
+        label="Inicio"
+        onPress={() => navigation.navigate('MenuPrincipal')}  
       />
 
       <TabItem 
@@ -38,7 +38,7 @@ const BottomBar = () => {
         </View>
       </Pressable>
 
-      <TabItem 
+      <TabItem
         icon="article" 
         label="Noticias" 
         onPress={() => {}} 
@@ -50,6 +50,7 @@ const BottomBar = () => {
         active={isActive('PerfilUsuario')} 
         onPress={() => navigation.navigate('PerfilUsuario')} 
     />
+    
     </View>
   );
 };
