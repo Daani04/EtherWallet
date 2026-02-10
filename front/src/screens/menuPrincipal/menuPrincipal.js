@@ -20,6 +20,8 @@ const MenuPrincipal = ({ navigation }) => {
     { symbol: "BNB", name: "BNB", price: 312.5, change: 0.85 },
     { symbol: "XRP", name: "XRP", price: 0.54, change: -0.42 },
     { symbol: "ADA", name: "Cardano", price: 0.48, change: 1.22 },
+    { symbol: "DOGE", name: "Dogecoin", price: 0.12, change: -2.1 },
+    { symbol: "AVAX", name: "Avalanche", price: 35.2, change: 3.4 },
   ];
 
   const [favoritas, setFavoritas] = useState(["BTC"]);
@@ -32,20 +34,18 @@ const MenuPrincipal = ({ navigation }) => {
     );
   };
 
-  const formatEUR = (n) => n.toFixed(2).replace(".", ",") + " €";
-
-  const sube = variacion24h >= 0;
-  const colorTrend = sube ? COLORS.primaryDark : COLORS.danger;
-
   const favoritasList = mercado.filter((c) =>
     favoritas.includes(c.symbol)
   );
 
+  const formatEUR = (n) => n.toFixed(2).replace(".", ",") + " €";
+  const sube = variacion24h >= 0;
+
   return (
     <View style={styles.safe}>
-      {/* Blob decorativo */}
-      <View style={[styles.blob, styles.blobTop]} />
+      <View style={styles.blob} />
 
+      {/* 🔑 SCROLL GENERAL */}
       <ScrollView
         style={{ flex: 1 }}
         contentContainerStyle={styles.container}
@@ -57,7 +57,6 @@ const MenuPrincipal = ({ navigation }) => {
             colors={[COLORS.primarySoft, "transparent"]}
             style={styles.balanceGlow}
           />
-
           <Text style={styles.balanceLabel}>Balance total</Text>
           <Text style={styles.balanceValue}>{formatEUR(saldoTotal)}</Text>
 
@@ -65,13 +64,18 @@ const MenuPrincipal = ({ navigation }) => {
             <MaterialIcons
               name={sube ? "trending-up" : "trending-down"}
               size={18}
-              color={colorTrend}
+              color={sube ? COLORS.primaryDark : COLORS.danger}
             />
-            <Text style={[styles.balanceChange, { color: colorTrend }]}>
+            <Text
+              style={[
+                styles.balanceChange,
+                { color: sube ? COLORS.primaryDark : COLORS.danger },
+              ]}
+            >
               {sube ? "+" : ""}
               {variacion24h}%
             </Text>
-            <Text style={styles.balanceSub}>últimas 24h</Text>
+            <Text style={styles.balanceSub}>24h</Text>
           </View>
         </View>
 
@@ -83,28 +87,35 @@ const MenuPrincipal = ({ navigation }) => {
           <Action icon="north-east" label="Send" />
         </View>
 
-        {/* ⭐ FAVORITAS */}
+        {/* ⭐ FAVORITAS (SCROLL INTERNO) */}
         {favoritasList.length > 0 && (
           <View style={styles.card}>
             <Text style={styles.sectionTitle}>Favoritas</Text>
 
-            {favoritasList.map((coin) => (
-              <CoinRow
-                key={coin.symbol}
-                coin={coin}
-                isFav
-                onToggle={toggleFavorita}
-              />
-            ))}
+            <ScrollView
+              style={{ maxHeight: 200 }}
+              nestedScrollEnabled
+              showsVerticalScrollIndicator={false}
+            >
+              {favoritasList.map((coin) => (
+                <CoinRow
+                  key={coin.symbol}
+                  coin={coin}
+                  isFav
+                  onToggle={toggleFavorita}
+                />
+              ))}
+            </ScrollView>
           </View>
         )}
 
-        {/* 📈 MERCADO */}
+        {/* 📈 MERCADO (SCROLL INTERNO) */}
         <View style={styles.card}>
           <Text style={styles.sectionTitle}>Mercado</Text>
 
           <ScrollView
             style={{ maxHeight: 280 }}
+            nestedScrollEnabled
             showsVerticalScrollIndicator={false}
           >
             {mercado.map((coin) => (
@@ -117,12 +128,15 @@ const MenuPrincipal = ({ navigation }) => {
             ))}
           </ScrollView>
         </View>
+
+        {/* Espacio final para forzar scroll */}
+        <View style={{ height: 40 }} />
       </ScrollView>
     </View>
   );
 };
 
-/* ========= COMPONENTES ========= */
+/* ===== COMPONENTES ===== */
 
 const CoinRow = ({ coin, isFav, onToggle }) => {
   const up = coin.change >= 0;
@@ -149,18 +163,11 @@ const CoinRow = ({ coin, isFav, onToggle }) => {
           {coin.change.toFixed(2)}%
         </Text>
 
-        <TouchableOpacity
-          style={[
-            styles.starBtn,
-            isFav && { backgroundColor: COLORS.primarySoft },
-          ]}
-          onPress={() => onToggle(coin.symbol)}
-          activeOpacity={0.8}
-        >
+        <TouchableOpacity onPress={() => onToggle(coin.symbol)}>
           <MaterialIcons
             name={isFav ? "star" : "star-border"}
-            size={20}
-            color={isFav ? COLORS.primary : COLORS.textMuted}
+            size={22}
+            color={isFav ? COLORS.gold : COLORS.textMuted}
           />
         </TouchableOpacity>
       </View>
@@ -169,7 +176,7 @@ const CoinRow = ({ coin, isFav, onToggle }) => {
 };
 
 const Action = ({ icon, label }) => (
-  <TouchableOpacity style={styles.actionBtn} activeOpacity={0.85}>
+  <TouchableOpacity style={styles.actionBtn}>
     <View style={styles.actionIcon}>
       <MaterialIcons name={icon} size={20} color={COLORS.primary} />
     </View>
@@ -177,11 +184,10 @@ const Action = ({ icon, label }) => (
   </TouchableOpacity>
 );
 
-/* ========= COLORES ========= */
+/* ===== ESTILOS ===== */
 
 const COLORS = {
   backgroundDark: "#102217",
-
   cardBg: "#1f2e26",
   border: "#355b49",
 
@@ -190,14 +196,12 @@ const COLORS = {
   primaryDark: "#1bbf63",
 
   danger: "#ff5c5c",
-  dangerSoft: "rgba(255,92,92,0.15)",
+  gold: "#f5c26b",
 
   textMain: "#ffffff",
   textMuted: "#9db9a8",
   textSoft: "rgba(255,255,255,0.65)",
 };
-
-/* ========= ESTILOS ========= */
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: COLORS.backgroundDark },
@@ -212,7 +216,10 @@ const styles = StyleSheet.create({
     right: -220,
   },
 
-  container: { padding: 20, paddingBottom: 40 },
+  container: {
+    padding: 20,
+    paddingBottom: 20,
+  },
 
   balanceCard: {
     backgroundColor: COLORS.cardBg,
@@ -222,35 +229,22 @@ const styles = StyleSheet.create({
     borderColor: COLORS.border,
     marginBottom: 26,
     overflow: "hidden",
-    shadowColor: COLORS.primary,
-    shadowOpacity: 0.18,
-    shadowRadius: 16,
-    elevation: 6,
-  },
-  balanceGlow: {
-    position: "absolute",
-    top: 0,
-    height: 160,
-    left: 0,
-    right: 0,
-  },
-  balanceLabel: { color: COLORS.textMuted, fontSize: 14 },
-  balanceValue: {
-    color: COLORS.textMain,
-    fontSize: 36,
-    fontWeight: "900",
-    marginTop: 6,
   },
 
-  balanceRow: { flexDirection: "row", alignItems: "center", marginTop: 8 },
+  balanceGlow: { position: "absolute", top: 0, height: 160, left: 0, right: 0 },
+  balanceLabel: { color: COLORS.textMuted },
+  balanceValue: { color: COLORS.textMain, fontSize: 36, fontWeight: "900" },
+
+  balanceRow: { flexDirection: "row", alignItems: "center", marginTop: 6 },
   balanceChange: { marginLeft: 6, fontWeight: "800" },
-  balanceSub: { marginLeft: 8, color: COLORS.textMuted, fontSize: 13 },
+  balanceSub: { marginLeft: 8, color: COLORS.textMuted },
 
   actionsRow: {
     flexDirection: "row",
     justifyContent: "space-between",
-    marginBottom: 28,
+    marginBottom: 26,
   },
+
   actionBtn: { alignItems: "center", flex: 1 },
   actionIcon: {
     width: 46,
@@ -263,11 +257,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     marginBottom: 6,
   },
-  actionText: {
-    color: COLORS.textMain,
-    fontWeight: "700",
-    fontSize: 13,
-  },
+  actionText: { color: COLORS.textMain, fontWeight: "700", fontSize: 13 },
 
   card: {
     backgroundColor: COLORS.cardBg,
@@ -282,7 +272,7 @@ const styles = StyleSheet.create({
     color: COLORS.textMain,
     fontSize: 18,
     fontWeight: "800",
-    marginBottom: 10,
+    marginBottom: 8,
   },
 
   marketRow: {
@@ -292,8 +282,9 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: COLORS.border,
   },
+
   marketLeft: { flexDirection: "row", alignItems: "center" },
-  marketRight: { alignItems: "flex-end", gap: 6 },
+  marketRight: { alignItems: "flex-end" },
 
   coinBadge: {
     width: 40,
@@ -306,16 +297,12 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     marginRight: 12,
   },
+
   coinBadgeText: { color: COLORS.textMain, fontWeight: "900" },
   coinName: { color: COLORS.textMain, fontWeight: "800" },
-  coinPrice: { color: COLORS.textSoft, fontSize: 13 },
+  coinPrice: { color: COLORS.textSoft },
 
   coinChange: { fontWeight: "800" },
-
-  starBtn: {
-    padding: 6,
-    borderRadius: 10,
-  },
 });
 
 export default MenuPrincipal;

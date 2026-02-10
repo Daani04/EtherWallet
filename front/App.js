@@ -8,6 +8,7 @@ import RegistroUsuario from "./src/screens/registroUsuario/registroUsuario";
 import HomeNav from './src/screens/HomeNav';
 import MenuTransacciones from "./src/screens/menuTransacciones/menuTransacciones";
 import MenuPrincipal from "./src/screens/menuPrincipal/menuPrincipal";
+import Billetera from "./src/screens/billetera/billetera";
 
 
 const Stack = createStackNavigator();
