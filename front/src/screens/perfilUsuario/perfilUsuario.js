@@ -87,7 +87,6 @@ export default function PerfilUsuario(props) {
         <Text style={styles.version}>Versión 2.4.0 (Build 592)</Text>
       </ScrollView>
 
-      {/* LLAMADA AL COMPONENTE DE NAVEGACIÓN */}
       <Nav />
     </SafeAreaView>
   );

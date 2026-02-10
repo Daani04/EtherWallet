@@ -9,7 +9,7 @@ const COLORS = {
   white: "#ffffff",
 };
 
-const Nav = () => {
+const BottomBar = () => {
   const navigation = useNavigation();
   const route = useRoute(); // Para saber en qué pantalla estamos
 
@@ -17,12 +17,11 @@ const Nav = () => {
   const isActive = (screenName) => route.name === screenName;
 
   return (
-    <View style={styles.Nav}>
+    <View style={styles.bottomBar}>
       <TabItem 
         icon="candlestick-chart" 
-        label="Mercado" 
-        active={isActive('PerfilUsuario')} 
-        onPress={() => navigation.navigate('PerfilUsuario')} 
+        label="Mercado"
+        onPress={() => {}}  
       />
 
       <TabItem 
@@ -42,14 +41,15 @@ const Nav = () => {
       <TabItem 
         icon="article" 
         label="Noticias" 
-        onPress={() => {}} // Añade tu ruta aquí
+        onPress={() => {}} 
       />
 
       <TabItem 
         icon="settings" 
         label="Ajustes" 
-        onPress={() => {}} 
-      />
+        active={isActive('PerfilUsuario')} 
+        onPress={() => navigation.navigate('PerfilUsuario')} 
+    />
     </View>
   );
 };
@@ -64,7 +64,7 @@ const TabItem = ({ icon, label, active, onPress }) => (
 );
 
 const styles = StyleSheet.create({
-  Nav: {
+  bottomBar: {
     position: "absolute",
     bottom: 0,
     width: "100%",
@@ -103,4 +103,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default Nav;
+export default BottomBar;

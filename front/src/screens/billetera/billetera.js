@@ -10,6 +10,8 @@ import {
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
+import Nav from "../../components/Nav"; 
+
 
 const Billetera = (props) => {
     const [ocultarSaldo, setOcultarSaldo] = useState(false);
@@ -299,6 +301,7 @@ const Billetera = (props) => {
 
                     <View style={{ height: 30 }} />
                 </View>
+                      <Nav />
             </ScrollView>
         </View>
     );
