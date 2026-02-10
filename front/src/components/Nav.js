@@ -21,6 +21,7 @@ const BottomBar = () => {
       <TabItem 
         icon="candlestick-chart" 
         label="Inicio"
+        active={isActive('MenuPrincipal')} 
         onPress={() => navigation.navigate('MenuPrincipal')}  
       />
 
@@ -41,6 +42,7 @@ const BottomBar = () => {
       <TabItem
         icon="article" 
         label="Noticias" 
+        active={isActive('MenuNoticias')} 
         onPress={() => navigation.navigate('MenuNoticias')} 
       />
 

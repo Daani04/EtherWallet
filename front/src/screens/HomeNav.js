@@ -11,6 +11,7 @@ const Stack = createStackNavigator();
 const HomeNav = () => {
   return (
       <Stack.Navigator screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="MenuPrincipal" component={MenuPrincipal} />
         <Stack.Screen name="PerfilUsuario" component={PerfilUsuario} />
         <Stack.Screen name="MenuTransacciones" component={MenuTransacciones} />
         <Stack.Screen name="Billetera" component={Billetera} />
