@@ -17,10 +17,15 @@ public class UserController {
     private UserRepository userRepository;
 
     @PostMapping("/API/NewUser")
-    public ResponseEntity<Object> addNewUser(@RequestBody User newUser) {
-
-        userRepository.save(newUser);
-        System.out.println("Usuario insertado: " + newUser.getFirstName());
-        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+    public ResponseEntity<Object> metodoEndpoint(@RequestBody User newUser) {
+        try {
+            userRepository.save(newUser);
+            System.out.println("EXITO: Usuario guardado en Mongo");
+            return ResponseEntity.status(HttpStatus.CREATED).build();
+        } catch (Exception e) {
+            System.out.println("ERROR AL GUARDAR: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
 }
