@@ -84,7 +84,7 @@ export default function PerfilUsuario(props) {
           <Text style={styles.logoutText}>Cerrar Sesión</Text>
         </TouchableOpacity>
 
-        <Text style={styles.version}>Versión 2.4.0 (Build 592)</Text>
+        <Text style={styles.version}>Versión 0.1.0</Text>
       </ScrollView>
 
       <Nav />
@@ -118,8 +118,6 @@ const Item = ({ icon, label, subLabel, rightText, children }) => (
     )}
   </TouchableOpacity>
 );
-
-/* ================= ESTILOS ================= */
 
 const styles = StyleSheet.create({
   container: {
