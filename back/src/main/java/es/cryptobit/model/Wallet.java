@@ -3,7 +3,7 @@ package es.cryptobit.model;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
-@Document(collection = "wallets")
+@Document(collection = "wallet")
 public class Wallet {
 
     @Id

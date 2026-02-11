@@ -17,21 +17,6 @@ public class User {
     private String userImage;
     private String favoriteId;
 
-    public User() {
-    }
-
-    public User(String firstName, String lastName, String dni, String email,
-                String birthDate, String password, String userImage, String favoriteId) {
-        this.firstName = firstName;
-        this.lastName = lastName;
-        this.dni = dni;
-        this.email = email;
-        this.birthDate = birthDate;
-        this.password = password;
-        this.userImage = userImage;
-        this.favoriteId = favoriteId;
-    }
-
     public String getId() {
         return id;
     }
