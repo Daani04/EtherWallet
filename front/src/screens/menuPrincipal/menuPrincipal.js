@@ -16,23 +16,113 @@ import {
 } from 'lucide-react-native';
 import Svg, { Path } from 'react-native-svg';
 
-import Nav from '../../components/Nav';
+const MenuPrincipal = ({ navigation }) => {
+  const totalBalance = 4906.0;
+  const variation24h = 2.84;
 
-const { width } = Dimensions.get('window');//Para diseño responsive 
+  const market = [
+    { symbol: "BTC", name: "Bitcoin", price: 41250, change: 2.15 },
+    { symbol: "ETH", name: "Ethereum", price: 2210, change: -1.02 },
+    { symbol: "SOL", name: "Solana", price: 98.4, change: 4.72 },
+    { symbol: "BNB", name: "BNB", price: 312.5, change: 0.85 },
+  ];
 
-const COLORS = {
-  primary: "#2bee79",
-  backgroundDark: "#102217",
-  surfaceDark: "#162b20",
-  textMuted: "#94a3b8",
-};
+  const [favourites, setFavourites] = useState(["BTC"]);
 
-export default function CryptoTrackerNative() {
-  const [search, setSearch] = useState("");
+  const toggleFavourite = (symbol) => {
+    setFavourites((prev) =>
+      prev.includes(symbol)
+        ? prev.filter((s) => s !== symbol)
+        : [...prev, symbol]
+    );
+  };
+
+  const formatEUR = (n) => n.toFixed(2).replace(".", ",") + " €";
+
+  const goUp = variation24h >= 0;
+  const colourTrend = goUp ? COLORS.primaryDark : COLORS.danger;
+
+  const favouritesList = market.filter((c) =>
+    favourites.includes(c.symbol)
+  );
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <View style={styles.container}>
+    <SafeAreaView style={styles.safe}>
+      {/* Blobs de fondo */}
+      <View style={styles.blob} />
+
+      {/* CABECERA FIJA */}
+      <View style={styles.headerFixed}>
+        <Text style={styles.kicker}>Mercado</Text>
+        <Text style={styles.title}>Mercado en tiempo real</Text>
+      </View>
+
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* BALANCE */}
+        <View style={styles.balanceCard}>
+          <LinearGradient colors={[COLORS.primarySoft, "transparent"]} style={styles.balanceGlow} />
+          <Text style={styles.balanceLabel}>Balance total</Text>
+          <Text style={styles.balanceValue}>{formatEUR(totalBalance)}</Text>
+
+          <View style={styles.balanceRow}>
+            <MaterialIcons
+              name={goUp ? "trending-up" : "trending-down"}
+              size={18}
+              color={colourTrend}
+            />
+            <Text style={[styles.balanceChange, { color: colourTrend }]}>
+              {goUp ? "+" : ""}
+              {variation24h}%
+            </Text>
+            <Text style={styles.balanceSub}>últimas 24h</Text>
+          </View>
+        </View>
+
+        {/* ACCIONES */}
+        <View style={styles.actionsRow}>
+          <Action icon="add" label="Buy" />
+          <Action icon="south-west" label="Sell" />
+          <Action icon="swap-horiz" label="Swap" />
+          <Action icon="north-east" label="Send" />
+        </View>
+
+        {/* ⭐ FAVORITAS */}
+        {favouritesList.length > 0 && (
+          <View style={styles.card}>
+            <Text style={styles.sectionTitle}>Favoritas</Text>
+
+            {favouritesList.map((coin) => (
+              <CoinRow
+                key={coin.symbol}
+                coin={coin}
+                isFav
+                onToggle={toggleFavourite}
+              />
+            ))}
+          </View>
+        )}
+
+        {/* 📈 MERCADO */}
+        <View style={styles.card}>
+          <Text style={styles.sectionTitle}>Mercado</Text>
+
+          <ScrollView
+            style={{ maxHeight: 280 }}
+            showsVerticalScrollIndicator={false}
+          >
+            {market.map((coin) => (
+              <CoinRow
+                key={coin.symbol}
+                coin={coin}
+                isFav={favourites.includes(coin.symbol)}
+                onToggle={toggleFavourite}
+              />
+            ))}
+          </ScrollView>
+        </View>
         
         <ScrollView showsVerticalScrollIndicator={false}>
           
@@ -112,22 +202,24 @@ export default function CryptoTrackerNative() {
   );
 }
 
-//Tarjetas de tendencias
-const TrendingCard = ({ name, symbol, price, change, isPositive, icon: Icon, color, path }) => (
-  <View style={styles.trendingCard}>
-    <View style={styles.cardHeader}>
-      <View style={styles.coinInfo}>
-        <View style={[styles.iconContainer, { backgroundColor: color }]}>
-          <Icon size={20} color="white" />
-        </View>
+/* COMPONENTES INTERNOS */
+const CoinRow = ({ coin, isFav, onToggle }) => {
+  const up = coin.change >= 0;
+  const colour = up ? COLORS.primaryDark : COLORS.danger;
+
+  return (
+    <View style={styles.marketRow}>
+      <View style={styles.marketLeft}>
+        <View style={styles.coinBadge}><Text style={styles.coinBadgeText}>{coin.symbol}</Text></View>
         <View>
           <Text style={styles.coinName}>{name}</Text>
           <Text style={styles.coinSymbol}>{symbol}</Text>
         </View>
       </View>
-      <View style={[styles.badge, { backgroundColor: isPositive ? 'rgba(43,238,121,0.2)' : 'rgba(239,68,68,0.1)' }]}>
-        <Text style={[styles.badgeText, { color: isPositive ? COLORS.primary : "#ef4444" }]}>
-          {isPositive ? '↑' : '↓'} {change}%
+      <View style={styles.marketRight}>
+        <Text style={[styles.coinChange, { color: colour }]}>
+          {up ? "+" : ""}
+          {coin.change.toFixed(2)}%
         </Text>
       </View>
     </View>
