@@ -6,12 +6,10 @@ import org.bson.json.JsonObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 public class UserController {
@@ -38,5 +36,64 @@ public class UserController {
     public ResponseEntity<List<User>> getAllUsers() {
         List<User> users = userRepository.findAll();
         return ResponseEntity.ok(users);
+    }
+
+    // http://localhost:8080/API/EditUser/{id}
+    @PutMapping("/EditUser/{id}")
+    public ResponseEntity<Object> updateUser(
+            @PathVariable String id,
+            @RequestBody User updatedUser) {
+
+        try {
+            Optional<User> optionalUser = userRepository.findById(id);
+
+            if (optionalUser.isEmpty()) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body("Usuario no encontrado");
+            }
+
+            User existingUser = optionalUser.get();
+
+            // Actualizar TODOS los campos
+            existingUser.setFirstName(updatedUser.getFirstName());
+            existingUser.setLastName(updatedUser.getLastName());
+            existingUser.setDni(updatedUser.getDni());
+            existingUser.setEmail(updatedUser.getEmail());
+            existingUser.setPassword(updatedUser.getPassword());
+            existingUser.setBirthDate(updatedUser.getBirthDate());
+            existingUser.setUserImage(updatedUser.getUserImage());
+            existingUser.setFavoriteId(updatedUser.getFavoriteId());
+
+            userRepository.save(existingUser);
+
+            return ResponseEntity.ok(existingUser);
+
+        } catch (Exception e) {
+            System.out.println("ERROR AL ACTUALIZAR: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error al actualizar usuario");
+        }
+    }
+
+    // http://localhost:8080/API/DeleteUser/{id}
+    @DeleteMapping("/DeleteUser/{id}")
+    public ResponseEntity<Object> deleteUser(@PathVariable String id) {
+
+        try {
+
+            if (!userRepository.existsById(id)) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body("Usuario no encontrado");
+            }
+
+            userRepository.deleteById(id);
+
+            return ResponseEntity.ok("Usuario eliminado correctamente");
+
+        } catch (Exception e) {
+            System.out.println("ERROR AL BORRAR: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error al borrar usuario");
+        }
     }
 }
