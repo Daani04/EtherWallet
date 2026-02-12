@@ -26,7 +26,6 @@ export default function PerfilUsuario(props) {
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* CABECERA */}
       <View style={styles.header}>
         <TouchableOpacity>
           <Icon name="arrow-back-ios-new" size={22} color={COLORS.white} />
@@ -36,7 +35,6 @@ export default function PerfilUsuario(props) {
       </View>
 
       <ScrollView contentContainerStyle={{ paddingBottom: 100 }}>
-        {/* PERFIL */}
         <View style={styles.profileContainer}>
           <View>
             <Image
@@ -55,7 +53,6 @@ export default function PerfilUsuario(props) {
           </View>
         </View>
 
-        {/* SECCIONES */}
         <Section title="Cuenta">
           <Item icon="person" label="Editar Perfil" />
           <Item icon="badge" label="Verificación KYC" subLabel="Verificado nivel 2" />
@@ -78,7 +75,6 @@ export default function PerfilUsuario(props) {
           <Item icon="currency-exchange" label="Moneda Local" rightText="USD" />
         </Section>
 
-        {/* CERRAR SESIÓN */}
         <TouchableOpacity style={styles.logoutBtn}>
           <Icon name="logout" size={20} color="#ff4444" />
           <Text style={styles.logoutText}>Cerrar Sesión</Text>
@@ -92,7 +88,6 @@ export default function PerfilUsuario(props) {
   );
 }
 
-/* ================= COMPONENTES INTERNOS ================= */
 
 const Section = ({ title, children }) => (
   <View style={styles.section}>
@@ -119,7 +114,6 @@ const Item = ({ icon, label, subLabel, rightText, children }) => (
   </TouchableOpacity>
 );
 
-/* ================= ESTILOS ================= */
 
 const styles = StyleSheet.create({
   container: {
