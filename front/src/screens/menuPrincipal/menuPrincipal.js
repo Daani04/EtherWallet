@@ -106,9 +106,9 @@ export default function MenuPrincipal({ navigation }) {
           <View style={{ height: 120 }} />
         </ScrollView>
 
-        <Nav />
 
       </View>
+          <Nav />
     </SafeAreaView>
   );
 }
