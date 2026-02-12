@@ -12,10 +12,10 @@ import { LinearGradient } from "expo-linear-gradient";
 import Nav from "../../components/Nav"
 
 const MenuPrincipal = ({ navigation }) => {
-  const saldoTotal = 4906.0;
-  const variacion24h = 2.84;
+  const totalBalance = 4906.0;
+  const variation24h = 2.84;
 
-  const mercado = [
+  const market = [
     { symbol: "BTC", name: "Bitcoin", price: 41250, change: 2.15 },
     { symbol: "ETH", name: "Ethereum", price: 2210, change: -1.02 },
     { symbol: "SOL", name: "Solana", price: 98.4, change: 4.72 },
@@ -24,10 +24,10 @@ const MenuPrincipal = ({ navigation }) => {
     { symbol: "ADA", name: "Cardano", price: 0.48, change: 1.22 },
   ];
 
-  const [favoritas, setFavoritas] = useState(["BTC"]);
+  const [favourites, setFavourites] = useState(["BTC"]);
 
-  const toggleFavorita = (symbol) => {
-    setFavoritas((prev) =>
+  const toggleFavourite = (symbol) => {
+    setFavourites((prev) =>
       prev.includes(symbol)
         ? prev.filter((s) => s !== symbol)
         : [...prev, symbol]
@@ -36,11 +36,11 @@ const MenuPrincipal = ({ navigation }) => {
 
   const formatEUR = (n) => n.toFixed(2).replace(".", ",") + " €";
 
-  const sube = variacion24h >= 0;
-  const colorTrend = sube ? COLORS.primaryDark : COLORS.danger;
+  const goUp = variation24h >= 0;
+  const colourTrend = goUp ? COLORS.primaryDark : COLORS.danger;
 
-  const favoritasList = mercado.filter((c) =>
-    favoritas.includes(c.symbol)
+  const favouritesList = market.filter((c) =>
+    favourites.includes(c.symbol)
   );
 
   return (
@@ -61,17 +61,17 @@ const MenuPrincipal = ({ navigation }) => {
           />
 
           <Text style={styles.balanceLabel}>Balance total</Text>
-          <Text style={styles.balanceValue}>{formatEUR(saldoTotal)}</Text>
+          <Text style={styles.balanceValue}>{formatEUR(totalBalance)}</Text>
 
           <View style={styles.balanceRow}>
             <MaterialIcons
-              name={sube ? "trending-up" : "trending-down"}
+              name={goUp ? "trending-up" : "trending-down"}
               size={18}
-              color={colorTrend}
+              color={colourTrend}
             />
-            <Text style={[styles.balanceChange, { color: colorTrend }]}>
-              {sube ? "+" : ""}
-              {variacion24h}%
+            <Text style={[styles.balanceChange, { color: colourTrend }]}>
+              {goUp ? "+" : ""}
+              {variation24h}%
             </Text>
             <Text style={styles.balanceSub}>últimas 24h</Text>
           </View>
@@ -86,16 +86,16 @@ const MenuPrincipal = ({ navigation }) => {
         </View>
 
         {/* ⭐ FAVORITAS */}
-        {favoritasList.length > 0 && (
+        {favouritesList.length > 0 && (
           <View style={styles.card}>
             <Text style={styles.sectionTitle}>Favoritas</Text>
 
-            {favoritasList.map((coin) => (
+            {favouritesList.map((coin) => (
               <CoinRow
                 key={coin.symbol}
                 coin={coin}
                 isFav
-                onToggle={toggleFavorita}
+                onToggle={toggleFavourite}
               />
             ))}
           </View>
@@ -109,12 +109,12 @@ const MenuPrincipal = ({ navigation }) => {
             style={{ maxHeight: 280 }}
             showsVerticalScrollIndicator={false}
           >
-            {mercado.map((coin) => (
+            {market.map((coin) => (
               <CoinRow
                 key={coin.symbol}
                 coin={coin}
-                isFav={favoritas.includes(coin.symbol)}
-                onToggle={toggleFavorita}
+                isFav={favourites.includes(coin.symbol)}
+                onToggle={toggleFavourite}
               />
             ))}
           </ScrollView>
@@ -129,7 +129,7 @@ const MenuPrincipal = ({ navigation }) => {
 
 const CoinRow = ({ coin, isFav, onToggle }) => {
   const up = coin.change >= 0;
-  const color = up ? COLORS.primaryDark : COLORS.danger;
+  const colour = up ? COLORS.primaryDark : COLORS.danger;
 
   return (
     <View style={styles.marketRow}>
@@ -147,7 +147,7 @@ const CoinRow = ({ coin, isFav, onToggle }) => {
       </View>
 
       <View style={styles.marketRight}>
-        <Text style={[styles.coinChange, { color }]}>
+        <Text style={[styles.coinChange, { color: colour }]}>
           {up ? "+" : ""}
           {coin.change.toFixed(2)}%
         </Text>
