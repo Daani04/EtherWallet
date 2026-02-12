@@ -23,6 +23,7 @@ public class UserController {
     @PostMapping("/API/NewUser")
     public ResponseEntity<Object> metodoEndpoint(@RequestBody User newUser) {
         try {
+            System.out.println(newUser.toString());
             userRepository.save(newUser);
             System.out.println("EXITO: Usuario guardado en Mongo");
             return ResponseEntity.status(HttpStatus.CREATED).build();

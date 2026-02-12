@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import React, { useMemo, useState } from "react";
 import {
     View,
     Text,
@@ -16,9 +16,48 @@ const RegistroUsuario = (props) => {
     const [showPassword, setShowPassword] = useState(false);
     const [acceptedTerms, setAcceptedTerms] = useState(false);
 
-    const termsText = useMemo(() => {
-        return "Acepto los Términos de Servicio y la Política de Privacidad.";
-    }, []);
+    const [mail, setMail] = useState("");
+    const [psw, setPsw] = useState("");
+    const [name, setName] = useState("");
+    const [lastName, setLastName] = useState("");
+    const [dni, setDni] = useState("");
+    const [fNac, setFnac] = useState("");
+
+    const handleRegister = async () => {
+        if (!name || !lastName || !mail || !psw || !dni || !fNac) {
+            alert("Por favor, completa todos los campos.");
+            return;
+        }
+
+        try {
+            const response = await fetch('http://localhost:8080/API/NewUser', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    firstName: name,
+                    lastName: lastName,
+                    email: mail,
+                    password: psw,
+                    dni: dni,
+                    birthDate: fNac,
+                    userImage: "default-avatar.png",
+                    favoriteId: "null"
+                }),
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                console.log("Registro correcto", data.token);
+            } else {
+                alert(data.message || "Fallo en el registro");
+            }
+        } catch (error) {
+            alert("Error de conexión. Inténtalo más tarde." + error.message);
+        }
+    };
 
     return (
         <KeyboardAvoidingView
@@ -27,13 +66,10 @@ const RegistroUsuario = (props) => {
         >
             <ScrollView contentContainerStyle={styles.scrollContainer} bounces={false}>
                 <View style={styles.root}>
-                    {/* Decoración tipo “blobs” (igual que InicioSesion) */}
                     <View style={[styles.blob, styles.blobTopRight]} />
                     <View style={[styles.blob, styles.blobBottomLeft]} />
 
                     <View style={styles.container}>
-           
-                        {/* Headline */}
                         <View style={styles.headLeft}>
                             <Text style={styles.title}>Crea tu cuenta</Text>
                             <Text style={styles.subtitle}>
@@ -41,131 +77,129 @@ const RegistroUsuario = (props) => {
                             </Text>
                         </View>
 
-                        {/* Form */}
                         <View style={styles.form}>
-                            {/* Username */}
-                            <Text style={styles.label}>Nombre de usuario</Text>
+                            <Text style={styles.label}>Nombre</Text>
                             <View style={styles.inputContainer}>
-                                <MaterialIcons
-                                    name="person-outline"
-                                    size={20}
-                                    color={COLORS.textMuted}
-                                    style={styles.inputIcon}
-                                />
+                                <MaterialIcons name="person-outline" size={20} color={COLORS.textMuted} style={styles.inputIcon} />
                                 <TextInput
-                                    placeholder="ej. usuario2001"
+                                    placeholder="Tu nombre"
                                     placeholderTextColor="rgba(157,185,168,0.55)"
                                     style={styles.input}
-                                    autoCapitalize="none"
+                                    value={name}
+                                    onChangeText={setName}
                                 />
                             </View>
 
-                            {/* Email */}
+                            <Text style={styles.label}>Apellido</Text>
+                            <View style={styles.inputContainer}>
+                                <MaterialIcons name="person-outline" size={20} color={COLORS.textMuted} style={styles.inputIcon} />
+                                <TextInput
+                                    placeholder="Tu apellido"
+                                    placeholderTextColor="rgba(157,185,168,0.55)"
+                                    style={styles.input}
+                                    value={lastName}
+                                    onChangeText={setLastName}
+                                />
+                            </View>
+
                             <Text style={styles.label}>Correo electrónico</Text>
                             <View style={styles.inputContainer}>
-                                <MaterialIcons
-                                    name="mail-outline"
-                                    size={20}
-                                    color={COLORS.textMuted}
-                                    style={styles.inputIcon}
-                                />
+                                <MaterialIcons name="mail-outline" size={20} color={COLORS.textMuted} style={styles.inputIcon} />
                                 <TextInput
-                                    placeholder="ej. usuario2001@email.com"
+                                    placeholder="ej. usuario@email.com"
                                     placeholderTextColor="rgba(157,185,168,0.55)"
                                     style={styles.input}
                                     autoCapitalize="none"
                                     keyboardType="email-address"
+                                    value={mail}
+                                    onChangeText={setMail}
                                 />
                             </View>
 
-                            {/* Password */}
                             <Text style={styles.label}>Contraseña</Text>
                             <View style={styles.inputContainer}>
-                                <MaterialIcons
-                                    name="lock-outline"
-                                    size={20}
-                                    color={COLORS.textMuted}
-                                    style={styles.inputIcon}
-                                />
+                                <MaterialIcons name="lock-outline" size={20} color={COLORS.textMuted} style={styles.inputIcon} />
                                 <TextInput
                                     placeholder="••••••••••••"
                                     placeholderTextColor="rgba(157,185,168,0.55)"
                                     style={styles.input}
                                     secureTextEntry={!showPassword}
+                                    value={psw}
+                                    onChangeText={setPsw}
+                                    autoCapitalize="none"
                                 />
-                                <TouchableOpacity
-                                    style={styles.eyeIcon}
-                                    activeOpacity={0.7}
-                                    onPress={() => setShowPassword((v) => !v)}
-                                >
-                                    <MaterialIcons
-                                        name={showPassword ? "visibility" : "visibility-off"}
-                                        size={20}
-                                        color={COLORS.textMuted}
-                                    />
+                                <TouchableOpacity style={styles.eyeIcon} onPress={() => setShowPassword(!showPassword)}>
+                                    <MaterialIcons name={showPassword ? "visibility" : "visibility-off"} size={20} color={COLORS.textMuted} />
                                 </TouchableOpacity>
                             </View>
 
-                            {/* Terms */}
-                            <TouchableOpacity
-                                style={styles.termsRow}
-                                activeOpacity={0.8}
-                                onPress={() => setAcceptedTerms((v) => !v)}
-                            >
-                                <View style={[styles.checkbox, acceptedTerms && styles.checkboxChecked]}>
-                                    {acceptedTerms ? (
-                                        <MaterialIcons name="check" size={16} color={COLORS.backgroundDark} />
-                                    ) : null}
-                                </View>
+                            <Text style={styles.label}>DNI / NIE</Text>
+                            <View style={styles.inputContainer}>
+                                <MaterialIcons name="fingerprint" size={20} color={COLORS.textMuted} style={styles.inputIcon} />
+                                <TextInput
+                                    placeholder="12345678X"
+                                    placeholderTextColor="rgba(157,185,168,0.55)"
+                                    style={styles.input}
+                                    autoCapitalize="characters"
+                                    value={dni}
+                                    onChangeText={setDni}
+                                />
+                            </View>
 
-                                <Text style={styles.termsText}>
-                                    Acepto los{" "}
-                                    <Text style={styles.termsLink}>Términos de Servicio</Text> y la{" "}
-                                    <Text style={styles.termsLink}>Política de Privacidad</Text>.
-                                </Text>
-                            </TouchableOpacity>
-
-                            {/* Submit */}
-                            <TouchableOpacity style={styles.primaryBtn} activeOpacity={0.85}>
-                                <Text style={styles.primaryBtnText}>REGISTRARSE</Text>
-                            </TouchableOpacity>
+                            <Text style={styles.label}>Fecha de nacimiento</Text>
+                            <View style={styles.inputContainer}>
+                                <MaterialIcons name="calendar-today" size={20} color={COLORS.textMuted} style={styles.inputIcon} />
+                                <TextInput
+                                    placeholder="DD/MM/AAAA"
+                                    placeholderTextColor="rgba(157,185,168,0.55)"
+                                    style={styles.input}
+                                    keyboardType="numeric"
+                                    value={fNac}
+                                    onChangeText={setFnac}
+                                />
+                            </View>
                         </View>
 
-                        {/* Divider */}
-                        <View style={styles.dividerRow}>
-                            <View style={styles.dividerLine} />
-                            <Text style={styles.dividerText}>O regístrate con</Text>
-                            <View style={styles.dividerLine} />
-                        </View>
-
-                        {/* Social Buttons */}
-                        <View style={styles.socialGrid}>
-                            <TouchableOpacity style={styles.socialBtn} activeOpacity={0.85}>
-                                <View style={styles.socialIconCircle}>
-                                    {/* “G” simple para no depender de SVG */}
-                                    <Text style={styles.socialIconText}>G</Text>
-                                </View>
-                                <Text style={styles.socialBtnText}>Google</Text>
-                            </TouchableOpacity>
-                        </View>
-
-                        {/* Footer */}
-                        <View style={styles.footer}>
-                            <Text style={styles.footerText}>
-                                ¿Ya tienes una cuenta?{" "}
-                                <Pressable onPress={() => props.navigation.navigate('InicioSesion')}>
-                                    <Text style={styles.footerLink}>Iniciar Sesion</Text>
-                                </Pressable>
+                        <TouchableOpacity style={styles.termsRow} activeOpacity={0.8} onPress={() => setAcceptedTerms(!acceptedTerms)}>
+                            <View style={[styles.checkbox, acceptedTerms && styles.checkboxChecked]}>
+                                {acceptedTerms && <MaterialIcons name="check" size={16} color={COLORS.backgroundDark} />}
+                            </View>
+                            <Text style={styles.termsText}>
+                                Acepto los <Text style={styles.termsLink}>Términos de Servicio</Text> y la <Text style={styles.termsLink}>Política de Privacidad</Text>.
                             </Text>
-                        </View>
+                        </TouchableOpacity>
 
-                        <View style={{ height: 10 }} />
+                        <TouchableOpacity style={styles.primaryBtn} activeOpacity={0.85} onPress={handleRegister}>
+                            <Text style={styles.primaryBtnText}>REGISTRARSE</Text>
+                        </TouchableOpacity>
+                    </View>
+
+                    <View style={styles.dividerRow}>
+                        <View style={styles.dividerLine} />
+                        <Text style={styles.dividerText}>O regístrate con</Text>
+                        <View style={styles.dividerLine} />
+                    </View>
+
+                    <View style={styles.socialGrid}>
+                        <TouchableOpacity style={styles.socialBtn} activeOpacity={0.85}>
+                            <View style={styles.socialIconCircle}>
+                                <Text style={styles.socialIconText}>G</Text>
+                            </View>
+                            <Text style={styles.socialBtnText}>Google</Text>
+                        </TouchableOpacity>
+                    </View>
+
+                    <View style={styles.footer}>
+                        <Text style={styles.footerText}>¿Ya tienes una cuenta? </Text>
+                        <Pressable onPress={() => props.navigation.navigate('InicioSesion')}>
+                            <Text style={styles.footerLink}>Iniciar Sesión</Text>
+                        </Pressable>
                     </View>
                 </View>
             </ScrollView>
         </KeyboardAvoidingView>
     );
-}
+};
 
 const COLORS = {
     primary: "#2bee79",
@@ -186,14 +220,12 @@ const styles = StyleSheet.create({
         paddingVertical: 32,
     },
 
-    // Fondo decorativo
     blob: { position: "absolute", backgroundColor: "rgba(43,238,121,0.08)", borderRadius: 999 },
     blobTopRight: { width: 400, height: 400, top: -110, right: -120 },
     blobBottomLeft: { width: 300, height: 300, bottom: -60, left: -120 },
 
     container: { width: "100%", maxWidth: 450, paddingHorizontal: 24 },
 
-    // Top bar
     topBar: {
         flexDirection: "row",
         alignItems: "center",
@@ -209,12 +241,10 @@ const styles = StyleSheet.create({
         justifyContent: "center",
     },
 
-    // Headline
     headLeft: { marginTop: 4, marginBottom: 22 },
     title: { fontSize: 32, fontWeight: "800", color: "#fff", marginBottom: 8 },
     subtitle: { fontSize: 16, color: COLORS.textMuted, lineHeight: 22 },
 
-    // Form
     form: { width: "100%", gap: 12 },
     label: {
         color: "#fff",
@@ -238,7 +268,6 @@ const styles = StyleSheet.create({
     input: { flex: 1, color: "#fff", fontSize: 16 },
     eyeIcon: { padding: 4 },
 
-    // Terms
     termsRow: {
         flexDirection: "row",
         alignItems: "flex-start",
@@ -271,7 +300,6 @@ const styles = StyleSheet.create({
         fontWeight: "700",
     },
 
-    // Primary button
     primaryBtn: {
         backgroundColor: COLORS.primary,
         height: 56,
@@ -287,7 +315,6 @@ const styles = StyleSheet.create({
     },
     primaryBtnText: { color: COLORS.backgroundDark, fontSize: 16, fontWeight: "900", letterSpacing: 0.5 },
 
-    // Divider
     dividerRow: {
         flexDirection: "row",
         alignItems: "center",
@@ -297,7 +324,6 @@ const styles = StyleSheet.create({
     dividerLine: { flex: 1, height: 1, backgroundColor: COLORS.border },
     dividerText: { marginHorizontal: 12, color: COLORS.textMuted, fontSize: 13 },
 
-    // Social
     socialGrid: { flexDirection: "row", gap: 12 },
     socialBtn: {
         flex: 1,
@@ -322,7 +348,6 @@ const styles = StyleSheet.create({
     },
     socialIconText: { color: "#000", fontSize: 12, fontWeight: "900" },
 
-    // Footer
     footer: { marginTop: 24, alignItems: "center" },
     footerText: { color: COLORS.textMuted, fontSize: 14 },
     footerLink: { color: COLORS.primary, fontWeight: "800" },
