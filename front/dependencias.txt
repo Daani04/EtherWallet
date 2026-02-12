@@ -5,6 +5,7 @@ npm install @react-navigation/stack
 npm install @react-navigation/drawer
 //ICONOS
 npx expo install @expo/vector-icons
+npx expo install react-native-svg
 //COLORES
 npx expo install expo-av
 npx expo install expo-linear-gradient
