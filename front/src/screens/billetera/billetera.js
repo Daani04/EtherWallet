@@ -34,14 +34,11 @@ const Billetera = (props) => {
     setLastUpdate(hh + ":" + mm);
   }, []);
 
-  // ====== Responsive (IF/ELSE) ======
   let isWeb = false;
   if (Platform.OS === "web") isWeb = true;
-  else isWeb = false;
 
   let isPC = false;
   if (isWeb && screenW >= 900) isPC = true;
-  else isPC = false;
 
   let titleSize = 28;
   let balanceSize = 32;
@@ -53,14 +50,8 @@ const Billetera = (props) => {
     balanceSize = 34;
     padH = 28;
     cardPad = 20;
-  } else {
-    titleSize = 28;
-    balanceSize = 32;
-    padH = 24;
-    cardPad = 18;
   }
 
-  // ====== Datos demo ======
   const totalBalance = 2450.35;
   const variation24h = 3.42;
 
@@ -80,62 +71,114 @@ const Billetera = (props) => {
     { type: "swap", title: "Swap", subtitle: "SOL → USDT", date: "Hace 3 días", value: "+120.00 €", status: "Procesando" },
   ];
 
-  // ====== Helpers ======
   const formatEUR = (num) => {
     let s = Number(num).toFixed(2);
     s = s.replace(".", ",");
     return s + " €";
   };
 
-  let textBalance = "";
-  if (hideBalance) textBalance = "•••••";
-  else textBalance = formatEUR(totalBalance);
+  const hiddenText = (text) => {
+    if (hideBalance) return "••••";
+    return text;
+  };
 
-  let textAvailable = "";
-  if (hideBalance) textAvailable = "••••";
-  else textAvailable = formatEUR(availableBalance);
+  const hiddenTime = () => {
+    if (hideBalance) return "••:••";
+    return lastUpdate;
+  };
 
-  let retText = "";
-  if (hideBalance) retText = "••••";
-  else retText = formatEUR(retainedEarnings);
+  const getBalanceText = () => {
+    if (hideBalance) return "•••••";
+    return formatEUR(totalBalance);
+  };
 
-  let goUp = false;
-  if (variation24h >= 0) goUp = true;
-  else goUp = false;
+  const getAvailableText = () => {
+    if (hideBalance) return "••••";
+    return formatEUR(availableBalance);
+  };
 
-  let colourTrend = COLORS.accent;
-  let edgeTrend = "rgba(115, 255, 200, 0.22)";
-  let backgroundTrend = "rgba(115, 255, 200, 0.08)";
-  let iconTrend = "trending-up";
+  const getRetainedText = () => {
+    if (hideBalance) return "••••";
+    return formatEUR(retainedEarnings);
+  };
 
-  if (goUp) {
-    colourTrend = COLORS.accent;
-    edgeTrend = "rgba(115, 255, 200, 0.22)";
-    backgroundTrend = "rgba(115, 255, 200, 0.08)";
-    iconTrend = "trending-up";
-  } else {
-    colourTrend = "#ff6b6b";
-    edgeTrend = "rgba(255,107,107,0.28)";
-    backgroundTrend = "rgba(255,107,107,0.08)";
-    iconTrend = "trending-down";
-  }
+  const isUpTrend = () => {
+    if (variation24h >= 0) return true;
+    return false;
+  };
 
-  let textVariation = "";
-  if (hideBalance) textVariation = "•••";
-  else {
-    if (goUp) textVariation = "+" + variation24h.toFixed(2) + "%";
-    else textVariation = variation24h.toFixed(2) + "%";
-  }
+  const getTrendConfig = () => {
+    const up = isUpTrend();
+
+    if (up) {
+      return {
+        colourTrend: COLORS.accent,
+        edgeTrend: "rgba(115, 255, 200, 0.22)",
+        backgroundTrend: "rgba(115, 255, 200, 0.08)",
+        iconTrend: "trending-up",
+      };
+    }
+
+    return {
+      colourTrend: "#ff6b6b",
+      edgeTrend: "rgba(255,107,107,0.28)",
+      backgroundTrend: "rgba(255,107,107,0.08)",
+      iconTrend: "trending-down",
+    };
+  };
+
+  const getVariationText = () => {
+    if (hideBalance) return "•••";
+
+    if (variation24h >= 0) return "+" + variation24h.toFixed(2) + "%";
+    return variation24h.toFixed(2) + "%";
+  };
 
   const iconMovement = (type) => {
     let icon = "swap-horiz";
     if (type === "receive") icon = "south-west";
     else if (type === "send") icon = "north-east";
-    else icon = "swap-horiz";
     return icon;
   };
 
-  // ====== Estilos dinámicos ======
+  const getAssetRowData = (a) => {
+    let colourChange = "#ff6b6b";
+    if (a.change24h >= 0) colourChange = COLORS.accent;
+
+    let amountText = "•••";
+    if (!hideBalance) amountText = String(a.amount) + " " + a.symbol;
+
+    let valText = "••••";
+    if (!hideBalance) valText = formatEUR(a.valueEUR);
+
+    let chText = "•••";
+    if (!hideBalance) {
+      if (a.change24h >= 0) chText = "+" + a.change24h + "%";
+      else chText = a.change24h + "%";
+    }
+
+    return { colourChange, amountText, valText, chText };
+  };
+
+  const getMovementRowData = (m) => {
+    let valMov = "••••";
+    if (!hideBalance) valMov = m.value;
+
+    let statusColour = "#ffd166";
+    if (m.status === "Confirmado") statusColour = COLORS.textMuted;
+
+    let statusText = "•••";
+    if (!hideBalance) statusText = m.status;
+
+    return { valMov, statusColour, statusText };
+  };
+
+  const trend = getTrendConfig();
+  const textBalance = getBalanceText();
+  const textAvailable = getAvailableText();
+  const retText = getRetainedText();
+  const textVariation = getVariationText();
+
   const dyn = {
     container: { paddingHorizontal: padH },
     title: { fontSize: titleSize },
@@ -153,8 +196,7 @@ const Billetera = (props) => {
     dyn.col = { width: "100%" };
   }
 
-  // ✅ CONTENEDOR SCROLL SEGÚN PLATAFORMA
-  let Wrapper = View; // web
+  let Wrapper = View; 
   let wrapperProps = { style: styles.webWrapper };
   let ScrollComp = View;
   let scrollProps = { style: styles.webScroll };
@@ -174,35 +216,49 @@ const Billetera = (props) => {
     innerStyle = null;
   }
 
+  const renderDividerIfNotLast = (index, length) => {
+    if (index !== length - 1) return <View style={styles.divider} />;
+    return null;
+  };
+
+  const getVisibilityIconName = () => {
+    if (hideBalance) return "visibility-off";
+    return "visibility";
+  };
+
+  const getBalanceSubText = () => {
+    if (hideBalance) return "Últimas 24h";
+    return "Últimas 24h · variación estimada";
+  };
+
+  const renderMiniInfo = () => {
+    return <Text style={styles.miniInfo}>Última actualización: {hiddenTime()}</Text>;
+  };
+
   return (
     <Wrapper {...wrapperProps}>
-      {/* Blobs */}
       <View style={[styles.blob, styles.blobTopRight]} />
       <View style={[styles.blob, styles.blobBottomLeft]} />
 
       <ScrollComp {...scrollProps}>
         <View style={innerStyle}>
           <View style={[styles.container, dyn.container]}>
-            {/* Header */}
             <View style={styles.topRow}>
               <View>
                 <Text style={styles.kicker}>Billetera</Text>
                 <Text style={[styles.title, dyn.title]}>Tu cartera segura</Text>
-                <Text style={styles.miniInfo}>
-                  Última actualización: {hideBalance ? "••:••" : lastUpdate}
-                </Text>
+                {renderMiniInfo()}
               </View>
 
               <Pressable onPress={() => setHideBalance(!hideBalance)} style={styles.iconBtn}>
                 <MaterialIcons
-                  name={hideBalance ? "visibility-off" : "visibility"}
+                  name={getVisibilityIconName()}
                   size={22}
                   color={COLORS.textMuted}
                 />
               </Pressable>
             </View>
 
-            {/* Card saldo */}
             <View style={[styles.balanceCard, dyn.balanceCard]}>
               <LinearGradient
                 colors={["rgba(255,255,255,0.08)", "rgba(16,34,23,0.0)"]}
@@ -215,17 +271,14 @@ const Billetera = (props) => {
               <View style={styles.balanceRow}>
                 <Text style={[styles.balanceValue, dyn.balanceValue]}>{textBalance}</Text>
 
-                <View style={[styles.pill, { borderColor: edgeTrend, backgroundColor: backgroundTrend }]}>
-                  <MaterialIcons name={iconTrend} size={16} color={colourTrend} />
-                  <Text style={[styles.pillText, { color: colourTrend }]}>{textVariation}</Text>
+                <View style={[styles.pill, { borderColor: trend.edgeTrend, backgroundColor: trend.backgroundTrend }]}>
+                  <MaterialIcons name={trend.iconTrend} size={16} color={trend.colourTrend} />
+                  <Text style={[styles.pillText, { color: trend.colourTrend }]}>{textVariation}</Text>
                 </View>
               </View>
 
-              <Text style={styles.balanceSub}>
-                {hideBalance ? "Últimas 24h" : "Últimas 24h · variación estimada"}
-              </Text>
+              <Text style={styles.balanceSub}>{getBalanceSubText()}</Text>
 
-              {/* Disponible / Retenido */}
               <View style={styles.smallGrid}>
                 <View style={styles.smallCard}>
                   <Text style={styles.smallLabel}>Disponible</Text>
@@ -239,9 +292,7 @@ const Billetera = (props) => {
               </View>
             </View>
 
-            {/* Contenido principal */}
             <View style={[styles.twoColsWrap, dyn.twoCols]}>
-              {/* Activos */}
               <View style={dyn.col}>
                 <View style={isPC ? styles.sectionRowPC : styles.sectionRow}>
                   <Text style={styles.sectionTitle}>Activos</Text>
@@ -249,24 +300,7 @@ const Billetera = (props) => {
 
                 <View style={styles.card}>
                   {assets.map((a, index) => {
-                    let colourChange = COLORS.accent;
-                    if (a.change24h >= 0) colourChange = COLORS.accent;
-                    else colourChange = "#ff6b6b";
-
-                    let amountText = "";
-                    if (hideBalance) amountText = "•••";
-                    else amountText = String(a.amount) + " " + a.symbol;
-
-                    let valText = "";
-                    if (hideBalance) valText = "••••";
-                    else valText = formatEUR(a.valueEUR);
-
-                    let chText = "";
-                    if (hideBalance) chText = "•••";
-                    else {
-                      if (a.change24h >= 0) chText = "+" + a.change24h + "%";
-                      else chText = a.change24h + "%";
-                    }
+                    const row = getAssetRowData(a);
 
                     return (
                       <View key={a.symbol} style={styles.assetRow}>
@@ -276,23 +310,22 @@ const Billetera = (props) => {
                           </View>
                           <View style={{ flex: 1 }}>
                             <Text style={styles.assetName}>{a.name}</Text>
-                            <Text style={styles.assetSub}>{amountText}</Text>
+                            <Text style={styles.assetSub}>{row.amountText}</Text>
                           </View>
                         </View>
 
                         <View style={styles.assetRight}>
-                          <Text style={styles.assetValue}>{valText}</Text>
-                          <Text style={[styles.assetChange, { color: colourChange }]}>{chText}</Text>
+                          <Text style={styles.assetValue}>{row.valText}</Text>
+                          <Text style={[styles.assetChange, { color: row.colourChange }]}>{row.chText}</Text>
                         </View>
 
-                        {index !== assets.length - 1 ? <View style={styles.divider} /> : null}
+                        {renderDividerIfNotLast(index, assets.length)}
                       </View>
                     );
                   })}
                 </View>
               </View>
 
-              {/* Movimientos */}
               <View style={dyn.col}>
                 <View style={isPC ? styles.sectionRowPC : [styles.sectionRow, { marginTop: 18 }]}>
                   <Text style={styles.sectionTitle}>Movimientos</Text>
@@ -300,13 +333,7 @@ const Billetera = (props) => {
 
                 <View style={styles.card}>
                   {movements.map((m, index) => {
-                    let valMov = "";
-                    if (hideBalance) valMov = "••••";
-                    else valMov = m.value;
-
-                    let statusColour = COLORS.textMuted;
-                    if (m.status === "Confirmado") statusColour = COLORS.textMuted;
-                    else statusColour = "#ffd166";
+                    const mov = getMovementRowData(m);
 
                     return (
                       <View key={m.type + "-" + index} style={styles.movRow}>
@@ -318,21 +345,21 @@ const Billetera = (props) => {
                           <View style={{ flex: 1 }}>
                             <View style={styles.movHeaderRow}>
                               <Text style={styles.movTitle}>{m.title}</Text>
-                              <Text style={styles.movValueInline}>{valMov}</Text>
+                              <Text style={styles.movValueInline}>{mov.valMov}</Text>
                             </View>
 
                             <View style={styles.movSubRow}>
                               <Text style={styles.movSub}>
                                 {m.subtitle} · {m.date}
                               </Text>
-                              <Text style={[styles.movStatus, { color: statusColour }]}>
-                                {hideBalance ? "•••" : m.status}
+                              <Text style={[styles.movStatus, { color: mov.statusColour }]}>
+                                {mov.statusText}
                               </Text>
                             </View>
                           </View>
                         </View>
 
-                        {index !== movements.length - 1 ? <View style={styles.divider} /> : null}
+                        {renderDividerIfNotLast(index, movements.length)}
                       </View>
                     );
                   })}
@@ -340,13 +367,11 @@ const Billetera = (props) => {
               </View>
             </View>
 
-            {/* Espaciado */}
             <View style={{ height: 140 }} />
           </View>
         </View>
       </ScrollComp>
 
-      {/* Nav fijo abajo sin bloquear scroll */}
       <View pointerEvents="box-none" style={styles.navWrap}>
         <Nav />
       </View>
@@ -370,12 +395,10 @@ const styles = StyleSheet.create({
   blobTopRight: { width: 420, height: 420, top: -120, right: -140 },
   blobBottomLeft: { width: 320, height: 320, bottom: -70, left: -140 },
 
-  // WEB
   webWrapper: { height: "100vh", backgroundColor: COLORS.backgroundDark },
   webScroll: { flex: 1, height: "100vh", overflow: "auto" },
   webInner: { paddingTop: 20, paddingBottom: 160 },
 
-  // MÓVIL
   scroll: { flex: 1 },
   scrollContainer: {
     flexGrow: 1,
