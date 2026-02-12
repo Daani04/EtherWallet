@@ -25,82 +25,306 @@ const COLORS = {
 
 export default function MenuTransacciones({ navigation }) {
   const { width } = useWindowDimensions();
-  const isDesktop = width >= BREAKPOINT_MD;
-  const isLarge = width >= BREAKPOINT_LG;
+
+  let isDesktop = false;
+  if (width >= BREAKPOINT_MD) isDesktop = true;
+
+  let isLarge = false;
+  if (width >= BREAKPOINT_LG) isLarge = true;
 
   const [search, setSearch] = useState("");
 
-  const quickActions = useMemo(
-    () => [
+  const goToScreen = (screenName, params) => {
+    if (!navigation) return;
+    if (!navigation.navigate) return;
+
+    if (params) navigation.navigate(screenName, params);
+    else navigation.navigate(screenName);
+  };
+
+  const goBack = () => {
+    if (!navigation) return;
+    if (!navigation.goBack) return;
+    navigation.goBack();
+  };
+
+  const clearSearch = () => {
+    setSearch("");
+  };
+
+  const showClearButton = () => {
+    if (search && search.length > 0) return true;
+    return false;
+  };
+
+  const quickActions = useMemo(() => {
+    return [
       {
         id: "deposit",
         title: "Depositar",
         subtitle: "Añade EUR a tu wallet",
         icon: "south-west",
-        onPress: () => navigation?.navigate?.("Depositar"),
+        onPress: () => goToScreen("Depositar"),
       },
       {
         id: "transfer",
         title: "Transferir",
         subtitle: "A otra cuenta/IBAN",
         icon: "compare-arrows",
-        onPress: () => navigation?.navigate?.("Transferencia"),
+        onPress: () => goToScreen("Transferencia"),
       },
       {
         id: "withdraw",
         title: "Retirar",
         subtitle: "A tu banco",
         icon: "north-east",
-        onPress: () => navigation?.navigate?.("Retirar"),
+        onPress: () => goToScreen("Retirar"),
       },
-    ],
-    [navigation]
-  );
+    ];
+  }, [navigation]);
 
-  const recentRecipients = useMemo(
-    () => [
+  const recentRecipients = useMemo(() => {
+    return [
       { id: "1", initials: "CF", name: "Carlos Fernández Bou", favorite: true },
       { id: "2", initials: "AM", name: "Ana Martínez", favorite: false },
       { id: "3", initials: "JP", name: "Juan Pérez", favorite: false },
-    ],
-    []
-  );
+    ];
+  }, []);
 
-  const transactions = useMemo(
-    () => [
+  const transactions = useMemo(() => {
+    return [
       { id: "t1", type: "Transferencia", to: "Carlos Fernández Bou", amount: -25.5, date: "Hoy" },
       { id: "t2", type: "Depósito", to: "Wallet EUR", amount: 150, date: "Ayer" },
       { id: "t3", type: "Retiro", to: "Banco", amount: -60, date: "05/02" },
-    ],
-    []
-  );
+    ];
+  }, []);
+
+  const normalize = (txt) => {
+    return String(txt || "").toLowerCase();
+  };
+
+  const hasQuery = () => {
+    if (!search) return false;
+    if (!search.trim()) return false;
+    return true;
+  };
 
   const filteredRecipients = useMemo(() => {
-    if (!search.trim()) return recentRecipients;
-    const q = search.toLowerCase();
-    return recentRecipients.filter((r) => r.name.toLowerCase().includes(q));
+    if (!hasQuery()) return recentRecipients;
+    const q = normalize(search);
+    return recentRecipients.filter((r) => normalize(r.name).includes(q));
   }, [search, recentRecipients]);
 
   const filteredTransactions = useMemo(() => {
-    if (!search.trim()) return transactions;
-    const q = search.toLowerCase();
-    return transactions.filter(
-      (t) => t.type.toLowerCase().includes(q) || t.to.toLowerCase().includes(q)
-    );
+    if (!hasQuery()) return transactions;
+    const q = normalize(search);
+    return transactions.filter((t) => {
+      const a = normalize(t.type).includes(q);
+      const b = normalize(t.to).includes(q);
+      if (a || b) return true;
+      return false;
+    });
   }, [search, transactions]);
+
+  const getHeaderStyle = () => {
+    const arr = [styles.header];
+    if (isDesktop) arr.push(styles.headerDesktop);
+    return arr;
+  };
+
+  const getHeaderTitleStyle = () => {
+    const arr = [styles.headerTitle];
+    if (isDesktop) arr.push(styles.headerTitleDesktop);
+    return arr;
+  };
+
+  const getScrollStyle = () => {
+    const arr = [styles.scroll];
+    if (isDesktop) arr.push(styles.scrollDesktop);
+    return arr;
+  };
+
+  const getContainerStyle = () => {
+    const arr = [styles.container];
+    if (isDesktop) arr.push(styles.containerDesktop);
+    if (isLarge) arr.push(styles.containerLarge);
+    return arr;
+  };
+
+  const getSearchWrapStyle = () => {
+    const arr = [styles.searchWrap];
+    if (isDesktop) arr.push(styles.searchWrapDesktop);
+    return arr;
+  };
+
+  const getLayoutStyle = () => {
+    const arr = [styles.layout];
+    if (isDesktop) arr.push(styles.layoutDesktop);
+    return arr;
+  };
+
+  const getLeftColStyle = () => {
+    const arr = [styles.col];
+    if (isDesktop) arr.push(styles.leftCol);
+    return arr;
+  };
+
+  const getRightColStyle = () => {
+    const arr = [styles.col];
+    if (isDesktop) arr.push(styles.rightCol);
+    return arr;
+  };
+
+  const getRecipientsWrapStyle = () => {
+    const arr = [styles.recipientsWrap];
+    if (isDesktop) arr.push(styles.recipientsWrapDesktop);
+    return arr;
+  };
+
+  const getRecipientCardStyle = () => {
+    const arr = [styles.recipientCard];
+    if (isDesktop) arr.push(styles.recipientCardDesktop);
+    return arr;
+  };
+
+  const getMovTitleStyle = () => {
+    const arr = [styles.sectionTitle];
+    if (isDesktop) arr.push({ marginTop: 18 });
+    return arr;
+  };
+
+  const getPrimaryBtnStyle = () => {
+    const arr = [styles.primaryBtn];
+    if (isDesktop) arr.push(styles.primaryBtnDesktop);
+    return arr;
+  };
+
+  const getTxRowStyle = (idx) => {
+    const arr = [styles.txRow];
+    if (idx !== 0) arr.push(styles.txRowBorder);
+    return arr;
+  };
+
+  const getTxIconName = (type) => {
+    if (type === "Depósito") return "south-west";
+    if (type === "Retiro") return "north-east";
+    return "compare-arrows";
+  };
+
+  const getAmountStyle = (amount) => {
+    const arr = [styles.txAmount];
+    if (amount < 0) arr.push(styles.negative);
+    else arr.push(styles.positive);
+    return arr;
+  };
+
+  const getFavIconName = (favorite) => {
+    if (favorite) return "favorite";
+    return "favorite-border";
+  };
+
+  const getFavIconColor = (favorite) => {
+    if (favorite) return COLORS.primary;
+    return COLORS.textMutedSoft;
+  };
+
+  const renderClearButton = () => {
+    if (!showClearButton()) return null;
+
+    return (
+      <TouchableOpacity onPress={clearSearch} activeOpacity={0.7} style={styles.clearBtn}>
+        <MaterialIcons name="close" size={18} color={COLORS.textMutedSoft} />
+      </TouchableOpacity>
+    );
+  };
+
+  const renderQuickActions = () => {
+    return quickActions.map((a) => {
+      return (
+        <TouchableOpacity
+          key={a.id}
+          style={styles.actionCard}
+          activeOpacity={0.85}
+          onPress={a.onPress}
+        >
+          <View style={styles.actionIcon}>
+            <MaterialIcons name={a.icon} size={20} color={COLORS.primary} />
+          </View>
+
+          <View style={{ flex: 1 }}>
+            <Text style={styles.actionTitle}>{a.title}</Text>
+            <Text style={styles.actionSubtitle}>{a.subtitle}</Text>
+          </View>
+
+          <MaterialIcons name="chevron-right" size={22} color={COLORS.textMutedSoft} />
+        </TouchableOpacity>
+      );
+    });
+  };
+
+  const renderRecipients = () => {
+    return filteredRecipients.map((r) => {
+      return (
+        <TouchableOpacity
+          key={r.id}
+          style={getRecipientCardStyle()}
+          activeOpacity={0.85}
+          onPress={() => goToScreen("Transferencia", { recipientId: r.id })}
+        >
+          <View style={styles.recipientTop}>
+            <View style={styles.initialsCircle}>
+              <Text style={styles.initialsText}>{r.initials}</Text>
+            </View>
+
+            <TouchableOpacity onPress={() => { }} activeOpacity={0.7} style={styles.favBtn}>
+              <MaterialIcons
+                name={getFavIconName(r.favorite)}
+                size={18}
+                color={getFavIconColor(r.favorite)}
+              />
+            </TouchableOpacity>
+          </View>
+
+          <Text style={styles.recipientName} numberOfLines={2}>
+            {r.name}
+          </Text>
+        </TouchableOpacity>
+      );
+    });
+  };
+
+  const renderTransactions = () => {
+    return filteredTransactions.map((t, idx) => {
+      return (
+        <View key={t.id} style={getTxRowStyle(idx)}>
+          <View style={styles.txIcon}>
+            <MaterialIcons name={getTxIconName(t.type)} size={18} color={COLORS.primary} />
+          </View>
+
+          <View style={{ flex: 1 }}>
+            <Text style={styles.txTitle}>{t.type}</Text>
+            <Text style={styles.txSubtitle} numberOfLines={1}>
+              {t.to} · {t.date}
+            </Text>
+          </View>
+
+          <Text style={getAmountStyle(t.amount)}>{formatEUR(t.amount)}</Text>
+        </View>
+      );
+    });
+  };
 
   return (
     <View style={styles.safe}>
-      {/* Header */}
-      <View style={[styles.header, isDesktop && styles.headerDesktop]}>
-        <TouchableOpacity onPress={() => navigation?.goBack?.()} style={styles.iconBtn} activeOpacity={0.8}>
+      <View style={getHeaderStyle()}>
+        <TouchableOpacity onPress={goBack} style={styles.iconBtn} activeOpacity={0.8}>
           <MaterialIcons name="arrow-back" size={22} color="#fff" />
         </TouchableOpacity>
 
-        <Text style={[styles.headerTitle, isDesktop && styles.headerTitleDesktop]}>Transacciones</Text>
+        <Text style={getHeaderTitleStyle()}>Transacciones</Text>
 
         <TouchableOpacity
-          onPress={() => navigation?.navigate?.("AyudaTransacciones")}
+          onPress={() => goToScreen("AyudaTransacciones")}
           style={styles.iconBtn}
           activeOpacity={0.8}
         >
@@ -108,14 +332,9 @@ export default function MenuTransacciones({ navigation }) {
         </TouchableOpacity>
       </View>
 
-      <ScrollView
-        contentContainerStyle={[styles.scroll, isDesktop && styles.scrollDesktop]}
-        showsVerticalScrollIndicator={false}
-      >
-        {/* Contenedor centrado (maxWidth) */}
-        <View style={[styles.container, isDesktop && styles.containerDesktop, isLarge && styles.containerLarge]}>
-          {/* Search */}
-          <View style={[styles.searchWrap, isDesktop && styles.searchWrapDesktop]}>
+      <ScrollView contentContainerStyle={getScrollStyle()} showsVerticalScrollIndicator={false}>
+        <View style={getContainerStyle()}>
+          <View style={getSearchWrapStyle()}>
             <MaterialIcons name="search" size={20} color={COLORS.textMutedSoft} />
             <TextInput
               value={search}
@@ -124,106 +343,34 @@ export default function MenuTransacciones({ navigation }) {
               placeholderTextColor={COLORS.textMutedSoft}
               style={styles.searchInput}
             />
-            {!!search && (
-              <TouchableOpacity onPress={() => setSearch("")} activeOpacity={0.7} style={styles.clearBtn}>
-                <MaterialIcons name="close" size={18} color={COLORS.textMutedSoft} />
-              </TouchableOpacity>
-            )}
+            {renderClearButton()}
           </View>
 
-          {/* Layout responsive */}
-          <View style={[styles.layout, isDesktop && styles.layoutDesktop]}>
-            {/* Columna izquierda */}
-            <View style={[styles.col, isDesktop && styles.leftCol]}>
+          <View style={getLayoutStyle()}>
+            <View style={getLeftColStyle()}>
               <Text style={styles.sectionTitle}>Acciones rápidas</Text>
 
-              <View style={styles.actionsGrid}>
-                {quickActions.map((a) => (
-                  <TouchableOpacity key={a.id} style={styles.actionCard} activeOpacity={0.85} onPress={a.onPress}>
-                    <View style={styles.actionIcon}>
-                      <MaterialIcons name={a.icon} size={20} color={COLORS.primary} />
-                    </View>
-
-                    <View style={{ flex: 1 }}>
-                      <Text style={styles.actionTitle}>{a.title}</Text>
-                      <Text style={styles.actionSubtitle}>{a.subtitle}</Text>
-                    </View>
-
-                    <MaterialIcons name="chevron-right" size={22} color={COLORS.textMutedSoft} />
-                  </TouchableOpacity>
-                ))}
-              </View>
+              <View style={styles.actionsGrid}>{renderQuickActions()}</View>
 
               <View style={styles.sectionRow}>
                 <Text style={styles.sectionTitle}>Últimos destinatarios</Text>
-                <TouchableOpacity onPress={() => navigation?.navigate?.("Destinatarios")} activeOpacity={0.8}>
+                <TouchableOpacity onPress={() => goToScreen("Destinatarios")} activeOpacity={0.8}>
                   <Text style={styles.link}>Ver todos</Text>
                 </TouchableOpacity>
               </View>
 
-              <View style={[styles.recipientsWrap, isDesktop && styles.recipientsWrapDesktop]}>
-                {filteredRecipients.map((r) => (
-                  <TouchableOpacity
-                    key={r.id}
-                    style={[styles.recipientCard, isDesktop && styles.recipientCardDesktop]}
-                    activeOpacity={0.85}
-                    onPress={() => navigation?.navigate?.("Transferencia", { recipientId: r.id })}
-                  >
-                    <View style={styles.recipientTop}>
-                      <View style={styles.initialsCircle}>
-                        <Text style={styles.initialsText}>{r.initials}</Text>
-                      </View>
-
-                      <TouchableOpacity onPress={() => {}} activeOpacity={0.7} style={styles.favBtn}>
-                        <MaterialIcons
-                          name={r.favorite ? "favorite" : "favorite-border"}
-                          size={18}
-                          color={r.favorite ? COLORS.primary : COLORS.textMutedSoft}
-                        />
-                      </TouchableOpacity>
-                    </View>
-
-                    <Text style={styles.recipientName} numberOfLines={2}>
-                      {r.name}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
+              <View style={getRecipientsWrapStyle()}>{renderRecipients()}</View>
             </View>
 
-            {/* Columna derecha */}
-            <View style={[styles.col, isDesktop && styles.rightCol]}>
-              <Text style={[styles.sectionTitle, isDesktop && { marginTop: 18 }]}>Movimientos recientes</Text>
+            <View style={getRightColStyle()}>
+              <Text style={getMovTitleStyle()}>Movimientos recientes</Text>
 
-              <View style={styles.listCard}>
-                {filteredTransactions.map((t, idx) => (
-                  <View key={t.id} style={[styles.txRow, idx !== 0 && styles.txRowBorder]}>
-                    <View style={styles.txIcon}>
-                      <MaterialIcons
-                        name={t.type === "Depósito" ? "south-west" : t.type === "Retiro" ? "north-east" : "compare-arrows"}
-                        size={18}
-                        color={COLORS.primary}
-                      />
-                    </View>
-
-                    <View style={{ flex: 1 }}>
-                      <Text style={styles.txTitle}>{t.type}</Text>
-                      <Text style={styles.txSubtitle} numberOfLines={1}>
-                        {t.to} · {t.date}
-                      </Text>
-                    </View>
-
-                    <Text style={[styles.txAmount, t.amount < 0 ? styles.negative : styles.positive]}>
-                      {formatEUR(t.amount)}
-                    </Text>
-                  </View>
-                ))}
-              </View>
+              <View style={styles.listCard}>{renderTransactions()}</View>
 
               <TouchableOpacity
-                style={[styles.primaryBtn, isDesktop && styles.primaryBtnDesktop]}
+                style={getPrimaryBtnStyle()}
                 activeOpacity={0.9}
-                onPress={() => navigation?.navigate?.("NuevaTransaccion")}
+                onPress={() => goToScreen("NuevaTransaccion")}
               >
                 <Text style={styles.primaryBtnText}>Nueva transacción</Text>
               </TouchableOpacity>
@@ -238,9 +385,11 @@ export default function MenuTransacciones({ navigation }) {
 }
 
 function formatEUR(value) {
-  const sign = value < 0 ? "-" : "+";
+  let sign = "+";
+  if (value < 0) sign = "-";
+
   const abs = Math.abs(value);
-  return `${sign}${abs.toFixed(2)} €`;
+  return sign + abs.toFixed(2) + " €";
 }
 
 const styles = StyleSheet.create({
