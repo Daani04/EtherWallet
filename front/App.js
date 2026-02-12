@@ -13,9 +13,9 @@ const App = () => (
   <Provider>
     <NavigationContainer>
       <Stack.Navigator screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="HomeNav" component={HomeNav} />
         <Stack.Screen name="InicioSesion" component={InicioSesion} />
         <Stack.Screen name="RegistroUsuario" component={RegistroUsuario} />
+        <Stack.Screen name="HomeNav" component={HomeNav} />
       </Stack.Navigator>
     </NavigationContainer>
   </Provider>
