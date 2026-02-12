@@ -25,6 +25,9 @@ const InicioSesion = (props) => {
   const { t } = useTranslation();
   const [showPassword, setShowPassword] = useState(false);
 
+  const [mail, setMail] = useState("");
+  const [psw, setPsw] = useState("");
+
 
   useEffect(() => {
     (async () => {
@@ -68,6 +71,36 @@ const InicioSesion = (props) => {
     }
   };
 
+  const handleLogin = async () => {
+  if (!email || !pwd) {
+    alert("Por favor, rellena todos los campos");
+    return;
+  }
+
+  try {
+    const response = await fetch('https://tu-api.com/login', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        email: email,
+        password: pwd,
+      }),
+    });
+
+    const data = await response.json();
+
+    if (response.ok) {
+      console.log("Login correcto", data.token);
+    } else {
+      alert(data.message || "Usuario o contraseña incorrectos");
+    }
+  } catch (error) {
+    alert("Error de conexión. Inténtalo más tarde.");
+  }
+};
+
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === "ios" ? "padding" : "height"}
@@ -75,12 +108,10 @@ const InicioSesion = (props) => {
     >
       <ScrollView contentContainerStyle={styles.scrollContainer} bounces={false}>
         <View style={styles.root}>
-          {/* Elementos decorativos de fondo (Blobs del HTML) */}
           <View style={[styles.blob, styles.blobTopRight]} />
           <View style={[styles.blob, styles.blobBottomLeft]} />
 
           <View style={styles.container}>
-            {/* Header Image Card (Blockchain Globe) */}
             <View style={styles.heroWrap}>
               <View style={styles.heroCard}>
                 <ImageBackground
@@ -96,15 +127,12 @@ const InicioSesion = (props) => {
               </View>
             </View>
 
-            {/* Headline corregido */}
             <View style={styles.head}>
               <Text style={styles.title}>Bienvenido</Text>
               <Text style={styles.subtitle}>Accede a tu cartera segura</Text>
             </View>
 
-            {/* Formulario */}
             <View style={styles.form}>
-              {/* Email Field */}
               <View style={styles.inputContainer}>
                 <MaterialIcons name="mail-outline" size={20} color="#9db9a8" style={styles.inputIcon} />
                 <TextInput
@@ -113,10 +141,10 @@ const InicioSesion = (props) => {
                   style={styles.input}
                   autoCapitalize="none"
                   keyboardType="email-address"
+                  onChangeText={(userMail) => setMail(userMail)}
                 />
               </View>
 
-              {/* Password Field */}
               <View style={styles.inputContainer}>
                 <MaterialIcons name="lock-outline" size={20} color="#9db9a8" style={styles.inputIcon} />
                 <TextInput
@@ -124,6 +152,7 @@ const InicioSesion = (props) => {
                   placeholderTextColor="rgba(157,185,168,0.55)"
                   style={styles.input}
                   secureTextEntry={!showPassword}
+                  onChangeText={(userPsw) => setPsw(userPsw)}
                 />
                 <TouchableOpacity
                   style={styles.eyeIcon}
@@ -142,12 +171,10 @@ const InicioSesion = (props) => {
                 <Text style={styles.forgotPassText}>¿Olvidaste tu contraseña?</Text>
               </TouchableOpacity>
 
-              {/* Primary Action (Botón verde con sombra) */}
               <TouchableOpacity style={styles.primaryBtn} activeOpacity={0.8}>
                 <Text style={styles.primaryBtnText}>Iniciar Sesión</Text>
               </TouchableOpacity>
 
-              {/* Biometric Login (Botón secundario contorneado) */}
               <TouchableOpacity
                 style={styles.secondaryBtn}
                 activeOpacity={0.8}
@@ -158,7 +185,6 @@ const InicioSesion = (props) => {
               </TouchableOpacity>
             </View>
 
-            {/* Footer */}
             <View style={styles.footer}>
               <Text style={styles.footerText}>
                 {t('NoAccount.Question')}
@@ -191,7 +217,6 @@ const styles = StyleSheet.create({
   scrollContainer: { flexGrow: 1 },
   root: { flex: 1, alignItems: "center", justifyContent: "center", paddingVertical: 40 },
 
-  // Fondo decorativo
   blob: { position: "absolute", backgroundColor: "rgba(43,238,121,0.08)", borderRadius: 999 },
   blobTopRight: { width: 400, height: 400, top: -100, right: -100 },
   blobBottomLeft: { width: 300, height: 300, bottom: -50, left: -100 },
@@ -201,14 +226,13 @@ const styles = StyleSheet.create({
   heroWrap: {
     marginBottom: 20,
     alignItems: "center",
-    width: "100%", // Ocupa todo el ancho disponible
+    width: "100%", 
   },
   heroCard: {
-    width: "90%", // Deja un pequeño margen a los lados
-    aspectRatio: 16.4 / 12, // Mantiene una proporción de aspecto cinematográfica
+    width: "90%", 
+    aspectRatio: 16.4 / 12,
     borderRadius: 24,
     backgroundColor: 'transparent',
-    // Sombra para dar profundidad
     shadowColor: COLORS.primary,
     shadowOpacity: 0.2,
     shadowRadius: 15,
@@ -221,7 +245,7 @@ const styles = StyleSheet.create({
   },
   heroImgRadius: {
     borderRadius: 24,
-    resizeMode: "contain", // "contain" asegura que se vea todo el logo sin cortarse
+    resizeMode: "contain", 
   },
 
   head: { marginBottom: 32, alignItems: "center" },
