@@ -12,26 +12,34 @@ import { LinearGradient } from "expo-linear-gradient";
 import Nav from "../../components/Nav";
 
 const MenuPrincipal = ({ navigation }) => {
-  const saldoTotal = 4906.0;
-  const variacion24h = 2.84;
+  const totalBalance = 4906.0;
+  const variation24h = 2.84;
 
-  const mercado = [
+  const market = [
     { symbol: "BTC", name: "Bitcoin", price: 41250, change: 2.15 },
     { symbol: "ETH", name: "Ethereum", price: 2210, change: -1.02 },
     { symbol: "SOL", name: "Solana", price: 98.4, change: 4.72 },
     { symbol: "BNB", name: "BNB", price: 312.5, change: 0.85 },
   ];
 
-  const [favoritas, setFavoritas] = useState(["BTC"]);
+  const [favourites, setFavourites] = useState(["BTC"]);
 
-  const toggleFavorita = (symbol) => {
-    setFavoritas((prev) =>
-      prev.includes(symbol) ? prev.filter((s) => s !== symbol) : [...prev, symbol]
+  const toggleFavourite = (symbol) => {
+    setFavourites((prev) =>
+      prev.includes(symbol)
+        ? prev.filter((s) => s !== symbol)
+        : [...prev, symbol]
     );
   };
 
   const formatEUR = (n) => n.toFixed(2).replace(".", ",") + " €";
-  const sube = variacion24h >= 0;
+
+  const goUp = variation24h >= 0;
+  const colourTrend = goUp ? COLORS.primaryDark : COLORS.danger;
+
+  const favouritesList = market.filter((c) =>
+    favourites.includes(c.symbol)
+  );
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -52,11 +60,17 @@ const MenuPrincipal = ({ navigation }) => {
         <View style={styles.balanceCard}>
           <LinearGradient colors={[COLORS.primarySoft, "transparent"]} style={styles.balanceGlow} />
           <Text style={styles.balanceLabel}>Balance total</Text>
-          <Text style={styles.balanceValue}>{formatEUR(saldoTotal)}</Text>
+          <Text style={styles.balanceValue}>{formatEUR(totalBalance)}</Text>
+
           <View style={styles.balanceRow}>
-            <MaterialIcons name={sube ? "trending-up" : "trending-down"} size={18} color={sube ? COLORS.primary : COLORS.danger} />
-            <Text style={[styles.balanceChange, { color: sube ? COLORS.primary : COLORS.danger }]}>
-              {sube ? "+" : ""}{variacion24h}%
+            <MaterialIcons
+              name={goUp ? "trending-up" : "trending-down"}
+              size={18}
+              color={colourTrend}
+            />
+            <Text style={[styles.balanceChange, { color: colourTrend }]}>
+              {goUp ? "+" : ""}
+              {variation24h}%
             </Text>
             <Text style={styles.balanceSub}>últimas 24h</Text>
           </View>
@@ -70,17 +84,39 @@ const MenuPrincipal = ({ navigation }) => {
           <Action icon="north-east" label="Send" />
         </View>
 
-        {/* MERCADO */}
+        {/* ⭐ FAVORITAS */}
+        {favouritesList.length > 0 && (
+          <View style={styles.card}>
+            <Text style={styles.sectionTitle}>Favoritas</Text>
+
+            {favouritesList.map((coin) => (
+              <CoinRow
+                key={coin.symbol}
+                coin={coin}
+                isFav
+                onToggle={toggleFavourite}
+              />
+            ))}
+          </View>
+        )}
+
+        {/* 📈 MERCADO */}
         <View style={styles.card}>
           <Text style={styles.sectionTitle}>Mercado</Text>
-          {mercado.map((coin) => (
-            <CoinRow
-              key={coin.symbol}
-              coin={coin}
-              isFav={favoritas.includes(coin.symbol)}
-              onToggle={toggleFavorita}
-            />
-          ))}
+
+          <ScrollView
+            style={{ maxHeight: 280 }}
+            showsVerticalScrollIndicator={false}
+          >
+            {market.map((coin) => (
+              <CoinRow
+                key={coin.symbol}
+                coin={coin}
+                isFav={favourites.includes(coin.symbol)}
+                onToggle={toggleFavourite}
+              />
+            ))}
+          </ScrollView>
         </View>
         
         {/* Espacio para que el Nav no tape nada */}
@@ -95,6 +131,8 @@ const MenuPrincipal = ({ navigation }) => {
 /* COMPONENTES INTERNOS */
 const CoinRow = ({ coin, isFav, onToggle }) => {
   const up = coin.change >= 0;
+  const colour = up ? COLORS.primaryDark : COLORS.danger;
+
   return (
     <View style={styles.marketRow}>
       <View style={styles.marketLeft}>
@@ -105,8 +143,9 @@ const CoinRow = ({ coin, isFav, onToggle }) => {
         </View>
       </View>
       <View style={styles.marketRight}>
-        <Text style={[styles.coinChange, { color: up ? COLORS.primary : COLORS.danger }]}>
-          {up ? "+" : ""}{coin.change.toFixed(2)}%
+        <Text style={[styles.coinChange, { color: colour }]}>
+          {up ? "+" : ""}
+          {coin.change.toFixed(2)}%
         </Text>
         <TouchableOpacity onPress={() => onToggle(coin.symbol)}>
           <MaterialIcons name={isFav ? "star" : "star-border"} size={20} color={isFav ? COLORS.primary : COLORS.textMuted} />
