@@ -16,113 +16,24 @@ import {
 } from 'lucide-react-native';
 import Svg, { Path } from 'react-native-svg';
 
-const MenuPrincipal = ({ navigation }) => {
-  const totalBalance = 4906.0;
-  const variation24h = 2.84;
+import Nav from '../../components/Nav';
 
-  const market = [
-    { symbol: "BTC", name: "Bitcoin", price: 41250, change: 2.15 },
-    { symbol: "ETH", name: "Ethereum", price: 2210, change: -1.02 },
-    { symbol: "SOL", name: "Solana", price: 98.4, change: 4.72 },
-    { symbol: "BNB", name: "BNB", price: 312.5, change: 0.85 },
-  ];
+const { width } = Dimensions.get('window');
 
-  const [favourites, setFavourites] = useState(["BTC"]);
+const COLORS = {
+  primary: "#2bee79",
+  backgroundDark: "#102217",
+  surfaceDark: "#162b20",
+  textMuted: "#94a3b8",
+  danger: "#ef4444",
+};
 
-  const toggleFavourite = (symbol) => {
-    setFavourites((prev) =>
-      prev.includes(symbol)
-        ? prev.filter((s) => s !== symbol)
-        : [...prev, symbol]
-    );
-  };
-
-  const formatEUR = (n) => n.toFixed(2).replace(".", ",") + " €";
-
-  const goUp = variation24h >= 0;
-  const colourTrend = goUp ? COLORS.primaryDark : COLORS.danger;
-
-  const favouritesList = market.filter((c) =>
-    favourites.includes(c.symbol)
-  );
+export default function MenuPrincipal({ navigation }) {
+  const [search, setSearch] = useState("");
 
   return (
-    <SafeAreaView style={styles.safe}>
-      {/* Blobs de fondo */}
-      <View style={styles.blob} />
-
-      {/* CABECERA FIJA */}
-      <View style={styles.headerFixed}>
-        <Text style={styles.kicker}>Mercado</Text>
-        <Text style={styles.title}>Mercado en tiempo real</Text>
-      </View>
-
-      <ScrollView
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-      >
-        {/* BALANCE */}
-        <View style={styles.balanceCard}>
-          <LinearGradient colors={[COLORS.primarySoft, "transparent"]} style={styles.balanceGlow} />
-          <Text style={styles.balanceLabel}>Balance total</Text>
-          <Text style={styles.balanceValue}>{formatEUR(totalBalance)}</Text>
-
-          <View style={styles.balanceRow}>
-            <MaterialIcons
-              name={goUp ? "trending-up" : "trending-down"}
-              size={18}
-              color={colourTrend}
-            />
-            <Text style={[styles.balanceChange, { color: colourTrend }]}>
-              {goUp ? "+" : ""}
-              {variation24h}%
-            </Text>
-            <Text style={styles.balanceSub}>últimas 24h</Text>
-          </View>
-        </View>
-
-        {/* ACCIONES */}
-        <View style={styles.actionsRow}>
-          <Action icon="add" label="Buy" />
-          <Action icon="south-west" label="Sell" />
-          <Action icon="swap-horiz" label="Swap" />
-          <Action icon="north-east" label="Send" />
-        </View>
-
-        {/* ⭐ FAVORITAS */}
-        {favouritesList.length > 0 && (
-          <View style={styles.card}>
-            <Text style={styles.sectionTitle}>Favoritas</Text>
-
-            {favouritesList.map((coin) => (
-              <CoinRow
-                key={coin.symbol}
-                coin={coin}
-                isFav
-                onToggle={toggleFavourite}
-              />
-            ))}
-          </View>
-        )}
-
-        {/* 📈 MERCADO */}
-        <View style={styles.card}>
-          <Text style={styles.sectionTitle}>Mercado</Text>
-
-          <ScrollView
-            style={{ maxHeight: 280 }}
-            showsVerticalScrollIndicator={false}
-          >
-            {market.map((coin) => (
-              <CoinRow
-                key={coin.symbol}
-                coin={coin}
-                isFav={favourites.includes(coin.symbol)}
-                onToggle={toggleFavourite}
-              />
-            ))}
-          </ScrollView>
-        </View>
+    <SafeAreaView style={styles.safeArea}>
+      <View style={styles.container}>
         
         <ScrollView showsVerticalScrollIndicator={false}>
           
@@ -130,7 +41,6 @@ const MenuPrincipal = ({ navigation }) => {
             <Text style={styles.mainTitle}>Mercados</Text>
           </View>
 
-          {/* Barra de Búsqueda */}
           <View style={styles.searchContainer}>
             <View style={styles.searchBox}>
               <Search size={20} color={COLORS.textMuted} style={styles.searchIcon} />
@@ -149,7 +59,7 @@ const MenuPrincipal = ({ navigation }) => {
             </View>
           </View>
 
-          {/*Todos", "Favoritos", "Ganadores", "Perdedores => De momento no esta implementado, si da tiempo se mete*/}
+          {/*"Todos", "Favoritos", "Ganadores", "Perdedores" => De momento no se utiilza*/}
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chipsScroll}>
             {["Todos", "Favoritos", "Ganadores", "Perdedores"].map((label, i) => (
               <TouchableOpacity key={label} style={[styles.chip, i === 0 && styles.chipActive]}>
@@ -169,7 +79,7 @@ const MenuPrincipal = ({ navigation }) => {
           <ScrollView 
             horizontal 
             showsHorizontalScrollIndicator={false} 
-            snapToInterval={296} 
+            snapToInterval={width * 0.75} 
             decelerationRate="fast" 
             contentContainerStyle={styles.trendingScroll}
           >
@@ -189,6 +99,7 @@ const MenuPrincipal = ({ navigation }) => {
               <MarketItem name="Bitcoin" symbol="BTC" price="43,205.12" change="2.45" isPositive icon={Bitcoin} color="#f59e0b" />
               <MarketItem name="Ethereum" symbol="ETH" price="2,240.55" change="0.51" isPositive={false} icon={Coins} color="#627EEA" />
               <MarketItem name="Solana" symbol="SOL" price="95.42" change="12.1" isPositive icon={Infinity} color="#a855f7" />
+              <MarketItem name="BNB" symbol="BNB" price="312.50" change="0.85" isPositive icon={Coins} color="#f3ba2f" />
             </View>
           </View>
           
@@ -202,31 +113,29 @@ const MenuPrincipal = ({ navigation }) => {
   );
 }
 
-/* COMPONENTES INTERNOS */
-const CoinRow = ({ coin, isFav, onToggle }) => {
-  const up = coin.change >= 0;
-  const colour = up ? COLORS.primaryDark : COLORS.danger;
-
-  return (
-    <View style={styles.marketRow}>
-      <View style={styles.marketLeft}>
-        <View style={styles.coinBadge}><Text style={styles.coinBadgeText}>{coin.symbol}</Text></View>
+//Tendencias
+const TrendingCard = ({ name, symbol, price, change, isPositive, icon: Icon, color, path }) => (
+  <View style={styles.trendingCard}>
+    <View style={styles.cardHeader}>
+      <View style={styles.coinInfo}>
+        <View style={[styles.iconContainer, { backgroundColor: color }]}>
+          <Icon size={20} color="white" />
+        </View>
         <View>
           <Text style={styles.coinName}>{name}</Text>
           <Text style={styles.coinSymbol}>{symbol}</Text>
         </View>
       </View>
-      <View style={styles.marketRight}>
-        <Text style={[styles.coinChange, { color: colour }]}>
-          {up ? "+" : ""}
-          {coin.change.toFixed(2)}%
+      <View style={[styles.badge, { backgroundColor: isPositive ? 'rgba(43,238,121,0.2)' : 'rgba(239,68,68,0.1)' }]}>
+        <Text style={[styles.badgeText, { color: isPositive ? COLORS.primary : COLORS.danger }]}>
+          {isPositive ? '↑' : '↓'} {change}%
         </Text>
       </View>
     </View>
     <Text style={styles.cardPrice}>${price}</Text>
     <View style={styles.chartMini}>
       <Svg height="40" width="100%">
-        <Path d={path} fill="none" stroke={isPositive ? COLORS.primary : "#ef4444"} strokeWidth="2" />
+        <Path d={path} fill="none" stroke={isPositive ? COLORS.primary : COLORS.danger} strokeWidth="2" />
       </Svg>
     </View>
   </View>
@@ -234,7 +143,7 @@ const CoinRow = ({ coin, isFav, onToggle }) => {
 
 //Criptomonedas
 const MarketItem = ({ name, symbol, price, change, isPositive, icon: Icon, color }) => (
-  <TouchableOpacity style={styles.marketItem}>
+  <TouchableOpacity style={styles.marketItem} activeOpacity={0.7}>
     <View style={styles.marketInfo}>
       <View style={[styles.marketIconWrap, { backgroundColor: color + '20' }]}>
         <Icon size={22} color={color} />
@@ -246,7 +155,7 @@ const MarketItem = ({ name, symbol, price, change, isPositive, icon: Icon, color
     </View>
     <View style={styles.marketValues}>
       <Text style={styles.marketPrice}>${price}</Text>
-      <Text style={[styles.marketChange, { color: isPositive ? COLORS.primary : "#ef4444" }]}>
+      <Text style={[styles.marketChange, { color: isPositive ? COLORS.primary : COLORS.danger }]}>
         {isPositive ? '+' : ''}{change}%
       </Text>
     </View>
@@ -297,8 +206,7 @@ const styles = StyleSheet.create({
   },
   chipsScroll: { 
     paddingHorizontal: 24, 
-    paddingVertical: 15, 
-    gap: 12 
+    paddingVertical: 15 
   },
   chip: { 
     paddingHorizontal: 20, 
@@ -306,7 +214,8 @@ const styles = StyleSheet.create({
     borderRadius: 99, 
     backgroundColor: COLORS.surfaceDark, 
     borderWidth: 1, 
-    borderColor: 'rgba(255,255,255,0.05)' 
+    borderColor: 'rgba(255,255,255,0.05)',
+    marginRight: 12
   },
   chipActive: { 
     backgroundColor: COLORS.primary 
@@ -343,8 +252,7 @@ const styles = StyleSheet.create({
   },
   trendingScroll: { 
     paddingLeft: 24, 
-    paddingVertical: 15, 
-    gap: 16 
+    paddingVertical: 15 
   },
   trendingCard: { 
     width: 280, 
@@ -352,7 +260,8 @@ const styles = StyleSheet.create({
     borderRadius: 24, 
     padding: 16, 
     borderWidth: 1, 
-    borderColor: 'rgba(255,255,255,0.05)' 
+    borderColor: 'rgba(255,255,255,0.05)',
+    marginRight: 16
   },
   cardHeader: { 
     flexDirection: 'row', 
@@ -404,8 +313,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24 
   },
   marketList: { 
-    marginTop: 15, 
-    gap: 10 
+    marginTop: 15 
   },
   marketItem: { 
     flexDirection: 'row', 
@@ -413,7 +321,8 @@ const styles = StyleSheet.create({
     alignItems: 'center', 
     padding: 16, 
     borderRadius: 20, 
-    backgroundColor: 'rgba(255,255,255,0.02)' 
+    backgroundColor: 'rgba(255,255,255,0.02)',
+    marginBottom: 10
   },
   marketInfo: { 
     flexDirection: 'row', 
