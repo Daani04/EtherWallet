@@ -14,9 +14,15 @@ import { LinearGradient } from "expo-linear-gradient";
 import Nav from "../../components/Nav";
 
 const Billetera = (props) => {
+<<<<<<< HEAD
   const [ocultarSaldo, setOcultarSaldo] = useState(false);
   const [screenW, setScreenW] = useState(Dimensions.get("window").width);
   const [ultimaActualizacion, setUltimaActualizacion] = useState("");
+=======
+  const [hideBalance, setHideBalance] = useState(false);
+  const [screenW, setScreenW] = useState(Dimensions.get("window").width);
+  const [lastUpdate, setLastUpdate] = useState("");
+>>>>>>> Dani
 
   useEffect(() => {
     const sub = Dimensions.addEventListener("change", ({ window }) => {
@@ -31,6 +37,7 @@ const Billetera = (props) => {
     const d = new Date();
     const hh = String(d.getHours()).padStart(2, "0");
     const mm = String(d.getMinutes()).padStart(2, "0");
+<<<<<<< HEAD
     setUltimaActualizacion(hh + ":" + mm);
   }, []);
 
@@ -42,17 +49,32 @@ const Billetera = (props) => {
   let esPC = false;
   if (esWeb && screenW >= 900) esPC = true;
   else esPC = false;
+=======
+    setLastUpdate(hh + ":" + mm);
+  }, []);
+
+  let isWeb = false;
+  if (Platform.OS === "web") isWeb = true;
+
+  let isPC = false;
+  if (isWeb && screenW >= 900) isPC = true;
+>>>>>>> Dani
 
   let titleSize = 28;
   let balanceSize = 32;
   let padH = 24;
   let cardPad = 18;
 
+<<<<<<< HEAD
   if (esPC) {
+=======
+  if (isPC) {
+>>>>>>> Dani
     titleSize = 30;
     balanceSize = 34;
     padH = 28;
     cardPad = 20;
+<<<<<<< HEAD
   } else {
     titleSize = 28;
     balanceSize = 32;
@@ -68,25 +90,44 @@ const Billetera = (props) => {
   const saldoRetenido = 140.15;
 
   const activos = [
+=======
+  }
+
+  const totalBalance = 2450.35;
+  const variation24h = 3.42;
+
+  const availableBalance = 2310.2;
+  const retainedEarnings = 140.15;
+
+  const assets = [
+>>>>>>> Dani
     { symbol: "BTC", name: "Bitcoin", amount: 0.0324, valueEUR: 1336.5, change24h: 2.1 },
     { symbol: "ETH", name: "Ethereum", amount: 0.54, valueEUR: 1209.8, change24h: -1.3 },
     { symbol: "SOL", name: "Solana", amount: 18.2, valueEUR: 178.9, change24h: 5.7 },
     { symbol: "USDT", name: "Tether", amount: 420.0, valueEUR: 420.0, change24h: 0.0 },
   ];
 
+<<<<<<< HEAD
   const movimientos = [
+=======
+  const movements = [
+>>>>>>> Dani
     { type: "receive", title: "Recibido", subtitle: "0.0100 BTC", date: "Hoy", value: "+412.50 €", status: "Confirmado" },
     { type: "send", title: "Enviado", subtitle: "0.20 ETH", date: "Ayer", value: "-448.00 €", status: "Confirmado" },
     { type: "swap", title: "Swap", subtitle: "SOL → USDT", date: "Hace 3 días", value: "+120.00 €", status: "Procesando" },
   ];
 
+<<<<<<< HEAD
   // ====== Helpers ======
+=======
+>>>>>>> Dani
   const formatEUR = (num) => {
     let s = Number(num).toFixed(2);
     s = s.replace(".", ",");
     return s + " €";
   };
 
+<<<<<<< HEAD
   let saldoTexto = "";
   if (ocultarSaldo) saldoTexto = "•••••";
   else saldoTexto = formatEUR(saldoTotal);
@@ -230,43 +271,244 @@ const Billetera = (props) => {
                 <View style={styles.smallCard}>
                   <Text style={styles.smallLabel}>Disponible</Text>
                   <Text style={styles.smallValue}>{dispTexto}</Text>
+=======
+  const hiddenText = (text) => {
+    if (hideBalance) return "••••";
+    return text;
+  };
+
+  const hiddenTime = () => {
+    if (hideBalance) return "••:••";
+    return lastUpdate;
+  };
+
+  const getBalanceText = () => {
+    if (hideBalance) return "•••••";
+    return formatEUR(totalBalance);
+  };
+
+  const getAvailableText = () => {
+    if (hideBalance) return "••••";
+    return formatEUR(availableBalance);
+  };
+
+  const getRetainedText = () => {
+    if (hideBalance) return "••••";
+    return formatEUR(retainedEarnings);
+  };
+
+  const isUpTrend = () => {
+    if (variation24h >= 0) return true;
+    return false;
+  };
+
+  const getTrendConfig = () => {
+    const up = isUpTrend();
+
+    if (up) {
+      return {
+        colourTrend: COLORS.accent,
+        edgeTrend: "rgba(115, 255, 200, 0.22)",
+        backgroundTrend: "rgba(115, 255, 200, 0.08)",
+        iconTrend: "trending-up",
+      };
+    }
+
+    return {
+      colourTrend: "#ff6b6b",
+      edgeTrend: "rgba(255,107,107,0.28)",
+      backgroundTrend: "rgba(255,107,107,0.08)",
+      iconTrend: "trending-down",
+    };
+  };
+
+  const getVariationText = () => {
+    if (hideBalance) return "•••";
+
+    if (variation24h >= 0) return "+" + variation24h.toFixed(2) + "%";
+    return variation24h.toFixed(2) + "%";
+  };
+
+  const iconMovement = (type) => {
+    let icon = "swap-horiz";
+    if (type === "receive") icon = "south-west";
+    else if (type === "send") icon = "north-east";
+    return icon;
+  };
+
+  const getAssetRowData = (a) => {
+    let colourChange = "#ff6b6b";
+    if (a.change24h >= 0) colourChange = COLORS.accent;
+
+    let amountText = "•••";
+    if (!hideBalance) amountText = String(a.amount) + " " + a.symbol;
+
+    let valText = "••••";
+    if (!hideBalance) valText = formatEUR(a.valueEUR);
+
+    let chText = "•••";
+    if (!hideBalance) {
+      if (a.change24h >= 0) chText = "+" + a.change24h + "%";
+      else chText = a.change24h + "%";
+    }
+
+    return { colourChange, amountText, valText, chText };
+  };
+
+  const getMovementRowData = (m) => {
+    let valMov = "••••";
+    if (!hideBalance) valMov = m.value;
+
+    let statusColour = "#ffd166";
+    if (m.status === "Confirmado") statusColour = COLORS.textMuted;
+
+    let statusText = "•••";
+    if (!hideBalance) statusText = m.status;
+
+    return { valMov, statusColour, statusText };
+  };
+
+  const trend = getTrendConfig();
+  const textBalance = getBalanceText();
+  const textAvailable = getAvailableText();
+  const retText = getRetainedText();
+  const textVariation = getVariationText();
+
+  const dyn = {
+    container: { paddingHorizontal: padH },
+    title: { fontSize: titleSize },
+    balanceValue: { fontSize: balanceSize },
+    balanceCard: { padding: cardPad },
+    twoCols: {},
+    col: {},
+  };
+
+  if (isPC) {
+    dyn.twoCols = { flexDirection: "row", gap: 14, alignItems: "flex-start" };
+    dyn.col = { flex: 1 };
+  } else {
+    dyn.twoCols = { flexDirection: "column" };
+    dyn.col = { width: "100%" };
+  }
+
+  let Wrapper = View; 
+  let wrapperProps = { style: styles.webWrapper };
+  let ScrollComp = View;
+  let scrollProps = { style: styles.webScroll };
+  let innerStyle = styles.webInner;
+
+  if (!isWeb) {
+    Wrapper = SafeAreaView;
+    wrapperProps = { style: styles.safe };
+
+    ScrollComp = ScrollView;
+    scrollProps = {
+      style: styles.scroll,
+      contentContainerStyle: styles.scrollContainer,
+      bounces: true,
+      showsVerticalScrollIndicator: false,
+    };
+    innerStyle = null;
+  }
+
+  const renderDividerIfNotLast = (index, length) => {
+    if (index !== length - 1) return <View style={styles.divider} />;
+    return null;
+  };
+
+  const getVisibilityIconName = () => {
+    if (hideBalance) return "visibility-off";
+    return "visibility";
+  };
+
+  const getBalanceSubText = () => {
+    if (hideBalance) return "Últimas 24h";
+    return "Últimas 24h · variación estimada";
+  };
+
+  const renderMiniInfo = () => {
+    return <Text style={styles.miniInfo}>Última actualización: {hiddenTime()}</Text>;
+  };
+
+  return (
+    <Wrapper {...wrapperProps}>
+      <View style={[styles.blob, styles.blobTopRight]} />
+      <View style={[styles.blob, styles.blobBottomLeft]} />
+
+      <ScrollComp {...scrollProps}>
+        <View style={innerStyle}>
+          <View style={[styles.container, dyn.container]}>
+            <View style={styles.topRow}>
+              <View>
+                <Text style={styles.kicker}>Billetera</Text>
+                <Text style={[styles.title, dyn.title]}>Tu cartera segura</Text>
+                {renderMiniInfo()}
+              </View>
+
+              <Pressable onPress={() => setHideBalance(!hideBalance)} style={styles.iconBtn}>
+                <MaterialIcons
+                  name={getVisibilityIconName()}
+                  size={22}
+                  color={COLORS.textMuted}
+                />
+              </Pressable>
+            </View>
+
+            <View style={[styles.balanceCard, dyn.balanceCard]}>
+              <LinearGradient
+                colors={["rgba(255,255,255,0.08)", "rgba(16,34,23,0.0)"]}
+                locations={[0, 1]}
+                style={styles.balanceGlow}
+              />
+
+              <Text style={styles.balanceLabel}>Balance total</Text>
+
+              <View style={styles.balanceRow}>
+                <Text style={[styles.balanceValue, dyn.balanceValue]}>{textBalance}</Text>
+
+                <View style={[styles.pill, { borderColor: trend.edgeTrend, backgroundColor: trend.backgroundTrend }]}>
+                  <MaterialIcons name={trend.iconTrend} size={16} color={trend.colourTrend} />
+                  <Text style={[styles.pillText, { color: trend.colourTrend }]}>{textVariation}</Text>
+                </View>
+              </View>
+
+              <Text style={styles.balanceSub}>{getBalanceSubText()}</Text>
+
+              <View style={styles.smallGrid}>
+                <View style={styles.smallCard}>
+                  <Text style={styles.smallLabel}>Disponible</Text>
+                  <Text style={styles.smallValue}>{textAvailable}</Text>
+>>>>>>> Dani
                 </View>
 
                 <View style={styles.smallCard}>
                   <Text style={styles.smallLabel}>Retenido</Text>
+<<<<<<< HEAD
                   <Text style={styles.smallValue}>{retTexto}</Text>
+=======
+                  <Text style={styles.smallValue}>{retText}</Text>
+>>>>>>> Dani
                 </View>
               </View>
             </View>
 
+<<<<<<< HEAD
             {/* Contenido principal */}
             <View style={[styles.twoColsWrap, dyn.twoCols]}>
               {/* Activos */}
               <View style={dyn.col}>
                 <View style={esPC ? styles.sectionRowPC : styles.sectionRow}>
+=======
+            <View style={[styles.twoColsWrap, dyn.twoCols]}>
+              <View style={dyn.col}>
+                <View style={isPC ? styles.sectionRowPC : styles.sectionRow}>
+>>>>>>> Dani
                   <Text style={styles.sectionTitle}>Activos</Text>
                 </View>
 
                 <View style={styles.card}>
-                  {activos.map((a, index) => {
-                    let cambioColor = COLORS.accent;
-                    if (a.change24h >= 0) cambioColor = COLORS.accent;
-                    else cambioColor = "#ff6b6b";
-
-                    let amountText = "";
-                    if (ocultarSaldo) amountText = "•••";
-                    else amountText = String(a.amount) + " " + a.symbol;
-
-                    let valText = "";
-                    if (ocultarSaldo) valText = "••••";
-                    else valText = formatEUR(a.valueEUR);
-
-                    let chText = "";
-                    if (ocultarSaldo) chText = "•••";
-                    else {
-                      if (a.change24h >= 0) chText = "+" + a.change24h + "%";
-                      else chText = a.change24h + "%";
-                    }
+                  {assets.map((a, index) => {
+                    const row = getAssetRowData(a);
 
                     return (
                       <View key={a.symbol} style={styles.assetRow}>
@@ -276,29 +518,47 @@ const Billetera = (props) => {
                           </View>
                           <View style={{ flex: 1 }}>
                             <Text style={styles.assetName}>{a.name}</Text>
+<<<<<<< HEAD
                             <Text style={styles.assetSub}>{amountText}</Text>
+=======
+                            <Text style={styles.assetSub}>{row.amountText}</Text>
+>>>>>>> Dani
                           </View>
                         </View>
 
                         <View style={styles.assetRight}>
+<<<<<<< HEAD
                           <Text style={styles.assetValue}>{valText}</Text>
                           <Text style={[styles.assetChange, { color: cambioColor }]}>{chText}</Text>
                         </View>
 
                         {index !== activos.length - 1 ? <View style={styles.divider} /> : null}
+=======
+                          <Text style={styles.assetValue}>{row.valText}</Text>
+                          <Text style={[styles.assetChange, { color: row.colourChange }]}>{row.chText}</Text>
+                        </View>
+
+                        {renderDividerIfNotLast(index, assets.length)}
+>>>>>>> Dani
                       </View>
                     );
                   })}
                 </View>
               </View>
 
+<<<<<<< HEAD
               {/* Movimientos */}
               <View style={dyn.col}>
                 <View style={esPC ? styles.sectionRowPC : [styles.sectionRow, { marginTop: 18 }]}>
+=======
+              <View style={dyn.col}>
+                <View style={isPC ? styles.sectionRowPC : [styles.sectionRow, { marginTop: 18 }]}>
+>>>>>>> Dani
                   <Text style={styles.sectionTitle}>Movimientos</Text>
                 </View>
 
                 <View style={styles.card}>
+<<<<<<< HEAD
                   {movimientos.map((m, index) => {
                     let valMov = "";
                     if (ocultarSaldo) valMov = "••••";
@@ -307,32 +567,53 @@ const Billetera = (props) => {
                     let statusColor = COLORS.textMuted;
                     if (m.status === "Confirmado") statusColor = COLORS.textMuted;
                     else statusColor = "#ffd166";
+=======
+                  {movements.map((m, index) => {
+                    const mov = getMovementRowData(m);
+>>>>>>> Dani
 
                     return (
                       <View key={m.type + "-" + index} style={styles.movRow}>
                         <View style={styles.movLeft}>
                           <View style={styles.movIconWrap}>
+<<<<<<< HEAD
                             <MaterialIcons name={iconMovimiento(m.type)} size={20} color={COLORS.accent} />
+=======
+                            <MaterialIcons name={iconMovement(m.type)} size={20} color={COLORS.accent} />
+>>>>>>> Dani
                           </View>
 
                           <View style={{ flex: 1 }}>
                             <View style={styles.movHeaderRow}>
                               <Text style={styles.movTitle}>{m.title}</Text>
+<<<<<<< HEAD
                               <Text style={styles.movValueInline}>{valMov}</Text>
+=======
+                              <Text style={styles.movValueInline}>{mov.valMov}</Text>
+>>>>>>> Dani
                             </View>
 
                             <View style={styles.movSubRow}>
                               <Text style={styles.movSub}>
                                 {m.subtitle} · {m.date}
                               </Text>
+<<<<<<< HEAD
                               <Text style={[styles.movStatus, { color: statusColor }]}>
                                 {ocultarSaldo ? "•••" : m.status}
+=======
+                              <Text style={[styles.movStatus, { color: mov.statusColour }]}>
+                                {mov.statusText}
+>>>>>>> Dani
                               </Text>
                             </View>
                           </View>
                         </View>
 
+<<<<<<< HEAD
                         {index !== movimientos.length - 1 ? <View style={styles.divider} /> : null}
+=======
+                        {renderDividerIfNotLast(index, movements.length)}
+>>>>>>> Dani
                       </View>
                     );
                   })}
@@ -340,13 +621,19 @@ const Billetera = (props) => {
               </View>
             </View>
 
+<<<<<<< HEAD
             {/* Espaciado */}
+=======
+>>>>>>> Dani
             <View style={{ height: 140 }} />
           </View>
         </View>
       </ScrollComp>
 
+<<<<<<< HEAD
       {/* Nav fijo abajo sin bloquear scroll */}
+=======
+>>>>>>> Dani
       <View pointerEvents="box-none" style={styles.navWrap}>
         <Nav />
       </View>
@@ -370,12 +657,18 @@ const styles = StyleSheet.create({
   blobTopRight: { width: 420, height: 420, top: -120, right: -140 },
   blobBottomLeft: { width: 320, height: 320, bottom: -70, left: -140 },
 
+<<<<<<< HEAD
   // WEB
+=======
+>>>>>>> Dani
   webWrapper: { height: "100vh", backgroundColor: COLORS.backgroundDark },
   webScroll: { flex: 1, height: "100vh", overflow: "auto" },
   webInner: { paddingTop: 20, paddingBottom: 160 },
 
+<<<<<<< HEAD
   // MÓVIL
+=======
+>>>>>>> Dani
   scroll: { flex: 1 },
   scrollContainer: {
     flexGrow: 1,

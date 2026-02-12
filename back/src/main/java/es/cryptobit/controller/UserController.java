@@ -39,4 +39,12 @@ public class UserController {
         List<User> users = userRepository.findAll();
         return ResponseEntity.ok(users);
     }
+
+    @GetMapping("/API/SeeAllUsers")
+    public ResponseEntity<List<User>> getUsers() {
+        // Esto imprimirá en la consola de IntelliJ la cantidad real que Spring ve
+        List<User> users = userRepository.findAll();
+        System.out.println("Spring está leyendo " + users.size() + " usuarios de la DB.");
+        return ResponseEntity.ok(users);
+    }
 }
