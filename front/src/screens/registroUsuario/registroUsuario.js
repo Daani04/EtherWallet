@@ -216,12 +216,12 @@ const RegistroUsuario = (props) => {
                                             style={{
                                                 position: "absolute",
                                                 left: 0,
-                                                top: 60,       // debajo del inputContainer (56px + margen)
+                                                top: 60,       
                                                 zIndex: 9999,
                                             }}
                                             onBlur={() => setWebDateOpen(false)}
                                             onChange={(e) => {
-                                                const value = e.target.value; // yyyy-mm-dd
+                                                const value = e.target.value; 
                                                 if (!value) return;
 
                                                 const [yyyy, mm, dd] = value.split("-");
@@ -265,6 +265,7 @@ const RegistroUsuario = (props) => {
                                     <Text
                                         style={[
                                             styles.input,
+                                            { color: "#fff" },
                                             !fNac && { color: "rgba(157,185,168,0.55)" },
                                             { lineHeight: 56 },
                                         ]}
