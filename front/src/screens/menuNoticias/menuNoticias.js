@@ -18,9 +18,6 @@ import theme from "../../styles/theme";
 const COLORS = theme?.colors || theme?.COLORS || theme;
 
 const API_KEY = "698b5155dbadb1.67947020"; 
-const API_URL = `https://www.alphavantage.co/query?function=NEWS_SENTIMENT&topics=economy_macro,finance&apikey=${API_KEY}`;
-
-const API_KEY = "698b5155dbadb1.67947020"; 
 const API_URL = `https://www.alphavantage.co/query?function=NEWS_SENTIMENT&topics=economy_macro,finance&limit=15&apikey=${API_KEY}`;
 const menuNoticias = () => {
   const [news, setNews] = useState([]);
