@@ -16,12 +16,13 @@ public class User {
     private String birthDate;
     private String userImage;
     private String favoriteId;
+    private String walletAddress;
 
     public User() {
     }
 
     public User(String firstName, String lastName, String dni, String email,
-                String password, String birthDate, String userImage, String favoriteId) {
+                String password, String birthDate, String userImage, String favoriteId, String walletAddress) {
         this.firstName = firstName;
         this.lastName = lastName;
         this.dni = dni;
@@ -30,6 +31,7 @@ public class User {
         this.birthDate = birthDate;
         this.userImage = userImage;
         this.favoriteId = favoriteId;
+        this.walletAddress = walletAddress;
     }
 
     public String getId() {
@@ -103,4 +105,8 @@ public class User {
     public void setFavoriteId(String favoriteId) {
         this.favoriteId = favoriteId;
     }
+
+    public String getWalletAddress() {return walletAddress;}
+
+    public void setWalletAddress(String walletAddress) {this.walletAddress = walletAddress;}
 }
