@@ -16,27 +16,14 @@ import {
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import CryptoJS from 'crypto-js';
-<<<<<<< HEAD
-import DateTimePicker, { DateTimePickerAndroid } from "@react-native-community/datetimepicker";
-
-//POR TERMINAR 
-// - Comportamiento calendario
-// - Mensaje de error al no aceptar los terminos 
-// - Enviar a pantalla de inicio de sesion al registrarse
-=======
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { ethers } from "ethers";
 import * as SecureStore from 'expo-secure-store';
 
->>>>>>> Dani
 const RegistroUsuario = (props) => {
     const [showPassword, setShowPassword] = useState(false);
     const [acceptedTerms, setAcceptedTerms] = useState(false);
 
-<<<<<<< HEAD
-    //Para el calendario
-=======
->>>>>>> Dani
     const [date, setDate] = useState(new Date());
     const [show, setShow] = useState(false);
 
@@ -101,16 +88,6 @@ const RegistroUsuario = (props) => {
     };
 
     const onChange = (event, selectedDate) => {
-<<<<<<< HEAD
-        // Android e iOS: si cancelas, selectedDate puede venir undefined
-        if (Platform.OS === "ios") {
-            setShow(false);
-            if (!selectedDate) return;
-        } else {
-            // Android: en open() el dismissed viene por event.type
-            if (event?.type === "dismissed") return;
-            if (!selectedDate) return;
-=======
         setShow(false);
         if (selectedDate) {
             setDate(selectedDate);
@@ -118,7 +95,6 @@ const RegistroUsuario = (props) => {
             const month = String(selectedDate.getMonth() + 1).padStart(2, '0');
             const year = selectedDate.getFullYear();
             setFnac(`${day}/${month}/${year}`);
->>>>>>> Dani
         }
 
         setDate(selectedDate);
