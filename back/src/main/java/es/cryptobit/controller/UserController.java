@@ -7,7 +7,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
+import java.security.MessageDigest;
+import java.security.MessageDigest;
 import java.util.List;
 import java.util.Optional;
 
@@ -22,6 +23,7 @@ public class UserController {
     public ResponseEntity<Object> metodoEndpoint(@RequestBody User newUser) {
         try {
             System.out.println(newUser.toString());
+            newUser.setPassword(sha256(newUser.getPassword()));
             userRepository.save(newUser);
             System.out.println("EXITO: Usuario guardado en Mongo");
             return ResponseEntity.status(HttpStatus.CREATED).build();
@@ -37,6 +39,60 @@ public class UserController {
     public ResponseEntity<List<User>> getAllUsers() {
         List<User> users = userRepository.findAll();
         return ResponseEntity.ok(users);
+    }
+
+    // http://localhost:8080/API/Login
+    @PostMapping("/API/Login")
+    public ResponseEntity<String> login(@RequestBody User loginUser) {
+
+        try {
+
+            Optional<User> userOpt = userRepository.findByEmail(loginUser.getEmail());
+
+            if (userOpt.isEmpty()) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body("usuario/contraseña no encontrados");
+            }
+
+            User userDB = userOpt.get();
+
+            // hashear password recibida
+            String hashedInputPassword = sha256(loginUser.getPassword());
+
+            // comparar hashes
+            if (!hashedInputPassword.equals(userDB.getPassword())) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body("usuario/contraseña no encontrados");
+            }
+
+            return ResponseEntity.ok("Login correcto");
+
+        } catch (Exception e) {
+
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error en login");
+        }
+    }
+
+
+    public String sha256(String input) {
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            byte[] hash = digest.digest(input.getBytes("UTF-8"));
+
+            StringBuilder hexString = new StringBuilder();
+
+            for (byte b : hash) {
+                String hex = Integer.toHexString(0xff & b);
+                if (hex.length() == 1) hexString.append('0');
+                hexString.append(hex);
+            }
+
+            return hexString.toString();
+
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     // http://localhost:8080/API/EditUser/{id}
