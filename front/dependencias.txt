@@ -17,11 +17,10 @@ npm install react-i18next i18next --save
 npm install crypto-js
 //CALENDARIO FORMULARIO REGISTRO
 npx expo install @react-native-community/datetimepicker
-<<<<<<< HEAD
 npx expo install expo-datepicker
-=======
 //CLAVE WALLET USUARIO CIFRADA 
 npx expo install ethers@5.7.2 react-native-get-random-values @ethersproject/shims
 npx expo install expo-secure-store
->>>>>>> Dani
+//IMAGENES
+npx expo install expo-image-picker
 

@@ -27,6 +27,10 @@ public class UserController {
                         .body("El email ya existe");
             }
 
+            if (newUser.getUserImage() == null || newUser.getUserImage().isBlank()) {
+                newUser.setUserImage("default-avatar.png");
+            }
+
             User savedUser = userRepository.save(newUser);
             System.out.println("EXITO: Usuario con wallet " + savedUser.getWalletAddress() + " guardado.");
 
@@ -102,8 +106,10 @@ public class UserController {
             existingUser.setDni(updatedUser.getDni());
             existingUser.setEmail(updatedUser.getEmail());
             existingUser.setPassword(updatedUser.getPassword());
-            existingUser.setBirthDate(updatedUser.getBirthDate());
-            existingUser.setUserImage(updatedUser.getUserImage());
+            existingUser.setBirthDateFormatted(updatedUser.getBirthDateFormatted());
+            if (updatedUser.getUserImage() != null && !updatedUser.getUserImage().isBlank()) {
+                existingUser.setUserImage(updatedUser.getUserImage());
+            }
             existingUser.setFavoriteId(updatedUser.getFavoriteId());
 
             userRepository.save(existingUser);
