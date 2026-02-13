@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useContext } from "react";
 import { View, Text, StyleSheet, ScrollView, Pressable, Dimensions, Platform ,SafeAreaView } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
@@ -7,12 +7,18 @@ import Nav from "../../components/Nav";
 import common from "../../styles/common";
 import theme from "../../styles/theme";
 
+import Context from '../../context/Context';
+
 const COLORS = theme?.colors || theme?.COLORS || theme;
 
 const Billetera = (props) => {
   const [hideBalance, setHideBalance] = useState(false);
   const [screenW, setScreenW] = useState(Dimensions.get("window").width);
   const [lastUpdate, setLastUpdate] = useState("");
+
+  const {user, setUser} = useContext(Context);
+  const {isLogged, setIsLogged} = useContext(Context);
+  const {isLoading, setIsLoading} = useContext(Context);
 
   useEffect(() => {
     const sub = Dimensions.addEventListener("change", ({ window }) => {
@@ -28,6 +34,10 @@ const Billetera = (props) => {
     const hh = String(d.getHours()).padStart(2, "0");
     const mm = String(d.getMinutes()).padStart(2, "0");
     setLastUpdate(hh + ":" + mm);
+
+    console.log(user);
+    console.log(isLogged);
+    console.log(isLoading);
   }, []);
 
   let isWeb = false;

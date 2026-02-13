@@ -19,12 +19,16 @@ import * as LocalAuthentication from 'expo-local-authentication';
 import { useTranslation } from 'react-i18next';
 import CryptoJS from 'crypto-js';
 
+import Context from '../../context/Context';
+
 const { width } = Dimensions.get("window");
 
 const InicioSesion = (props) => {
   const [isBiometricSupported, setIsBiometricSupported] = useState(false);
   const { t } = useTranslation();
   const [showPassword, setShowPassword] = useState(false);
+
+  const { loginUser } = useContext(Context);
 
   const [mail, setMail] = useState("");
   const [psw, setPsw] = useState("");
@@ -84,7 +88,7 @@ const InicioSesion = (props) => {
   console.log("HASHED", hashedPassword);
 
   try {
-    const response = await fetch("http://10.10.3.178:8080/API/Login", {
+    const response = await fetch("http://10.10.3.173:8080/API/Login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email: mail, password: hashedPassword }),
@@ -96,6 +100,7 @@ const InicioSesion = (props) => {
     Alert.alert(response.ok ? "Éxito" : "Error", text);
 
     if (response.ok){
+      await loginUser({ email: mail }); 
       props.navigation.navigate('HomeNav');
     }
   } catch (error) {
