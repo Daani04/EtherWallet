@@ -38,7 +38,7 @@ const RegistroUsuario = (props) => {
     const [webDateOpen, setWebDateOpen] = useState(false);
 
     const [userImageBase64, setUserImageBase64] = useState("");
-    const [userImagePreview, setUserImagePreview] = useState(""); 
+    const [userImagePreview, setUserImagePreview] = useState("");
     const webFileInputRef = useRef(null);
 
     const pickImage = async () => {
@@ -59,7 +59,7 @@ const RegistroUsuario = (props) => {
                 mediaTypes: ImagePicker.MediaTypeOptions.Images,
                 allowsEditing: true,
                 quality: 0.8,
-                base64: true, // ✅ importante para mandar al back
+                base64: true,
             });
 
             if (result.canceled) return;
@@ -69,7 +69,6 @@ const RegistroUsuario = (props) => {
 
             setUserImagePreview(asset.uri || "");
             if (asset.base64) {
-                // puedes mandar solo base64, o con prefijo data:
                 setUserImageBase64(asset.base64);
             }
         } catch (e) {
@@ -111,8 +110,15 @@ const RegistroUsuario = (props) => {
             const privateKey = wallet.privateKey;
             const publicAddress = wallet.address;
 
-            await SecureStore.setItemAsync("user_private_key", privateKey);
-            await SecureStore.setItemAsync("user_address", publicAddress);
+            if (Platform.OS === "web") {
+                if (typeof window !== "undefined") {
+                    window.localStorage.setItem("user_private_key", privateKey);
+                    window.localStorage.setItem("user_address", publicAddress);
+                }
+            } else {
+                await SecureStore.setItemAsync("user_private_key", privateKey);
+                await SecureStore.setItemAsync("user_address", publicAddress);
+            }
 
             const hashedPassword = CryptoJS.SHA256(psw).toString();
 
@@ -126,23 +132,22 @@ const RegistroUsuario = (props) => {
                     password: hashedPassword,
                     dni: dni,
                     birthDate: fNac,
-
                     userImage: userImageBase64 ? userImageBase64 : "default-avatar.png",
-
                     favoriteId: "null",
                     walletAddress: publicAddress,
                 }),
             });
 
+            const text = await response.text();
+
             if (response.ok) {
                 Alert.alert("Éxito", "Usuario registrado correctamente");
                 props.navigation.navigate("InicioSesion");
             } else {
-                const text = await response.text();
                 Alert.alert("Error", text || "No se pudo registrar");
             }
         } catch (error) {
-            console.error(error);
+            console.error("REGISTER ERROR:", error);
             Alert.alert("Error", "No se pudo conectar con el servidor.");
         }
     };
