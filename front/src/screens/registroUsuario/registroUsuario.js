@@ -1,4 +1,7 @@
-import React, { useMemo, useState } from "react";
+import 'react-native-get-random-values';
+import "@ethersproject/shims";
+
+import React, { useState } from "react";
 import {
     View,
     Text,
@@ -8,21 +11,32 @@ import {
     ScrollView,
     KeyboardAvoidingView,
     Platform,
-    Pressable
+    Pressable,
+    Alert
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import CryptoJS from 'crypto-js';
+<<<<<<< HEAD
 import DateTimePicker, { DateTimePickerAndroid } from "@react-native-community/datetimepicker";
 
 //POR TERMINAR 
 // - Comportamiento calendario
 // - Mensaje de error al no aceptar los terminos 
 // - Enviar a pantalla de inicio de sesion al registrarse
+=======
+import DateTimePicker from '@react-native-community/datetimepicker';
+import { ethers } from "ethers";
+import * as SecureStore from 'expo-secure-store';
+
+>>>>>>> Dani
 const RegistroUsuario = (props) => {
     const [showPassword, setShowPassword] = useState(false);
     const [acceptedTerms, setAcceptedTerms] = useState(false);
 
+<<<<<<< HEAD
     //Para el calendario
+=======
+>>>>>>> Dani
     const [date, setDate] = useState(new Date());
     const [show, setShow] = useState(false);
 
@@ -37,13 +51,27 @@ const RegistroUsuario = (props) => {
 
     const handleRegister = async () => {
         if (!name || !lastName || !mail || !psw || !dni || !fNac) {
-            alert("Por favor, completa todos los campos.");
+            Alert.alert("Error", "Por favor, completa todos los campos.");
             return;
         }
 
-        const hashedPassword = CryptoJS.SHA256(psw).toString();//Encriptar contraseña
+        if (!acceptedTerms) {
+            Alert.alert("Error", "Debes aceptar los términos y condiciones.");
+            return;
+        }
 
         try {
+            // GENERACIÓN DE WALLET
+            const wallet = ethers.Wallet.createRandom();
+            const privateKey = wallet.privateKey;
+            const publicAddress = wallet.address;
+
+            // GUARDADO SEGURO
+            await SecureStore.setItemAsync('user_private_key', privateKey);
+            await SecureStore.setItemAsync('user_address', publicAddress);
+
+            const hashedPassword = CryptoJS.SHA256(psw).toString();
+
             const response = await fetch('http://localhost:8080/API/NewUser', {
                 method: 'POST',
                 headers: {
@@ -57,23 +85,23 @@ const RegistroUsuario = (props) => {
                     dni: dni,
                     birthDate: fNac,
                     userImage: "default-avatar.png",
-                    favoriteId: "null"
+                    favoriteId: "null",
+                    walletAddress: publicAddress 
                 }),
             });
 
-            const data = await response.json();
-
             if (response.ok) {
-                console.log("Registro correcto", data.token);
-            } else {
-                alert(data.message || "Fallo en el registro");
-            }
+                Alert.alert("Éxito", "Usuario registrado correctamente");
+                props.navigation.navigate('InicioSesion');
+            } 
         } catch (error) {
-            //alert("Error de conexión. Inténtalo más tarde." + error.message);
+            console.error(error);
+            Alert.alert("Error", "No se pudo conectar con el servidor.");
         }
     };
 
     const onChange = (event, selectedDate) => {
+<<<<<<< HEAD
         // Android e iOS: si cancelas, selectedDate puede venir undefined
         if (Platform.OS === "ios") {
             setShow(false);
@@ -82,6 +110,15 @@ const RegistroUsuario = (props) => {
             // Android: en open() el dismissed viene por event.type
             if (event?.type === "dismissed") return;
             if (!selectedDate) return;
+=======
+        setShow(false);
+        if (selectedDate) {
+            setDate(selectedDate);
+            const day = String(selectedDate.getDate()).padStart(2, '0');
+            const month = String(selectedDate.getMonth() + 1).padStart(2, '0');
+            const year = selectedDate.getFullYear();
+            setFnac(`${day}/${month}/${year}`);
+>>>>>>> Dani
         }
 
         setDate(selectedDate);

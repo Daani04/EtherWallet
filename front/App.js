@@ -7,6 +7,10 @@ import InicioSesion from "./src/screens/inicioSesion/inicioSesion";
 import RegistroUsuario from "./src/screens/registroUsuario/registroUsuario";
 import HomeNav from './src/screens/HomeNav';
 
+//Para clave Wallet
+import 'react-native-get-random-values';
+import "@ethersproject/shims";
+
 const Stack = createStackNavigator();
 
 const App = () => (

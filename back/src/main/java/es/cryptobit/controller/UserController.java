@@ -20,16 +20,18 @@ public class UserController {
 
     // http://localhost:8080/API/NewUser
     @PostMapping("/API/NewUser")
-    public ResponseEntity<Object> metodoEndpoint(@RequestBody User newUser) {
+    public ResponseEntity<Object> registrarUsuario(@RequestBody User newUser) {
         try {
-            System.out.println(newUser.toString());
-            newUser.setPassword(sha256(newUser.getPassword()));
-            userRepository.save(newUser);
-            System.out.println("EXITO: Usuario guardado en Mongo");
-            return ResponseEntity.status(HttpStatus.CREATED).build();
+            if (userRepository.findByEmail(newUser.getEmail()).isPresent()) {
+                return ResponseEntity.status(HttpStatus.CONFLICT)
+                        .body("El email ya existe");
+            }
+
+            User savedUser = userRepository.save(newUser);
+            System.out.println("EXITO: Usuario con wallet " + savedUser.getWalletAddress() + " guardado.");
+
+            return ResponseEntity.status(HttpStatus.CREATED).body(savedUser);
         } catch (Exception e) {
-            System.out.println("ERROR AL GUARDAR: " + e.getMessage());
-            e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
