@@ -13,4 +13,8 @@ npx expo install expo-linear-gradient
 npx expo install expo-local-authentication
 //i18n
 npm install react-i18next i18next --save
+//Contraseña encriptada
+npm install crypto-js
+//CALENDARIO FORMULARIO REGISTRO
+npx expo install @react-native-community/datetimepicker
 
