@@ -73,14 +73,14 @@ const RegistroUsuario = (props) => {
                     birthDate: fNac,
                     userImage: "default-avatar.png",
                     favoriteId: "null",
-                    walletAddress: publicAddress 
+                    walletAddress: publicAddress
                 }),
             });
 
             if (response.ok) {
                 Alert.alert("Éxito", "Usuario registrado correctamente");
                 props.navigation.navigate('InicioSesion');
-            } 
+            }
         } catch (error) {
             console.error(error);
             Alert.alert("Error", "No se pudo conectar con el servidor.");
@@ -229,12 +229,12 @@ const RegistroUsuario = (props) => {
                                             style={{
                                                 position: "absolute",
                                                 left: 0,
-                                                top: 60,       
+                                                top: 60,
                                                 zIndex: 9999,
                                             }}
                                             onBlur={() => setWebDateOpen(false)}
                                             onChange={(e) => {
-                                                const value = e.target.value; 
+                                                const value = e.target.value;
                                                 if (!value) return;
 
                                                 const [yyyy, mm, dd] = value.split("-");
@@ -289,13 +289,14 @@ const RegistroUsuario = (props) => {
                             )}
 
                             {show && Platform.OS === "ios" && (
-                                <DateTimePicker
-                                    value={date}
-                                    mode="date"
-                                    display="default"
-                                    onChange={onChange}
-                                    maximumDate={new Date()}
-                                />
+                                <View style={styles.iosPickerWrap}>
+                                    <DateTimePicker
+                                        value={date}
+                                        mode="date"
+                                        display="inline" onChange={onChange}
+                                        maximumDate={new Date()}
+                                    />
+                                </View>
                             )}
                         </View>
 
@@ -490,6 +491,14 @@ const styles = StyleSheet.create({
     footer: { marginTop: 24, alignItems: "center" },
     footerText: { color: COLORS.textMuted, fontSize: 14 },
     footerLink: { color: COLORS.primary, fontWeight: "800" },
+
+    iosPickerWrap: {
+        backgroundColor: "#fff",
+        borderRadius: 16,
+        marginTop: 8,
+        overflow: "hidden",
+        padding: 6,
+    },
 });
 
 export default RegistroUsuario;
