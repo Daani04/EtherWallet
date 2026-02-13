@@ -12,19 +12,18 @@ import {
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import CryptoJS from 'crypto-js';
-import DateTimePicker from '@react-native-community/datetimepicker';
+import DateTimePicker, { DateTimePickerAndroid } from "@react-native-community/datetimepicker";
 
 //POR TERMINAR 
 // - Comportamiento calendario
 // - Mensaje de error al no aceptar los terminos 
-// - Registro con google
 // - Enviar a pantalla de inicio de sesion al registrarse
 const RegistroUsuario = (props) => {
     const [showPassword, setShowPassword] = useState(false);
     const [acceptedTerms, setAcceptedTerms] = useState(false);
 
     //Para el calendario
-    const [date, setDate] = useState(new Date()); // Objeto Date real
+    const [date, setDate] = useState(new Date());
     const [show, setShow] = useState(false);
 
     const [mail, setMail] = useState("");
@@ -33,6 +32,8 @@ const RegistroUsuario = (props) => {
     const [lastName, setLastName] = useState("");
     const [dni, setDni] = useState("");
     const [fNac, setFnac] = useState("");
+    const [webDateOpen, setWebDateOpen] = useState(false);
+
 
     const handleRegister = async () => {
         if (!name || !lastName || !mail || !psw || !dni || !fNac) {
@@ -72,19 +73,24 @@ const RegistroUsuario = (props) => {
         }
     };
 
-    //Componente para el calendario(REVISAR CALENDARIO)
     const onChange = (event, selectedDate) => {
-        setShow(false);
-
-        if (selectedDate) {
-            setDate(selectedDate);
-
-            const day = String(selectedDate.getDate()).padStart(2, '0');
-            const month = String(selectedDate.getMonth() + 1).padStart(2, '0');
-            const year = selectedDate.getFullYear();
-
-            setFnac(`${day}/${month}/${year}`);
+        // Android e iOS: si cancelas, selectedDate puede venir undefined
+        if (Platform.OS === "ios") {
+            setShow(false);
+            if (!selectedDate) return;
+        } else {
+            // Android: en open() el dismissed viene por event.type
+            if (event?.type === "dismissed") return;
+            if (!selectedDate) return;
         }
+
+        setDate(selectedDate);
+
+        const day = String(selectedDate.getDate()).padStart(2, "0");
+        const month = String(selectedDate.getMonth() + 1).padStart(2, "0");
+        const year = selectedDate.getFullYear();
+
+        setFnac(`${day}/${month}/${year}`);
     };
 
     return (
@@ -176,22 +182,103 @@ const RegistroUsuario = (props) => {
 
                             <Text style={styles.label}>Fecha de nacimiento</Text>
 
-                            <TouchableOpacity
-                                style={styles.inputContainer}
-                                onPress={() => setShow(true)}
-                                activeOpacity={0.7}
-                            >
-                                <MaterialIcons name="calendar-today" size={20} color={COLORS.textMuted} style={styles.inputIcon} />
-                                <Text style={[styles.input, !fNac && { color: "rgba(157,185,168,0.55)" }, { lineHeight: 56 }]}>
-                                    {fNac ? fNac : "Seleccionar fecha de nacimiento"}
-                                </Text>
-                            </TouchableOpacity>
+                            {Platform.OS === "web" ? (
+                                <View style={{ position: "relative" }}>
+                                    {/* Campo visual (no editable) */}
+                                    <TouchableOpacity
+                                        style={styles.inputContainer}
+                                        activeOpacity={0.7}
+                                        onPress={() => setWebDateOpen(true)}
+                                    >
+                                        <MaterialIcons
+                                            name="calendar-today"
+                                            size={20}
+                                            color={COLORS.textMuted}
+                                            style={styles.inputIcon}
+                                        />
+                                        <Text
+                                            style={[
+                                                styles.input,
+                                                !fNac && { color: "rgba(157,185,168,0.55)" },
+                                                { lineHeight: 56 },
+                                            ]}
+                                        >
+                                            {fNac ? fNac : "Seleccionar fecha de nacimiento"}
+                                        </Text>
+                                    </TouchableOpacity>
 
-                            {show && (
+                                    {/* Input REAL type=date, colocado justo debajo del campo */}
+                                    {webDateOpen && (
+                                        <input
+                                            type="date"
+                                            autoFocus
+                                            max={new Date().toISOString().split("T")[0]}
+                                            style={{
+                                                position: "absolute",
+                                                left: 0,
+                                                top: 60,       // debajo del inputContainer (56px + margen)
+                                                zIndex: 9999,
+                                            }}
+                                            onBlur={() => setWebDateOpen(false)}
+                                            onChange={(e) => {
+                                                const value = e.target.value; // yyyy-mm-dd
+                                                if (!value) return;
+
+                                                const [yyyy, mm, dd] = value.split("-");
+                                                const selectedDate = new Date(
+                                                    Number(yyyy),
+                                                    Number(mm) - 1,
+                                                    Number(dd)
+                                                );
+
+                                                setDate(selectedDate);
+                                                setFnac(`${dd}/${mm}/${yyyy}`);
+                                                setWebDateOpen(false);
+                                            }}
+                                        />
+                                    )}
+                                </View>
+                            ) : (
+                                <TouchableOpacity
+                                    style={styles.inputContainer}
+                                    onPress={() => {
+                                        if (Platform.OS === "android") {
+                                            DateTimePickerAndroid.open({
+                                                value: date,
+                                                mode: "date",
+                                                display: "calendar",
+                                                maximumDate: new Date(),
+                                                onChange,
+                                            });
+                                        } else {
+                                            setShow(true);
+                                        }
+                                    }}
+                                    activeOpacity={0.7}
+                                >
+                                    <MaterialIcons
+                                        name="calendar-today"
+                                        size={20}
+                                        color={COLORS.textMuted}
+                                        style={styles.inputIcon}
+                                    />
+                                    <Text
+                                        style={[
+                                            styles.input,
+                                            !fNac && { color: "rgba(157,185,168,0.55)" },
+                                            { lineHeight: 56 },
+                                        ]}
+                                    >
+                                        {fNac ? fNac : "Seleccionar fecha de nacimiento"}
+                                    </Text>
+                                </TouchableOpacity>
+                            )}
+
+                            {show && Platform.OS === "ios" && (
                                 <DateTimePicker
                                     value={date}
                                     mode="date"
-                                    display={Platform.OS === 'android' ? 'calendar' : 'default'}
+                                    display="default"
                                     onChange={onChange}
                                     maximumDate={new Date()}
                                 />
@@ -310,7 +397,7 @@ const styles = StyleSheet.create({
         flexDirection: "row",
         alignItems: "flex-start",
         gap: 12,
-        marginTop: 8,
+        marginTop: 32,
     },
     checkbox: {
         width: 20,

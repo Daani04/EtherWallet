@@ -17,4 +17,5 @@ npm install react-i18next i18next --save
 npm install crypto-js
 //CALENDARIO FORMULARIO REGISTRO
 npx expo install @react-native-community/datetimepicker
+npx expo install expo-datepicker
 
