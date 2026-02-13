@@ -27,6 +27,10 @@ public class UserController {
                         .body("El email ya existe");
             }
 
+            if (newUser.getUserImage() == null || newUser.getUserImage().isBlank()) {
+                newUser.setUserImage("default-avatar.png");
+            }
+
             User savedUser = userRepository.save(newUser);
             System.out.println("EXITO: Usuario con wallet " + savedUser.getWalletAddress() + " guardado.");
 
@@ -81,27 +85,6 @@ public class UserController {
         }
     }
 
-
-    public String sha256(String input) {
-        try {
-            MessageDigest digest = MessageDigest.getInstance("SHA-256");
-            byte[] hash = digest.digest(input.getBytes("UTF-8"));
-
-            StringBuilder hexString = new StringBuilder();
-
-            for (byte b : hash) {
-                String hex = Integer.toHexString(0xff & b);
-                if (hex.length() == 1) hexString.append('0');
-                hexString.append(hex);
-            }
-
-            return hexString.toString();
-
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
-
     // http://localhost:8080/API/EditUser/{id}
     @PutMapping("/EditUser/{id}")
     public ResponseEntity<Object> updateUser(
@@ -124,8 +107,10 @@ public class UserController {
             existingUser.setDni(updatedUser.getDni());
             existingUser.setEmail(updatedUser.getEmail());
             existingUser.setPassword(updatedUser.getPassword());
-            existingUser.setBirthDate(updatedUser.getBirthDate());
-            existingUser.setUserImage(updatedUser.getUserImage());
+            existingUser.setBirthDateFormatted(updatedUser.getBirthDateFormatted());
+            if (updatedUser.getUserImage() != null && !updatedUser.getUserImage().isBlank()) {
+                existingUser.setUserImage(updatedUser.getUserImage());
+            }
             existingUser.setFavoriteId(updatedUser.getFavoriteId());
 
             userRepository.save(existingUser);
