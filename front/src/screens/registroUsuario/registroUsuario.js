@@ -11,10 +11,20 @@ import {
     Pressable
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
+import CryptoJS from 'crypto-js';
+import DateTimePicker from '@react-native-community/datetimepicker';
 
+//POR TERMINAR 
+// - Comportamiento calendario
+// - Mensaje de error al no aceptar los terminos 
+// - Registro con google
 const RegistroUsuario = (props) => {
     const [showPassword, setShowPassword] = useState(false);
     const [acceptedTerms, setAcceptedTerms] = useState(false);
+
+    //Para el calendario
+    const [date, setDate] = useState(new Date()); // Objeto Date real
+    const [show, setShow] = useState(false);
 
     const [mail, setMail] = useState("");
     const [psw, setPsw] = useState("");
@@ -29,6 +39,8 @@ const RegistroUsuario = (props) => {
             return;
         }
 
+        const hashedPassword = CryptoJS.SHA256(psw).toString();//Encriptar contraseña
+
         try {
             const response = await fetch('http://localhost:8080/API/NewUser', {
                 method: 'POST',
@@ -39,7 +51,7 @@ const RegistroUsuario = (props) => {
                     firstName: name,
                     lastName: lastName,
                     email: mail,
-                    password: psw,
+                    password: hashedPassword,
                     dni: dni,
                     birthDate: fNac,
                     userImage: "default-avatar.png",
@@ -55,7 +67,22 @@ const RegistroUsuario = (props) => {
                 alert(data.message || "Fallo en el registro");
             }
         } catch (error) {
-            alert("Error de conexión. Inténtalo más tarde." + error.message);
+            //alert("Error de conexión. Inténtalo más tarde." + error.message);
+        }
+    };
+
+    //Componente para el calendario(REVISAR CALENDARIO)
+    const onChange = (event, selectedDate) => {
+        setShow(false);
+
+        if (selectedDate) {
+            setDate(selectedDate);
+
+            const day = String(selectedDate.getDate()).padStart(2, '0');
+            const month = String(selectedDate.getMonth() + 1).padStart(2, '0');
+            const year = selectedDate.getFullYear();
+
+            setFnac(`${day}/${month}/${year}`);
         }
     };
 
@@ -147,17 +174,27 @@ const RegistroUsuario = (props) => {
                             </View>
 
                             <Text style={styles.label}>Fecha de nacimiento</Text>
-                            <View style={styles.inputContainer}>
+
+                            <TouchableOpacity
+                                style={styles.inputContainer}
+                                onPress={() => setShow(true)}
+                                activeOpacity={0.7}
+                            >
                                 <MaterialIcons name="calendar-today" size={20} color={COLORS.textMuted} style={styles.inputIcon} />
-                                <TextInput
-                                    placeholder="DD/MM/AAAA"
-                                    placeholderTextColor="rgba(157,185,168,0.55)"
-                                    style={styles.input}
-                                    keyboardType="numeric"
-                                    value={fNac}
-                                    onChangeText={setFnac}
+                                <Text style={[styles.input, !fNac && { color: "rgba(157,185,168,0.55)" }, { lineHeight: 56 }]}>
+                                    {fNac ? fNac : "Seleccionar fecha de nacimiento"}
+                                </Text>
+                            </TouchableOpacity>
+
+                            {show && (
+                                <DateTimePicker
+                                    value={date}
+                                    mode="date"
+                                    display={Platform.OS === 'android' ? 'calendar' : 'default'}
+                                    onChange={onChange}
+                                    maximumDate={new Date()}
                                 />
-                            </View>
+                            )}
                         </View>
 
                         <TouchableOpacity style={styles.termsRow} activeOpacity={0.8} onPress={() => setAcceptedTerms(!acceptedTerms)}>
