@@ -17,6 +17,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { MaterialIcons } from "@expo/vector-icons";
 import * as LocalAuthentication from 'expo-local-authentication';
 import { useTranslation } from 'react-i18next';
+import CryptoJS from 'crypto-js';
 
 const { width } = Dimensions.get("window");
 
@@ -77,20 +78,22 @@ const InicioSesion = (props) => {
     return;
   }
 
+  const hashedPassword = CryptoJS.SHA256(pwd).toString();
+
   try {
-    const response = await fetch('https://tu-api.com/login', {
+    const response = await fetch('http://localhost:8080/API/NewUser', {
       method: 'POST',
-      headers: {
+      headers: {  
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
         email: email,
-        password: pwd,
+        password: hashedPassword,
       }),
     });
 
     const data = await response.json();
-
+    console.log(data);
     if (response.ok) {
       console.log("Login correcto", data.token);
     } else {
@@ -171,7 +174,7 @@ const InicioSesion = (props) => {
                 <Text style={styles.forgotPassText}>¿Olvidaste tu contraseña?</Text>
               </TouchableOpacity>
 
-              <TouchableOpacity style={styles.primaryBtn} activeOpacity={0.8}>
+              <TouchableOpacity style={styles.primaryBtn} activeOpacity={0.8} onPress={handleLogin}>
                 <Text style={styles.primaryBtnText}>Iniciar Sesión</Text>
               </TouchableOpacity>
 

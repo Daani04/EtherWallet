@@ -18,6 +18,7 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 // - Comportamiento calendario
 // - Mensaje de error al no aceptar los terminos 
 // - Registro con google
+// - Enviar a pantalla de inicio de sesion al registrarse
 const RegistroUsuario = (props) => {
     const [showPassword, setShowPassword] = useState(false);
     const [acceptedTerms, setAcceptedTerms] = useState(false);
