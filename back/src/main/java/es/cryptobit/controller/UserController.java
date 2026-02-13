@@ -44,8 +44,11 @@ public class UserController {
     // http://localhost:8080/API/Login
     @PostMapping("/API/Login")
     public ResponseEntity<String> login(@RequestBody User loginUser) {
-
         try {
+            if (loginUser.getEmail() == null || loginUser.getPassword() == null) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body("Faltan campos (email/password)");
+            }
 
             Optional<User> userOpt = userRepository.findByEmail(loginUser.getEmail());
 
@@ -56,19 +59,21 @@ public class UserController {
 
             User userDB = userOpt.get();
 
-            // hashear password recibida
-            String hashedInputPassword = sha256(loginUser.getPassword());
+            // OJO: aquí NO hasheamos, porque el front ya envía el hash
+            String incomingHash = loginUser.getPassword().trim();
+            String dbHash = userDB.getPassword().trim();
 
-            // comparar hashes
-            if (!hashedInputPassword.equals(userDB.getPassword())) {
+            if (!incomingHash.equalsIgnoreCase(dbHash)) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                         .body("usuario/contraseña no encontrados");
             }
 
+            System.out.println("Login correcto: " + loginUser.getEmail());
             return ResponseEntity.ok("Login correcto");
 
         } catch (Exception e) {
-
+            e.printStackTrace();
+            System.out.println("Error en login: " + e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Error en login");
         }

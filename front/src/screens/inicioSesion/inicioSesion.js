@@ -73,34 +73,34 @@ const InicioSesion = (props) => {
   };
 
   const handleLogin = async () => {
-  if (!email || !pwd) {
-    alert("Por favor, rellena todos los campos");
+  console.log("LOGIN CLICK", { mail, psw });
+
+  if (!mail || !psw) {
+    Alert.alert("Error", "Por favor, rellena todos los campos");
     return;
   }
 
-  const hashedPassword = CryptoJS.SHA256(pwd).toString();
+  const hashedPassword = CryptoJS.SHA256(psw).toString();
+  console.log("HASHED", hashedPassword);
 
   try {
-    const response = await fetch('http://localhost:8080/API/NewUser', {
-      method: 'POST',
-      headers: {  
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        email: email,
-        password: hashedPassword,
-      }),
+    const response = await fetch("http://10.10.3.178:8080/API/Login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email: mail, password: hashedPassword }),
     });
 
-    const data = await response.json();
-    console.log(data);
-    if (response.ok) {
-      console.log("Login correcto", data.token);
-    } else {
-      alert(data.message || "Usuario o contraseña incorrectos");
+    const text = await response.text();
+    console.log("RESP", response.status, text);
+
+    Alert.alert(response.ok ? "Éxito" : "Error", text);
+
+    if (response.ok){
+      props.navigation.navigate('HomeNav');
     }
   } catch (error) {
-    alert("Error de conexión. Inténtalo más tarde.");
+    console.log("FETCH ERROR", error);
+    Alert.alert("Error", "Error de conexión. Inténtalo más tarde.");
   }
 };
 
