@@ -5,6 +5,7 @@ npm install @react-navigation/stack
 npm install @react-navigation/drawer
 //ICONOS
 npx expo install @expo/vector-icons
+npx expo install react-native-svg
 //COLORES
 npx expo install expo-av
 npx expo install expo-linear-gradient
@@ -12,4 +13,8 @@ npx expo install expo-linear-gradient
 npx expo install expo-local-authentication
 //i18n
 npm install react-i18next i18next --save
+//Contraseña encriptada
+npm install crypto-js
+//CALENDARIO FORMULARIO REGISTRO
+npx expo install @react-native-community/datetimepicker
 

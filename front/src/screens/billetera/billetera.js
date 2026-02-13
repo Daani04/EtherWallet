@@ -1,17 +1,13 @@
 import React, { useEffect, useState } from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  Pressable,
-  Platform,
-  Dimensions,
-  SafeAreaView,
-} from "react-native";
+import { View, Text, StyleSheet, ScrollView, Pressable, Dimensions, Platform ,SafeAreaView } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import Nav from "../../components/Nav";
+
+import common from "../../styles/common";
+import theme from "../../styles/theme";
+
+const COLORS = theme?.colors || theme?.COLORS || theme;
 
 const Billetera = (props) => {
   const [hideBalance, setHideBalance] = useState(false);
@@ -34,14 +30,11 @@ const Billetera = (props) => {
     setLastUpdate(hh + ":" + mm);
   }, []);
 
-  // ====== Responsive (IF/ELSE) ======
   let isWeb = false;
   if (Platform.OS === "web") isWeb = true;
-  else isWeb = false;
 
   let isPC = false;
   if (isWeb && screenW >= 900) isPC = true;
-  else isPC = false;
 
   let titleSize = 28;
   let balanceSize = 32;
@@ -53,14 +46,8 @@ const Billetera = (props) => {
     balanceSize = 34;
     padH = 28;
     cardPad = 20;
-  } else {
-    titleSize = 28;
-    balanceSize = 32;
-    padH = 24;
-    cardPad = 18;
   }
 
-  // ====== Datos demo ======
   const totalBalance = 2450.35;
   const variation24h = 3.42;
 
@@ -80,62 +67,114 @@ const Billetera = (props) => {
     { type: "swap", title: "Swap", subtitle: "SOL → USDT", date: "Hace 3 días", value: "+120.00 €", status: "Procesando" },
   ];
 
-  // ====== Helpers ======
   const formatEUR = (num) => {
     let s = Number(num).toFixed(2);
     s = s.replace(".", ",");
     return s + " €";
   };
 
-  let textBalance = "";
-  if (hideBalance) textBalance = "•••••";
-  else textBalance = formatEUR(totalBalance);
+  const hiddenText = (text) => {
+    if (hideBalance) return "••••";
+    return text;
+  };
 
-  let textAvailable = "";
-  if (hideBalance) textAvailable = "••••";
-  else textAvailable = formatEUR(availableBalance);
+  const hiddenTime = () => {
+    if (hideBalance) return "••:••";
+    return lastUpdate;
+  };
 
-  let retText = "";
-  if (hideBalance) retText = "••••";
-  else retText = formatEUR(retainedEarnings);
+  const getBalanceText = () => {
+    if (hideBalance) return "•••••";
+    return formatEUR(totalBalance);
+  };
 
-  let goUp = false;
-  if (variation24h >= 0) goUp = true;
-  else goUp = false;
+  const getAvailableText = () => {
+    if (hideBalance) return "••••";
+    return formatEUR(availableBalance);
+  };
 
-  let colourTrend = COLORS.accent;
-  let edgeTrend = "rgba(115, 255, 200, 0.22)";
-  let backgroundTrend = "rgba(115, 255, 200, 0.08)";
-  let iconTrend = "trending-up";
+  const getRetainedText = () => {
+    if (hideBalance) return "••••";
+    return formatEUR(retainedEarnings);
+  };
 
-  if (goUp) {
-    colourTrend = COLORS.accent;
-    edgeTrend = "rgba(115, 255, 200, 0.22)";
-    backgroundTrend = "rgba(115, 255, 200, 0.08)";
-    iconTrend = "trending-up";
-  } else {
-    colourTrend = "#ff6b6b";
-    edgeTrend = "rgba(255,107,107,0.28)";
-    backgroundTrend = "rgba(255,107,107,0.08)";
-    iconTrend = "trending-down";
-  }
+  const isUpTrend = () => {
+    if (variation24h >= 0) return true;
+    return false;
+  };
 
-  let textVariation = "";
-  if (hideBalance) textVariation = "•••";
-  else {
-    if (goUp) textVariation = "+" + variation24h.toFixed(2) + "%";
-    else textVariation = variation24h.toFixed(2) + "%";
-  }
+  const getTrendConfig = () => {
+    const up = isUpTrend();
+
+    if (up) {
+      return {
+        colourTrend: COLORS.primaryDark,
+        edgeTrend: COLORS.primarySoft,
+        backgroundTrend: "rgba(43,238,121,0.10)",
+        iconTrend: "trending-up",
+      };
+    }
+
+    return {
+      colourTrend: COLORS.danger,
+      edgeTrend: COLORS.dangerSoft,
+      backgroundTrend: "rgba(255,92,92,0.10)",
+      iconTrend: "trending-down",
+    };
+  };
+
+  const getVariationText = () => {
+    if (hideBalance) return "•••";
+
+    if (variation24h >= 0) return "+" + variation24h.toFixed(2) + "%";
+    return variation24h.toFixed(2) + "%";
+  };
 
   const iconMovement = (type) => {
     let icon = "swap-horiz";
     if (type === "receive") icon = "south-west";
     else if (type === "send") icon = "north-east";
-    else icon = "swap-horiz";
     return icon;
   };
 
-  // ====== Estilos dinámicos ======
+  const getAssetRowData = (a) => {
+    let colourChange = COLORS.danger;
+    if (a.change24h >= 0) colourChange = COLORS.primaryDark;
+
+    let amountText = "•••";
+    if (!hideBalance) amountText = String(a.amount) + " " + a.symbol;
+
+    let valText = "••••";
+    if (!hideBalance) valText = formatEUR(a.valueEUR);
+
+    let chText = "•••";
+    if (!hideBalance) {
+      if (a.change24h >= 0) chText = "+" + a.change24h + "%";
+      else chText = a.change24h + "%";
+    }
+
+    return { colourChange, amountText, valText, chText };
+  };
+
+  const getMovementRowData = (m) => {
+    let valMov = "••••";
+    if (!hideBalance) valMov = m.value;
+
+    let statusColour = "#ffd166";
+    if (m.status === "Confirmado") statusColour = COLORS.textMuted;
+
+    let statusText = "•••";
+    if (!hideBalance) statusText = m.status;
+
+    return { valMov, statusColour, statusText };
+  };
+
+  const trend = getTrendConfig();
+  const textBalance = getBalanceText();
+  const textAvailable = getAvailableText();
+  const retText = getRetainedText();
+  const textVariation = getVariationText();
+
   const dyn = {
     container: { paddingHorizontal: padH },
     title: { fontSize: titleSize },
@@ -153,8 +192,7 @@ const Billetera = (props) => {
     dyn.col = { width: "100%" };
   }
 
-  // ✅ CONTENEDOR SCROLL SEGÚN PLATAFORMA
-  let Wrapper = View; // web
+  let Wrapper = View; 
   let wrapperProps = { style: styles.webWrapper };
   let ScrollComp = View;
   let scrollProps = { style: styles.webScroll };
@@ -174,221 +212,173 @@ const Billetera = (props) => {
     innerStyle = null;
   }
 
+  const renderDividerIfNotLast = (index, length) => {
+    if (index !== length - 1) return <View style={common.divider || styles.divider} />;
+    return null;
+  };
+
+  const getVisibilityIconName = () => {
+    if (hideBalance) return "visibility-off";
+    return "visibility";
+  };
+
+  const getBalanceSubText = () => {
+    if (hideBalance) return "últimas 24h";
+    return "últimas 24h · variación estimada";
+  };
+
+  const renderMiniInfo = () => {
+    return <Text style={styles.miniInfo}>Última actualización: {hiddenTime()}</Text>;
+  };
+
   return (
-    <Wrapper {...wrapperProps}>
-      {/* Blobs */}
-      <View style={[styles.blob, styles.blobTopRight]} />
-      <View style={[styles.blob, styles.blobBottomLeft]} />
+    <View style={common.safe}>
+      <View style={[styles.blob, styles.blobTop]} />
 
-      <ScrollComp {...scrollProps}>
-        <View style={innerStyle}>
-          <View style={[styles.container, dyn.container]}>
-            {/* Header */}
-            <View style={styles.topRow}>
-              <View>
-                <Text style={styles.kicker}>Billetera</Text>
-                <Text style={[styles.title, dyn.title]}>Tu cartera segura</Text>
-                <Text style={styles.miniInfo}>
-                  Última actualización: {hideBalance ? "••:••" : lastUpdate}
-                </Text>
-              </View>
+      <ScrollView
+        style={{ flex: 1 }}
+        contentContainerStyle={common.container}
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={styles.topRow}>
+          <View>
+            <Text style={styles.kicker}>Billetera</Text>
+            <Text style={styles.title}>Tu cartera segura</Text>
+            <Text style={styles.miniInfo}>Última actualización: {hiddenTime()}</Text>
+          </View>
 
-              <Pressable onPress={() => setHideBalance(!hideBalance)} style={styles.iconBtn}>
-                <MaterialIcons
-                  name={hideBalance ? "visibility-off" : "visibility"}
-                  size={22}
-                  color={COLORS.textMuted}
-                />
-              </Pressable>
+          <Pressable onPress={() => setHideBalance(!hideBalance)} style={styles.iconBtn}>
+            <MaterialIcons name={getVisibilityIconName()} size={22} color={COLORS.textMuted} />
+          </Pressable>
+        </View>
+
+        <View style={styles.balanceCard}>
+          <LinearGradient
+            colors={[COLORS.primarySoft, "transparent"]}
+            style={styles.balanceGlow}
+          />
+
+          <Text style={styles.balanceLabel}>Balance total</Text>
+
+          <View style={styles.balanceRowTop}>
+            <Text style={styles.balanceValue}>{textBalance}</Text>
+
+            <View style={[styles.pill, { borderColor: trend.edgeTrend, backgroundColor: trend.backgroundTrend }]}>
+              <MaterialIcons name={trend.iconTrend} size={16} color={trend.colourTrend} />
+              <Text style={[styles.pillText, { color: trend.colourTrend }]}>{textVariation}</Text>
+            </View>
+          </View>
+
+          <Text style={styles.balanceSub}>{getBalanceSubText()}</Text>
+
+          <View style={styles.smallGrid}>
+            <View style={styles.smallCard}>
+              <Text style={styles.smallLabel}>Disponible</Text>
+              <Text style={styles.smallValue}>{textAvailable}</Text>
             </View>
 
-            {/* Card saldo */}
-            <View style={[styles.balanceCard, dyn.balanceCard]}>
-              <LinearGradient
-                colors={["rgba(255,255,255,0.08)", "rgba(16,34,23,0.0)"]}
-                locations={[0, 1]}
-                style={styles.balanceGlow}
-              />
-
-              <Text style={styles.balanceLabel}>Balance total</Text>
-
-              <View style={styles.balanceRow}>
-                <Text style={[styles.balanceValue, dyn.balanceValue]}>{textBalance}</Text>
-
-                <View style={[styles.pill, { borderColor: edgeTrend, backgroundColor: backgroundTrend }]}>
-                  <MaterialIcons name={iconTrend} size={16} color={colourTrend} />
-                  <Text style={[styles.pillText, { color: colourTrend }]}>{textVariation}</Text>
-                </View>
-              </View>
-
-              <Text style={styles.balanceSub}>
-                {hideBalance ? "Últimas 24h" : "Últimas 24h · variación estimada"}
-              </Text>
-
-              {/* Disponible / Retenido */}
-              <View style={styles.smallGrid}>
-                <View style={styles.smallCard}>
-                  <Text style={styles.smallLabel}>Disponible</Text>
-                  <Text style={styles.smallValue}>{textAvailable}</Text>
-                </View>
-
-                <View style={styles.smallCard}>
-                  <Text style={styles.smallLabel}>Retenido</Text>
-                  <Text style={styles.smallValue}>{retText}</Text>
-                </View>
-              </View>
+            <View style={styles.smallCard}>
+              <Text style={styles.smallLabel}>Retenido</Text>
+              <Text style={styles.smallValue}>{retText}</Text>
             </View>
-
-            {/* Contenido principal */}
-            <View style={[styles.twoColsWrap, dyn.twoCols]}>
-              {/* Activos */}
-              <View style={dyn.col}>
-                <View style={isPC ? styles.sectionRowPC : styles.sectionRow}>
-                  <Text style={styles.sectionTitle}>Activos</Text>
-                </View>
-
-                <View style={styles.card}>
-                  {assets.map((a, index) => {
-                    let colourChange = COLORS.accent;
-                    if (a.change24h >= 0) colourChange = COLORS.accent;
-                    else colourChange = "#ff6b6b";
-
-                    let amountText = "";
-                    if (hideBalance) amountText = "•••";
-                    else amountText = String(a.amount) + " " + a.symbol;
-
-                    let valText = "";
-                    if (hideBalance) valText = "••••";
-                    else valText = formatEUR(a.valueEUR);
-
-                    let chText = "";
-                    if (hideBalance) chText = "•••";
-                    else {
-                      if (a.change24h >= 0) chText = "+" + a.change24h + "%";
-                      else chText = a.change24h + "%";
-                    }
-
-                    return (
-                      <View key={a.symbol} style={styles.assetRow}>
-                        <View style={styles.assetLeft}>
-                          <View style={styles.coinBadge}>
-                            <Text style={styles.coinBadgeText}>{a.symbol}</Text>
-                          </View>
-                          <View style={{ flex: 1 }}>
-                            <Text style={styles.assetName}>{a.name}</Text>
-                            <Text style={styles.assetSub}>{amountText}</Text>
-                          </View>
-                        </View>
-
-                        <View style={styles.assetRight}>
-                          <Text style={styles.assetValue}>{valText}</Text>
-                          <Text style={[styles.assetChange, { color: colourChange }]}>{chText}</Text>
-                        </View>
-
-                        {index !== assets.length - 1 ? <View style={styles.divider} /> : null}
-                      </View>
-                    );
-                  })}
-                </View>
-              </View>
-
-              {/* Movimientos */}
-              <View style={dyn.col}>
-                <View style={isPC ? styles.sectionRowPC : [styles.sectionRow, { marginTop: 18 }]}>
-                  <Text style={styles.sectionTitle}>Movimientos</Text>
-                </View>
-
-                <View style={styles.card}>
-                  {movements.map((m, index) => {
-                    let valMov = "";
-                    if (hideBalance) valMov = "••••";
-                    else valMov = m.value;
-
-                    let statusColour = COLORS.textMuted;
-                    if (m.status === "Confirmado") statusColour = COLORS.textMuted;
-                    else statusColour = "#ffd166";
-
-                    return (
-                      <View key={m.type + "-" + index} style={styles.movRow}>
-                        <View style={styles.movLeft}>
-                          <View style={styles.movIconWrap}>
-                            <MaterialIcons name={iconMovement(m.type)} size={20} color={COLORS.accent} />
-                          </View>
-
-                          <View style={{ flex: 1 }}>
-                            <View style={styles.movHeaderRow}>
-                              <Text style={styles.movTitle}>{m.title}</Text>
-                              <Text style={styles.movValueInline}>{valMov}</Text>
-                            </View>
-
-                            <View style={styles.movSubRow}>
-                              <Text style={styles.movSub}>
-                                {m.subtitle} · {m.date}
-                              </Text>
-                              <Text style={[styles.movStatus, { color: statusColour }]}>
-                                {hideBalance ? "•••" : m.status}
-                              </Text>
-                            </View>
-                          </View>
-                        </View>
-
-                        {index !== movements.length - 1 ? <View style={styles.divider} /> : null}
-                      </View>
-                    );
-                  })}
-                </View>
-              </View>
-            </View>
-
-            {/* Espaciado */}
-            <View style={{ height: 140 }} />
           </View>
         </View>
-      </ScrollComp>
 
-      {/* Nav fijo abajo sin bloquear scroll */}
-      <View pointerEvents="box-none" style={styles.navWrap}>
-        <Nav />
-      </View>
-    </Wrapper>
+        <View style={common.card || styles.card}>
+          <Text style={common.sectionTitle || styles.sectionTitle}>Activos</Text>
+
+          {assets.map((a, index) => {
+            const row = getAssetRowData(a);
+
+            return (
+              <View key={a.symbol} style={styles.assetRow}>
+                <View style={styles.assetLeft}>
+                  <View style={styles.coinBadge}>
+                    <Text style={styles.coinBadgeText}>{a.symbol}</Text>
+                  </View>
+
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.assetName}>{a.name}</Text>
+                    <Text style={styles.assetSub}>{row.amountText}</Text>
+                  </View>
+                </View>
+
+                <View style={styles.assetRight}>
+                  <Text style={styles.assetValue}>{row.valText}</Text>
+                  <Text style={[styles.assetChange, { color: row.colourChange }]}>{row.chText}</Text>
+                </View>
+
+                {renderDividerIfNotLast(index, assets.length)}
+              </View>
+            );
+          })}
+        </View>
+
+        <View style={common.card || styles.card}>
+          <Text style={common.sectionTitle || styles.sectionTitle}>Movimientos</Text>
+
+          {movements.map((m, index) => {
+            const mov = getMovementRowData(m);
+
+            return (
+              <View key={m.type + "-" + index} style={styles.movRow}>
+                <View style={styles.movLeft}>
+                  <View style={styles.movIconWrap}>
+                    <MaterialIcons name={iconMovement(m.type)} size={20} color={COLORS.primary} />
+                  </View>
+
+                  <View style={{ flex: 1 }}>
+                    <View style={styles.movHeaderRow}>
+                      <Text style={styles.movTitle}>{m.title}</Text>
+                      <Text style={styles.movValueInline}>{mov.valMov}</Text>
+                    </View>
+
+                    <View style={styles.movSubRow}>
+                      <Text style={styles.movSub}>
+                        {m.subtitle} · {m.date}
+                      </Text>
+                      <Text style={[styles.movStatus, { color: mov.statusColour }]}>
+                        {mov.statusText}
+                      </Text>
+                    </View>
+                  </View>
+                </View>
+
+                {renderDividerIfNotLast(index, movements.length)}
+              </View>
+            );
+          })}
+        </View>
+
+        <View style={{ height: 120 }} />
+      </ScrollView>
+
+      <Nav />
+    </View>
   );
 };
 
-const COLORS = {
-  accent: "#73FFC8",
-  backgroundDark: "#102217",
-  inputBg: "#1c2720",
-  border: "#3b5445",
-  textMuted: "#9db9a8",
-  textMutedSoft: "rgba(255,255,255,0.6)",
-};
-
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: COLORS.backgroundDark },
-
-  blob: { position: "absolute", backgroundColor: "rgba(255,255,255,0.05)", borderRadius: 999 },
-  blobTopRight: { width: 420, height: 420, top: -120, right: -140 },
-  blobBottomLeft: { width: 320, height: 320, bottom: -70, left: -140 },
-
-  // WEB
-  webWrapper: { height: "100vh", backgroundColor: COLORS.backgroundDark },
-  webScroll: { flex: 1, height: "100vh", overflow: "auto" },
-  webInner: { paddingTop: 20, paddingBottom: 160 },
-
-  // MÓVIL
-  scroll: { flex: 1 },
-  scrollContainer: {
-    flexGrow: 1,
-    paddingTop: Platform.OS === "ios" ? 60 : 20,
-    paddingBottom: 140,
+  blob: {
+    position: "absolute",
+    width: 520,
+    height: 520,
+    backgroundColor: COLORS.primarySoft,
+    borderRadius: 999,
+    top: -220,
+    right: -220,
   },
+  blobTop: {},
 
-  container: { width: "100%", maxWidth: 980, alignSelf: "center" },
-
-  topRow: { flexDirection: "row", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 16 },
+  topRow: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    justifyContent: "space-between",
+    marginBottom: 16,
+  },
   kicker: { color: COLORS.textMuted, fontSize: 13, letterSpacing: 0.8, textTransform: "uppercase" },
-  title: { color: "#fff", fontWeight: "800", marginTop: 4 },
-  miniInfo: { color: COLORS.textMutedSoft, fontSize: 12, marginTop: 6 },
+  title: { color: COLORS.textMain, fontWeight: "800", marginTop: 4, fontSize: 28 },
+  miniInfo: { color: COLORS.textSoft, fontSize: 12, marginTop: 6 },
 
   iconBtn: {
     width: 46,
@@ -396,78 +386,88 @@ const styles = StyleSheet.create({
     borderRadius: 23,
     borderWidth: 1,
     borderColor: COLORS.border,
-    backgroundColor: COLORS.inputBg,
+    backgroundColor: COLORS.cardBg,
     alignItems: "center",
     justifyContent: "center",
   },
 
   balanceCard: {
-    backgroundColor: COLORS.inputBg,
+    backgroundColor: COLORS.cardBg,
+    borderRadius: 26,
+    padding: 24,
     borderWidth: 1,
     borderColor: COLORS.border,
-    borderRadius: 22,
+    marginBottom: 26,
     overflow: "hidden",
-    elevation: 8,
+    shadowColor: COLORS.primary,
+    shadowOpacity: 0.18,
+    shadowRadius: 16,
+    elevation: 6,
   },
-  balanceGlow: { position: "absolute", left: 0, right: 0, top: 0, height: 120 },
-  balanceLabel: { color: COLORS.textMuted, fontSize: 14, fontWeight: "600" },
-  balanceRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginTop: 10 },
-  balanceValue: { color: "#fff", fontWeight: "900" },
+  balanceGlow: { position: "absolute", top: 0, height: 160, left: 0, right: 0 },
+  balanceLabel: { color: COLORS.textMuted, fontSize: 14 },
+
+  balanceRowTop: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginTop: 6,
+  },
+  balanceValue: { color: COLORS.textMain, fontSize: 36, fontWeight: "900" },
 
   pill: { flexDirection: "row", alignItems: "center", paddingHorizontal: 10, paddingVertical: 6, borderRadius: 999, borderWidth: 1 },
   pillText: { fontSize: 13, fontWeight: "800", marginLeft: 6 },
-  balanceSub: { marginTop: 6, color: COLORS.textMutedSoft, fontSize: 13 },
+
+  balanceSub: { marginTop: 8, color: COLORS.textMuted, fontSize: 13 },
 
   smallGrid: { flexDirection: "row", gap: 10, marginTop: 14 },
+
   smallCard: {
     flex: 1,
-    borderRadius: 16,
+    borderRadius: 18,
     borderWidth: 1,
     borderColor: COLORS.border,
-    backgroundColor: "rgba(255,255,255,0.04)",
-    padding: 12,
+    backgroundColor: COLORS.cardBg,
+    padding: 14,
   },
   smallLabel: { color: COLORS.textMuted, fontSize: 12, fontWeight: "700" },
-  smallValue: { color: "#fff", fontSize: 14, fontWeight: "900", marginTop: 6 },
+  smallValue: { color: COLORS.textMain, fontSize: 14, fontWeight: "900", marginTop: 6 },
 
-  sectionRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginTop: 18, marginBottom: 10 },
-  sectionRowPC: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginTop: 18, marginBottom: 10 },
-  sectionTitle: { color: "#fff", fontSize: 18, fontWeight: "800" },
+  divider: { height: 1, backgroundColor: COLORS.border, marginTop: 14 },
 
-  twoColsWrap: { marginTop: 10 },
-
-  card: { backgroundColor: COLORS.inputBg, borderWidth: 1, borderColor: COLORS.border, borderRadius: 20, overflow: "hidden" },
-  divider: { height: 1, backgroundColor: "rgba(59,84,69,0.7)", marginLeft: 16 },
-
-  assetRow: { paddingHorizontal: 16, paddingVertical: 14 },
+  assetRow: { paddingVertical: 14 },
   assetLeft: { flexDirection: "row", alignItems: "center" },
+  assetRight: { position: "absolute", right: 0, top: 14, alignItems: "flex-end" },
+
   coinBadge: {
-    width: 44,
-    height: 44,
+    width: 40,
+    height: 40,
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.14)",
-    backgroundColor: "rgba(255,255,255,0.05)",
+    borderColor: COLORS.primarySoft,
+    backgroundColor: "rgba(43,238,121,0.08)",
     alignItems: "center",
     justifyContent: "center",
     marginRight: 12,
   },
-  coinBadgeText: { color: "#fff", fontWeight: "900", letterSpacing: 0.6 },
-  assetName: { color: "#fff", fontSize: 15, fontWeight: "800" },
-  assetSub: { color: COLORS.textMutedSoft, fontSize: 13, marginTop: 2 },
-  assetRight: { position: "absolute", right: 16, top: 14, alignItems: "flex-end" },
-  assetValue: { color: "#fff", fontSize: 15, fontWeight: "900" },
+  coinBadgeText: { color: COLORS.textMain, fontWeight: "900" },
+
+  assetName: { color: COLORS.textMain, fontWeight: "800" },
+  assetSub: { color: COLORS.textSoft, fontSize: 13, marginTop: 2 },
+
+  assetValue: { color: COLORS.textMain, fontWeight: "900" },
   assetChange: { marginTop: 4, fontSize: 13, fontWeight: "800" },
 
-  movRow: { paddingHorizontal: 16, paddingVertical: 14 },
+  movRow: { paddingVertical: 14 },
   movLeft: { flexDirection: "row", alignItems: "center" },
+
   movIconWrap: {
-    width: 44,
-    height: 44,
+    width: 40,
+    height: 40,
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.14)",
-    backgroundColor: "rgba(255,255,255,0.05)",
+    borderColor: COLORS.border,
+    backgroundColor: "rgba(43,238,121,0.08)",
     alignItems: "center",
     justifyContent: "center",
     marginRight: 12,
@@ -476,13 +476,11 @@ const styles = StyleSheet.create({
   movHeaderRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
   movSubRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginTop: 2, gap: 10 },
 
-  movTitle: { color: "#fff", fontSize: 15, fontWeight: "900" },
-  movValueInline: { color: "#fff", fontSize: 14, fontWeight: "900", marginLeft: 10 },
+  movTitle: { color: COLORS.textMain, fontWeight: "900" },
+  movValueInline: { color: COLORS.textMain, fontWeight: "900" },
 
-  movSub: { color: COLORS.textMutedSoft, fontSize: 13, marginTop: 2, flex: 1 },
+  movSub: { color: COLORS.textSoft, fontSize: 13, flex: 1 },
   movStatus: { fontSize: 12, fontWeight: "900" },
-
-  navWrap: { position: "absolute", left: 0, right: 0, bottom: 0 },
 });
 
 export default Billetera;
