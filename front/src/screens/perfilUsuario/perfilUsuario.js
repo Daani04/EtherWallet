@@ -14,14 +14,10 @@ import {
 import Icon from "react-native-vector-icons/MaterialIcons";
 import Nav from "../../components/Nav";
 
-const COLORS = {
-  primary: "#2bee79",
-  bg: "#0d1a12",
-  card: "rgba(255, 255, 255, 0.08)",
-  border: "rgba(255, 255, 255, 0.15)",
-  white: "#ffffff",
-  muted: "rgba(255, 255, 255, 0.6)",
-};
+import common from "../../styles/common";
+import theme from "../../styles/theme";
+
+const COLORS = theme?.colors || theme?.COLORS || theme;
 
 export default function PerfilUsuario(props) {
   const [faceId, setFaceId] = useState(true);
@@ -32,18 +28,20 @@ export default function PerfilUsuario(props) {
 
   const LANGUAGES = ["ES", "EN", "CA"];
 
-  const [currency, setCurrency] = useState("USD"); 
+  const [currency, setCurrency] = useState("USD");
   const [currencyModalVisible, setCurrencyModalVisible] = useState(false);
 
   const CURRENCIES = ["USD", "EUR", "GBP", "MXN"];
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
+    <SafeAreaView style={common.safe || styles.container}>
+      <View style={common.headerRow || styles.header}>
         <TouchableOpacity>
-          <Icon name="arrow-back-ios-new" size={22} color={COLORS.white} />
+          <Icon name="arrow-back-ios-new" size={22} color={COLORS.textMain || "#fff"} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Configuración</Text>
+
+        <Text style={common.headerTitle || styles.headerTitle}>Configuración</Text>
+
         <View style={{ width: 24 }} />
       </View>
 
@@ -55,14 +53,16 @@ export default function PerfilUsuario(props) {
               style={styles.avatar}
             />
             <View style={styles.editBadge}>
-              <Icon name="edit" size={14} color="#000" />
+              <Icon name="edit" size={14} color={COLORS.bg || "#000"} />
             </View>
           </View>
+
           <Text style={styles.name}>Juan Pérez</Text>
+
           <View style={styles.walletRow}>
             <View style={styles.dot} />
             <Text style={styles.walletText}>0x71C...9A21</Text>
-            <Icon name="content-copy" size={14} color={COLORS.muted} />
+            <Icon name="content-copy" size={14} color={COLORS.textMuted || "rgba(255,255,255,0.6)"} />
           </View>
         </View>
 
@@ -130,12 +130,13 @@ export default function PerfilUsuario(props) {
         </Section>
 
         <TouchableOpacity style={styles.logoutBtn}>
-          <Icon name="logout" size={20} color="#ff4444" />
+          <Icon name="logout" size={20} color={COLORS.danger || "#ff4444"} />
           <Text style={styles.logoutText}>Cerrar Sesión</Text>
         </TouchableOpacity>
 
         <Text style={styles.version}>Versión 0.1.0</Text>
       </ScrollView>
+
       <Modal
         transparent
         visible={languageModalVisible}
@@ -210,23 +211,23 @@ export default function PerfilUsuario(props) {
           </View>
         </Pressable>
       </Modal>
+
       <Nav />
     </SafeAreaView>
   );
 }
 
-
 const Section = ({ title, children }) => (
   <View style={styles.section}>
-    <Text style={styles.sectionTitle}>{title}</Text>
-    <View style={styles.cardBox}>{children}</View>
+    <Text style={common.sectionTitle || styles.sectionTitle}>{title}</Text>
+    <View style={common.card || styles.cardBox}>{children}</View>
   </View>
 );
 
 const Item = ({ icon, label, subLabel, rightText, children, onPress }) => (
   <TouchableOpacity style={styles.item} disabled={!!children} onPress={onPress}>
     <View style={styles.row}>
-      <Icon name={icon} size={22} color={COLORS.white} />
+      <Icon name={icon} size={22} color={COLORS.textMain || "#fff"} />
       <View style={{ marginLeft: 12 }}>
         <Text style={styles.itemText}>{label}</Text>
         {subLabel && <Text style={styles.subLabel}>{subLabel}</Text>}
@@ -244,12 +245,14 @@ const Item = ({ icon, label, subLabel, rightText, children, onPress }) => (
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.bg,
+    backgroundColor: COLORS.bg || "#0d1a12",
   },
   row: {
     flexDirection: "row",
     alignItems: "center",
   },
+
+  // si no existe common.headerRow/common.headerTitle, cae aquí
   header: {
     flexDirection: "row",
     alignItems: "center",
@@ -260,8 +263,9 @@ const styles = StyleSheet.create({
     textAlign: "center",
     fontSize: 18,
     fontWeight: "700",
-    color: COLORS.white,
+    color: COLORS.textMain || "#fff",
   },
+
   profileContainer: {
     alignItems: "center",
     paddingVertical: 20,
@@ -285,7 +289,7 @@ const styles = StyleSheet.create({
     fontSize: 22,
     fontWeight: "700",
     marginTop: 10,
-    color: COLORS.white,
+    color: COLORS.textMain || "#fff",
   },
   walletRow: {
     flexDirection: "row",
@@ -304,27 +308,30 @@ const styles = StyleSheet.create({
     marginRight: 6,
   },
   walletText: {
-    color: COLORS.white,
+    color: COLORS.textMain || "#fff",
     fontSize: 12,
   },
+
   section: {
     paddingHorizontal: 16,
     marginTop: 20,
   },
   sectionTitle: {
     fontSize: 12,
-    color: COLORS.muted,
+    color: COLORS.textMuted || "rgba(255,255,255,0.6)",
     marginBottom: 8,
     marginLeft: 4,
     textTransform: "uppercase",
   },
+
   cardBox: {
-    backgroundColor: COLORS.card,
+    backgroundColor: COLORS.cardBg || "rgba(255,255,255,0.08)",
     borderRadius: 20,
     overflow: "hidden",
     borderWidth: 1,
-    borderColor: COLORS.border,
+    borderColor: COLORS.border || "rgba(255,255,255,0.15)",
   },
+
   item: {
     flexDirection: "row",
     alignItems: "center",
@@ -335,16 +342,17 @@ const styles = StyleSheet.create({
   },
   itemText: {
     fontSize: 16,
-    color: COLORS.white,
+    color: COLORS.textMain || "#fff",
   },
   subLabel: {
     fontSize: 12,
     color: COLORS.primary,
   },
   rightText: {
-    color: COLORS.muted,
+    color: COLORS.textMuted || "rgba(255,255,255,0.6)",
     marginRight: 4,
   },
+
   logoutBtn: {
     flexDirection: "row",
     justifyContent: "center",
@@ -356,14 +364,15 @@ const styles = StyleSheet.create({
     borderRadius: 16,
   },
   logoutText: {
-    color: "#ff4444",
+    color: COLORS.danger || "#ff4444",
     fontWeight: "600",
   },
   version: {
     textAlign: "center",
     fontSize: 12,
-    color: COLORS.muted,
+    color: COLORS.textMuted || "rgba(255,255,255,0.6)",
   },
+
   modalOverlay: {
     flex: 1,
     backgroundColor: "rgba(0,0,0,0.5)",
@@ -372,12 +381,12 @@ const styles = StyleSheet.create({
   },
 
   modalContent: {
-    backgroundColor: COLORS.white,
+    backgroundColor: COLORS.cardBg || "#ffffff",
     borderRadius: 16,
     paddingVertical: 10,
     width: 200,
     borderWidth: 1,
-    borderColor: COLORS.border,
+    borderColor: COLORS.border || "rgba(0,0,0,0.15)",
   },
 
   modalItem: {
@@ -388,7 +397,7 @@ const styles = StyleSheet.create({
   },
 
   modalText: {
-    color: COLORS.black,
+    color: COLORS.textMain || "#000",
     fontSize: 16,
   },
 });
