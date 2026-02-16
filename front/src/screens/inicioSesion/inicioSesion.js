@@ -32,6 +32,7 @@ const InicioSesion = (props) => {
 
   const [mail, setMail] = useState("");
   const [psw, setPsw] = useState("");
+  const IP = "10.10.5.215";
 
   useEffect(() => {
     (async () => {
@@ -90,8 +91,7 @@ const InicioSesion = (props) => {
     console.log("HASHED", hashedPassword);
 
     try {
-      // 1) LOGIN
-      const response = await fetch("http://172.20.10.2:8080/API/Login", {
+      const response = await fetch("http://"+ IP + ":8080/API/Login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: mail, password: hashedPassword }),
@@ -108,9 +108,7 @@ const InicioSesion = (props) => {
       Alert.alert("Éxito", text);
 
       const idRes = await fetch(
-        `http://172.20.10.2:8080/API/UserIdByEmail?email=${encodeURIComponent(
-          mail
-        )}`,
+        `http://` + IP + `:8080/API/UserIdByEmail?email=${mail}`,
         { method: "GET" }
       );
 

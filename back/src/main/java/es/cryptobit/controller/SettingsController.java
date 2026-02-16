@@ -40,47 +40,37 @@ public class SettingsController {
         }
     }
 
-    // http://localhost:8080/API/EditSettings/{userId}
-    @PutMapping("/EditSettings/{userId}")
-    public ResponseEntity<Object> editSettings(@PathVariable String userId, @RequestBody Settings updatedSettings) {
+    // http://localhost:8080/API/Settings/{userId}
+    @GetMapping("/Settings/{userId}")
+    public ResponseEntity<Object> getSettings(@PathVariable String userId) {
         try {
-            Optional<Settings> optionalSettings = settingsRepository.findById(userId);
-
-            if (optionalSettings.isEmpty()) {
+            Optional<Settings> settingsOpt = settingsRepository.findById(userId);
+            if (settingsOpt.isEmpty()) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Settings no encontrados");
             }
-
-            Settings existingSettings = optionalSettings.get();
-
-            existingSettings.setLanguage(updatedSettings.getLanguage());
-            existingSettings.setTheme(updatedSettings.getTheme());
-            existingSettings.setCurrency(updatedSettings.getCurrency());
-
-            settingsRepository.save(existingSettings);
-            return ResponseEntity.ok(existingSettings);
-
+            return ResponseEntity.ok(settingsOpt.get());
         } catch (Exception e) {
-            System.out.println("ERROR AL ACTUALIZAR SETTINGS: " + e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Error al actualizar settings");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error al obtener settings");
         }
     }
 
-    // http://localhost:8080/API/DeleteSettings/{userId}
-    @DeleteMapping("/DeleteSettings/{userId}")
-    public ResponseEntity<Object> deleteSettings(@PathVariable String userId) {
+    @PutMapping("/EditSettings/{userId}")
+    public ResponseEntity<Object> editSettings(@PathVariable String userId, @RequestBody Settings updated) {
         try {
-            if (!settingsRepository.existsById(userId)) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Settings no encontrados");
-            }
+            Settings existing = settingsRepository.findById(userId)
+                    .orElse(new Settings(userId, "EN", true, "USD", false));
 
-            settingsRepository.deleteById(userId);
-            return ResponseEntity.ok("Settings eliminados correctamente");
+            existing.setLanguage(updated.getLanguage());
+            existing.setTheme(updated.getTheme());
+            existing.setCurrency(updated.getCurrency());
+            existing.setFaceId(updated.getFaceId());
+
+            settingsRepository.save(existing);
+            return ResponseEntity.ok(existing);
 
         } catch (Exception e) {
-            System.out.println("ERROR AL BORRAR SETTINGS: " + e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Error al borrar settings");
+            System.out.println("ERROR AL ACTUALIZAR SETTINGS: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error al actualizar settings");
         }
     }
 }

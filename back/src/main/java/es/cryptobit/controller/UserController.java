@@ -1,6 +1,7 @@
 package es.cryptobit.controller;
 
 import es.cryptobit.model.User;
+import es.cryptobit.repository.SettingsRepository;
 import es.cryptobit.repository.UserRepository;
 import org.bson.json.JsonObject;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,6 +18,10 @@ public class UserController {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private SettingsRepository settingsRepository;
+
 
     // http://localhost:8080/API/NewUser
     @PostMapping("/API/NewUser")
@@ -94,10 +99,7 @@ public class UserController {
 
     // http://localhost:8080/API/EditUser/{id}
     @PutMapping("/EditUser/{id}")
-    public ResponseEntity<Object> updateUser(
-            @PathVariable String id,
-            @RequestBody User updatedUser) {
-
+    public ResponseEntity<Object> updateUser(@PathVariable String id, @RequestBody User updatedUser) {
         try {
             Optional<User> optionalUser = userRepository.findById(id);
 
@@ -108,16 +110,17 @@ public class UserController {
 
             User existingUser = optionalUser.get();
 
-            // Actualizar TODOS los campos
             existingUser.setFirstName(updatedUser.getFirstName());
             existingUser.setLastName(updatedUser.getLastName());
             existingUser.setDni(updatedUser.getDni());
             existingUser.setEmail(updatedUser.getEmail());
             existingUser.setPassword(updatedUser.getPassword());
             existingUser.setBirthDateFormatted(updatedUser.getBirthDateFormatted());
+
             if (updatedUser.getUserImage() != null && !updatedUser.getUserImage().isBlank()) {
                 existingUser.setUserImage(updatedUser.getUserImage());
             }
+
             existingUser.setFavoriteId(updatedUser.getFavoriteId());
 
             userRepository.save(existingUser);

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import {
   View,
   Text,
@@ -13,6 +13,7 @@ import {
 } from "react-native";
 import Icon from "react-native-vector-icons/MaterialIcons";
 import Nav from "../../components/Nav";
+import Context from "../../context/Context";
 
 const COLORS = {
   primary: "#2bee79",
@@ -24,18 +25,70 @@ const COLORS = {
 };
 
 export default function PerfilUsuario(props) {
-  const [faceId, setFaceId] = useState(true);
+  const { userId } = useContext(Context);
 
+  const [faceId, setFaceId] = useState(true);
   const [isDarkMode, setIsDarkMode] = useState(true);
+
   const [language, setLanguage] = useState("EN");
   const [languageModalVisible, setLanguageModalVisible] = useState(false);
-
   const LANGUAGES = ["ES", "EN", "CA"];
 
-  const [currency, setCurrency] = useState("USD"); 
+  const [currency, setCurrency] = useState("USD");
   const [currencyModalVisible, setCurrencyModalVisible] = useState(false);
-
   const CURRENCIES = ["USD", "EUR", "GBP", "MXN"];
+
+  const BASE_URL = "http://10.10.5.215:8080";
+
+  useEffect(() => {
+    if (!userId) return;
+
+    const loadSettings = async () => {
+      try {
+        const res = await fetch(`${BASE_URL}/API/Settings/${userId}`);
+        if (!res.ok) return;
+
+        const data = await res.json();
+
+        if (typeof data.theme === "boolean") setIsDarkMode(data.theme);
+        if (typeof data.faceId === "boolean") setFaceId(data.faceId);
+        if (data.language) setLanguage(data.language);
+        if (data.currency) setCurrency(data.currency);
+      } catch (e) {
+        console.log("LOAD SETTINGS ERROR", e);
+      }
+    };
+
+    loadSettings();
+  }, [userId]);
+
+  const saveSettings = async (partial) => {
+    if (!userId) return;
+
+    const payload = {
+      userId,
+      theme: isDarkMode,
+      language,
+      currency,
+      faceId,
+      ...partial,
+    };
+
+    try {
+      const res = await fetch(`${BASE_URL}/API/EditSettings/${userId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      if (!res.ok) {
+        const txt = await res.text();
+        console.log("SAVE SETTINGS ERROR", res.status, txt);
+      }
+    } catch (e) {
+      console.log("SAVE SETTINGS EXCEPTION", e);
+    }
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -89,11 +142,14 @@ export default function PerfilUsuario(props) {
             }
           />
 
-          {/* NUEVO: Theme (modo oscuro/claro) */}
+          {/* Theme */}
           <Item icon="dark-mode" label="Claro/Oscuro">
             <Switch
               value={isDarkMode}
-              onValueChange={setIsDarkMode}
+              onValueChange={(val) => {
+                setIsDarkMode(val);
+                saveSettings({ theme: val });
+              }}
               trackColor={{ false: "#3e3e3e", true: COLORS.primary }}
               thumbColor="#fff"
             />
@@ -104,23 +160,34 @@ export default function PerfilUsuario(props) {
           <Item icon="face" label="Face ID">
             <Switch
               value={faceId}
-              onValueChange={setFaceId}
+              onValueChange={(val) => {
+                setFaceId(val);
+                saveSettings({ faceId: val });
+              }}
               trackColor={{ false: "#3e3e3e", true: COLORS.primary }}
               thumbColor="#fff"
             />
           </Item>
           <Item icon="shield" label="Autenticación 2FA" rightText="Activado" />
-          <Item icon="badge" label="Verificación KYC" subLabel="Verificado nivel 2" />
+          <Item
+            icon="badge"
+            label="Verificación KYC"
+            subLabel="Verificado nivel 2"
+          />
         </Section>
 
         <Section title="Preferencias">
           <Item icon="notifications" label="Notificaciones" />
+
+          {/* Moneda Local -> modal */}
           <Item
             icon="currency-exchange"
             label="Moneda Local"
             rightText={currency}
             onPress={() => setCurrencyModalVisible(true)}
           />
+
+          {/* Idioma -> modal */}
           <Item
             icon="language"
             label="Idioma"
@@ -136,6 +203,8 @@ export default function PerfilUsuario(props) {
 
         <Text style={styles.version}>Versión 0.1.0</Text>
       </ScrollView>
+
+      {/* MODAL IDIOMA */}
       <Modal
         transparent
         visible={languageModalVisible}
@@ -154,6 +223,7 @@ export default function PerfilUsuario(props) {
                 onPress={() => {
                   setLanguage(lang);
                   setLanguageModalVisible(false);
+                  saveSettings({ language: lang });
                 }}
               >
                 <Text
@@ -173,6 +243,7 @@ export default function PerfilUsuario(props) {
         </Pressable>
       </Modal>
 
+      {/* MODAL DIVISA */}
       <Modal
         transparent
         visible={currencyModalVisible}
@@ -191,6 +262,7 @@ export default function PerfilUsuario(props) {
                 onPress={() => {
                   setCurrency(cur);
                   setCurrencyModalVisible(false);
+                  saveSettings({ currency: cur });
                 }}
               >
                 <Text
@@ -201,7 +273,6 @@ export default function PerfilUsuario(props) {
                 >
                   {cur}
                 </Text>
-
                 {cur === currency && (
                   <Icon name="check" size={20} color={COLORS.primary} />
                 )}
@@ -210,11 +281,11 @@ export default function PerfilUsuario(props) {
           </View>
         </Pressable>
       </Modal>
+
       <Nav />
     </SafeAreaView>
   );
 }
-
 
 const Section = ({ title, children }) => (
   <View style={styles.section}>
@@ -364,31 +435,30 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: COLORS.muted,
   },
+
+  // Modal (reutilizado para idioma y divisa)
   modalOverlay: {
     flex: 1,
     backgroundColor: "rgba(0,0,0,0.5)",
     justifyContent: "center",
     alignItems: "center",
   },
-
   modalContent: {
-    backgroundColor: COLORS.white,
+    backgroundColor: COLORS.card,
     borderRadius: 16,
     paddingVertical: 10,
     width: 200,
     borderWidth: 1,
     borderColor: COLORS.border,
   },
-
   modalItem: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
     padding: 14,
   },
-
   modalText: {
-    color: COLORS.black,
+    color: COLORS.white,
     fontSize: 16,
   },
 });
