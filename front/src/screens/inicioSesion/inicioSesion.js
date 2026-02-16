@@ -200,9 +200,6 @@ const InicioSesion = (props) => {
                 <Pressable onPress={() => props.navigation.navigate('RegistroUsuario')}>
                   <Text style={styles.footerLink}>Regístrate</Text>
                 </Pressable>
-                <Pressable onPress={() => props.navigation.navigate('HomeNav')}>
-                  <Text style={styles.footerLink}>PerfilUsuari</Text>
-                </Pressable>
               </Text>
             </View>
           </View>
