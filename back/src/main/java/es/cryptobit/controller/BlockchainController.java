@@ -9,7 +9,7 @@ import java.math.BigDecimal;
 
 @RestController
 @RequestMapping("/api/blockchain")
-@CrossOrigin(origins = "*")        // Permite que React Native se conecte sin errores
+@CrossOrigin(origins = "*")// Permite que React Native se conecte sin errores
 public class BlockchainController {
     @Autowired
     private BlockchainService blockchainService;

@@ -88,7 +88,7 @@ const InicioSesion = (props) => {
   console.log("HASHED", hashedPassword);
 
   try {
-    const response = await fetch("http://10.10.3.173:8080/API/Login", {
+    const response = await fetch("http://10.10.5.210:8080/API/Login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email: mail, password: hashedPassword }),
