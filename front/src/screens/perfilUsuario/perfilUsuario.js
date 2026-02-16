@@ -26,6 +26,7 @@ const COLORS = {
 
 export default function PerfilUsuario(props) {
   const { userId } = useContext(Context);
+  const { logoutUser } = useContext(Context);
 
   const [faceId, setFaceId] = useState(true);
   const [isDarkMode, setIsDarkMode] = useState(true);
