@@ -26,11 +26,13 @@ public class BlockchainController {
 
     //Obtener saldo de ETH de una dirección
     @GetMapping("/balance/{address}")
-    public ResponseEntity<?> getEthBalance(@PathVariable String address) {
+    public ResponseEntity<?> getEthBalance(@PathVariable String address, @RequestParam String email) {
+        System.out.println("Petición recibida en Controller para: " + address + " (Email: " + email + ")");
         try {
-            BigDecimal balance = blockchainService.getEthBalance(address);
+            BigDecimal balance = blockchainService.getEthBalance(address, email);
             return ResponseEntity.ok(balance);
         } catch (Exception e) {
+            System.err.println("ERROR en Controller: " + e.getMessage());
             return ResponseEntity.badRequest().body("Error: " + e.getMessage());
         }
     }

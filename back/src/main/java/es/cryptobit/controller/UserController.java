@@ -49,7 +49,7 @@ public class UserController {
 
     // http://localhost:8080/API/Login
     @PostMapping("/API/Login")
-    public ResponseEntity<String> login(@RequestBody User loginUser) {
+    public ResponseEntity<?> login(@RequestBody User loginUser) {
         try {
             if (loginUser.getEmail() == null || loginUser.getPassword() == null) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
@@ -74,11 +74,13 @@ public class UserController {
             }
 
             System.out.println("Login correcto: " + loginUser.getEmail());
-            return ResponseEntity.ok("Login correcto");
+
+            //IMPORTANTE: Devolvemos userDB. Spring lo convertirá automáticamente a JSON
+            // con todos sus campos (email, walletAddress, etc.)
+            return ResponseEntity.ok(userDB);
 
         } catch (Exception e) {
             e.printStackTrace();
-            System.out.println("Error en login: " + e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Error en login");
         }

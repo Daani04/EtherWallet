@@ -99,10 +99,11 @@ const InicioSesion = (props) => {
 
     Alert.alert(response.ok ? "Éxito" : "Error", text);
 
-    if (response.ok){
-      await loginUser({ email: mail }); 
-      props.navigation.navigate('HomeNav');
-    }
+  if (response.ok) {
+    const userData = JSON.parse(text); 
+    await loginUser(userData); 
+    props.navigation.navigate('HomeNav');
+  }
   } catch (error) {
     console.log("FETCH ERROR", error);
     Alert.alert("Error", "Error de conexión. Inténtalo más tarde.");
