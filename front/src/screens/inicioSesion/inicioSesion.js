@@ -82,65 +82,36 @@ const InicioSesion = (props) => {
   const handleLogin = async () => {
     console.log("LOGIN CLICK", { mail, psw });
 
-    if (!mail || !psw) {
-      Alert.alert("Error", "Por favor, rellena todos los campos");
-      return;
-    }
+  if (!mail || !psw) {
+    Alert.alert("Error", "Por favor, rellena todos los campos");
+    return;
+  }
 
-    const hashedPassword = CryptoJS.SHA256(psw).toString();
-    console.log("HASHED", hashedPassword);
+  const hashedPassword = CryptoJS.SHA256(psw).toString();
+  console.log("HASHED", hashedPassword);
 
-    try {
-      const response = await fetch("http://"+ IP + ":8080/API/Login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: mail, password: hashedPassword }),
-      });
+  try {
+    const response = await fetch("http://10.10.5.210:8080/API/Login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email: mail, password: hashedPassword }),
+    });
 
-      const text = await response.text();
-      console.log("RESP", response.status, text);
+    const text = await response.text();
+    console.log("RESP", response.status, text);
 
-      if (!response.ok) {
-        Alert.alert("Error", text);
-        return;
-      }
+    Alert.alert(response.ok ? "Éxito" : "Error", text);
 
-      Alert.alert("Éxito", text);
-
-      const idRes = await fetch(
-        `http://` + IP + `:8080/API/UserIdByEmail?email=${mail}`,
-        { method: "GET" }
-      );
-
-      if (!idRes.ok) {
-        const idText = await idRes.text();
-        console.log("ID ERROR", idRes.status, idText);
-        Alert.alert(
-          "Error",
-          "Login OK, pero no se pudo obtener el ID de usuario."
-        );
-        return;
-      }
-
-      const idData = await idRes.json();
-      const fetchedId = idData?.id;
-
-      if (!fetchedId) {
-        console.log("ID DATA", idData);
-        Alert.alert("Error", "Login OK, pero la respuesta no trae un ID válido.");
-        return;
-      }
-
-      setUserId(fetchedId);
-
-      await loginUser({ email: mail, userId: fetchedId });
-
-      props.navigation.navigate("HomeNav");
-    } catch (error) {
-      console.log("FETCH ERROR", error);
-      Alert.alert("Error", "Error de conexión. Inténtalo más tarde.");
-    }
-  };
+  if (response.ok) {
+    const userData = JSON.parse(text); 
+    await loginUser(userData); 
+    props.navigation.navigate('HomeNav');
+  }
+  } catch (error) {
+    console.log("FETCH ERROR", error);
+    Alert.alert("Error", "Error de conexión. Inténtalo más tarde.");
+  }
+};
 
   return (
     <KeyboardAvoidingView
@@ -251,9 +222,6 @@ const InicioSesion = (props) => {
                   onPress={() => props.navigation.navigate("RegistroUsuario")}
                 >
                   <Text style={styles.footerLink}>Regístrate</Text>
-                </Pressable>{" "}
-                <Pressable onPress={() => props.navigation.navigate("HomeNav")}>
-                  <Text style={styles.footerLink}>PerfilUsuari</Text>
                 </Pressable>
               </Text>
             </View>

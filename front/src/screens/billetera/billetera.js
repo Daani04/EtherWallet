@@ -38,16 +38,30 @@ const Billetera = (props) => {
 
   useEffect(() => {
     const fetchBalance = async () => {
-      if (user && user.walletAddress) {
+      console.log("Datos del usuario en Context:" + user + user.walletAddress);
+      if (user && user.walletAddress && user.email) {
         try {
-          const response = await fetch(`http://localhost:8080/api/blockchain/balance/${user.walletAddress}`);
-          if (!response.ok) throw new Error("Error en respuesta");
-          
+          // 2. En simulador iOS, 'localhost' funciona bien. 
+          // IMPORTANTE: Añadimos el ?email=${user.email} que pide tu Java
+          const url = `http://localhost:8080/api/blockchain/balance/${user.walletAddress}?email=${user.email}`;
+
+          console.log("Consultando saldo a:", url);
+
+          const response = await fetch(url);
+
+          if (!response.ok) {
+            // Si el backend da error, lo veremos en la consola
+            const errorData = await response.text();
+            throw new Error(`Error del servidor: ${errorData}`);
+          }
+
           const data = await response.json();
+
+          // 4. Seteamos el saldo real (ej: 0.168)
           setEthBalance(data.toString());
         } catch (error) {
           console.error("Error al obtener saldo:", error);
-          setEthBalance("N/A");
+          setEthBalance("N/A"); // Para saber que falló la red
         } finally {
           setLoadingBalance(false);
         }
@@ -57,7 +71,7 @@ const Billetera = (props) => {
     };
 
     if (isLogged) fetchBalance();
-  }, [user, isLogged]); 
+  }, [user, isLogged]);
 
   if (isLoading || loadingBalance) {
     return (
@@ -70,7 +84,7 @@ const Billetera = (props) => {
   let isWeb = Platform.OS === "web";
   let isPC = isWeb && screenW >= 900;
 
-  const totalBalance = 2450.35; 
+  const totalBalance = 2450.35;
   const variation24h = 3.42;
 
   const assets = [
@@ -122,24 +136,24 @@ const Billetera = (props) => {
 
         {/* TARJETA DE SALDO BLOCKCHAIN REAL */}
         <View style={styles.balanceCardMain}>
-            <LinearGradient colors={[COLORS.primarySoft, "transparent"]} style={styles.balanceGlow} />
-            <Text style={styles.balanceLabel}>Saldo en Ethereum (Red Sepolia)</Text>
-            <View style={styles.balanceRowTop}>
-                <Text style={styles.balanceValue}>
-                    {hideBalance ? "••••" : `${ethBalance} ETH`}
-                </Text>
-                <View style={[styles.pill, { backgroundColor: trend.bg, borderColor: 'transparent' }]}>
-                    <MaterialIcons name={trend.icon} size={16} color={trend.colour} />
-                    <Text style={[styles.pillText, { color: trend.colour }]}>
-                        {hideBalance ? "••%" : `${variation24h}%`}
-                    </Text>
-                </View>
-            </View>
-            <Text style={styles.addressSub}>
-                {user?.walletAddress 
-                    ? `${user.walletAddress.substring(0, 8)}...${user.walletAddress.substring(36)}`
-                    : "Generando dirección..."}
+          <LinearGradient colors={[COLORS.primarySoft, "transparent"]} style={styles.balanceGlow} />
+          <Text style={styles.balanceLabel}>Saldo en Ethereum (Red Sepolia)</Text>
+          <View style={styles.balanceRowTop}>
+            <Text style={styles.balanceValue}>
+              {hideBalance ? "••••" : `${ethBalance} ETH`}
             </Text>
+            <View style={[styles.pill, { backgroundColor: trend.bg, borderColor: 'transparent' }]}>
+              <MaterialIcons name={trend.icon} size={16} color={trend.colour} />
+              <Text style={[styles.pillText, { color: trend.colour }]}>
+                {hideBalance ? "••%" : `${variation24h}%`}
+              </Text>
+            </View>
+          </View>
+          <Text style={styles.addressSub}>
+            {user?.walletAddress
+              ? `${user.walletAddress.substring(0, 8)}...${user.walletAddress.substring(36)}`
+              : "Generando dirección..."}
+          </Text>
         </View>
 
         {/* SECCIÓN DE ACTIVOS */}
@@ -166,7 +180,7 @@ const Billetera = (props) => {
             <View key={index} style={styles.movRow}>
               <View style={styles.movLeft}>
                 <View style={styles.movIconWrap}>
-                   <MaterialIcons name={m.type === "receive" ? "south-west" : "north-east"} size={20} color={COLORS.primary} />
+                  <MaterialIcons name={m.type === "receive" ? "south-west" : "north-east"} size={20} color={COLORS.primary} />
                 </View>
                 <View style={{ flex: 1 }}>
                   <View style={styles.movHeaderRow}>
@@ -192,13 +206,13 @@ const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: "#102217" },
   scrollContainer: { padding: 20 },
   loaderContainer: { flex: 1, backgroundColor: '#102217', justifyContent: 'center', alignItems: 'center' },
-  
+
   blob: { position: "absolute", width: 500, height: 500, backgroundColor: "rgba(43,238,121,0.05)", borderRadius: 999, top: -200, right: -200 },
-  
+
   topRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 20 },
   welcome: { color: "#fff", fontSize: 26, fontWeight: "800" },
   miniInfo: { color: COLORS.textMuted, fontSize: 12, marginTop: 4 },
-  
+
   iconBtn: { width: 44, height: 44, borderRadius: 22, backgroundColor: "#1c2720", alignItems: "center", justifyContent: "center", borderWidth: 1, borderColor: "#3b5445" },
 
   balanceCardMain: { backgroundColor: "#1c2720", borderRadius: 24, padding: 24, borderWidth: 1, borderColor: "#3b5445", marginBottom: 24, overflow: "hidden" },
@@ -206,22 +220,22 @@ const styles = StyleSheet.create({
   balanceLabel: { color: "#9db9a8", fontSize: 13, textTransform: "uppercase", letterSpacing: 1 },
   balanceRowTop: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginTop: 10 },
   balanceValue: { color: "#fff", fontSize: 32, fontWeight: "900" },
-  
+
   pill: { flexDirection: "row", alignItems: "center", paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20 },
   pillText: { fontSize: 14, fontWeight: "bold", marginLeft: 4 },
-  
+
   addressSub: { color: "rgba(157,185,168,0.4)", fontSize: 11, marginTop: 15, fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace' },
 
   card: { backgroundColor: "#1c2720", borderRadius: 20, padding: 20, marginBottom: 20, borderWidth: 1, borderColor: "#3b5445" },
   sectionTitle: { color: "#fff", fontSize: 18, fontWeight: "700", marginBottom: 15 },
-  
+
   assetRow: { paddingVertical: 12 },
   assetLeft: { flexDirection: "row", alignItems: "center" },
   coinBadge: { width: 40, height: 40, borderRadius: 12, backgroundColor: "rgba(43,238,121,0.1)", alignItems: "center", justifyContent: "center", marginRight: 15 },
   coinBadgeText: { color: "#2bee79", fontWeight: "bold" },
   assetName: { color: "#fff", fontWeight: "600" },
   assetSub: { color: "#9db9a8", fontSize: 13 },
-  
+
   divider: { height: 1, backgroundColor: "#3b5445", marginTop: 12 },
 
   movRow: { marginBottom: 15 },

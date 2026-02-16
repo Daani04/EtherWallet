@@ -196,7 +196,7 @@ export default function PerfilUsuario(props) {
           />
         </Section>
 
-        <TouchableOpacity style={styles.logoutBtn}>
+        <TouchableOpacity style={styles.logoutBtn} onPress={logoutUser}>
           <Icon name="logout" size={20} color="#ff4444" />
           <Text style={styles.logoutText}>Cerrar Sesión</Text>
         </TouchableOpacity>

@@ -1,5 +1,7 @@
 package es.cryptobit.service;
 
+import es.cryptobit.model.TransactionRecord;
+import es.cryptobit.repository.BlockchainRecordRepository;
 import es.cryptobit.repository.BlockchainRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -30,6 +32,8 @@ public class BlockchainService {
 
     @Autowired
     private BlockchainRepository repository;
+    @Autowired
+    private BlockchainRecordRepository blockchainRecordRepository;
 
     // Obtiene el número del último bloque (Util para verificar conexión)
     public String getLatestBlockNumber() throws Exception {
@@ -37,11 +41,34 @@ public class BlockchainService {
         return blockNumber.getBlockNumber().toString();
     }
 
-    // Obtiene el saldo de ETH Nativo
-    public BigDecimal getEthBalance(String walletAddress) throws Exception {
+
+    public BigDecimal getEthBalance(String walletAddress, String userEmail) throws Exception {
+        System.out.println("--- NUEVA CONSULTA DE SALDO ---");
+        System.out.println("Usuario: " + userEmail);
+        System.out.println("Dirección: " + walletAddress);
+
         var ethGetBalance = web3j.ethGetBalance(walletAddress, DefaultBlockParameterName.LATEST).send();
+
+        // Aquí obtenemos el valor bruto (en Wei)
         BigInteger balanceInWei = ethGetBalance.getBalance();
-        return Convert.fromWei(balanceInWei.toString(), Convert.Unit.ETHER);
+        System.out.println("Saldo bruto en Wei: " + balanceInWei);
+
+        // Convertimos a Ether
+        BigDecimal balance = Convert.fromWei(balanceInWei.toString(), Convert.Unit.ETHER);
+        System.out.println("Saldo convertido a ETH: " + balance);
+
+        // GUARDAR REGISTRO EN MONGO
+        TransactionRecord record = new TransactionRecord(
+                userEmail,
+                "ETH_BALANCE_CHECK",
+                walletAddress,
+                balance.toString()
+        );
+        blockchainRecordRepository.save(record);
+        System.out.println("Registro guardado en MongoDB con éxito.");
+        System.out.println("-------------------------------");
+
+        return balance;
     }
 
     /**

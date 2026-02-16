@@ -54,7 +54,7 @@ public class UserController {
 
     // http://localhost:8080/API/Login
     @PostMapping("/API/Login")
-    public ResponseEntity<String> login(@RequestBody User loginUser) {
+    public ResponseEntity<?> login(@RequestBody User loginUser) {
         try {
             if (loginUser.getEmail() == null || loginUser.getPassword() == null) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
@@ -91,7 +91,6 @@ public class UserController {
 
         } catch (Exception e) {
             e.printStackTrace();
-            System.out.println("Error en login: " + e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Error en login");
         }
