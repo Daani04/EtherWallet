@@ -2,3 +2,6 @@ Organización de Modelos
 TransactionRecord.java: Para el historial de consultas (vistas de saldo).
 Transaction.java: Para los recibos de transferencias (envíos/recepciones).
 
+//POR HACER
+// -QUE SE GUARDEN LOS MOVIMIENTOS EN MONGO
+// -TRANSFERIR SALDO ENTRE BILLETERAS
