@@ -9,17 +9,19 @@ public class Settings {
     @Id
     private String userId;
     private String language;
-    private String theme;
+    private boolean theme;
     private String currency;
+    private boolean faceId;
 
     public Settings() {
     }
 
-    public Settings(String userId, String language, String theme, String currency) {
+    public Settings(String userId, String language, boolean theme, String currency, boolean faceId) {
         this.userId = userId;
         this.language = language;
         this.theme = theme;
         this.currency = currency;
+        this.faceId = faceId;
     }
 
     public String getUserId() {
@@ -38,11 +40,11 @@ public class Settings {
         this.language = language;
     }
 
-    public String getTheme() {
+    public boolean getTheme() {
         return theme;
     }
 
-    public void setTheme(String theme) {
+    public void setTheme(boolean theme) {
         this.theme = theme;
     }
 
@@ -52,5 +54,13 @@ public class Settings {
 
     public void setCurrency(String currency) {
         this.currency = currency;
+    }
+
+    public boolean getFaceId() {
+        return faceId;
+    }
+
+    public void setFaceId(boolean faceId) {
+        this.faceId = faceId;
     }
 }
