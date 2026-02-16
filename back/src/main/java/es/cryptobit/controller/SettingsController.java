@@ -1,14 +1,18 @@
 package es.cryptobit.controller;
 
 import es.cryptobit.model.Settings;
+import es.cryptobit.model.User;
 import es.cryptobit.repository.SettingsRepository;
+import es.cryptobit.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
+import org.springframework.http.ResponseEntity;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.*;
 import java.util.Optional;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import java.util.List;
 
 @RestController
 @RequestMapping("/API")
@@ -16,6 +20,9 @@ public class SettingsController {
 
     @Autowired
     private SettingsRepository settingsRepository;
+
+    @Autowired
+    private UserRepository userRepository;
 
     // http://localhost:8080/API/NewSettings
     @PostMapping("/NewSettings")
@@ -67,6 +74,26 @@ public class SettingsController {
 
         settingsRepository.save(settings);
         return ResponseEntity.ok(settings);
+    }
+
+    // http://localhost:8080/API/User/{id}
+    @GetMapping("/User/{id}")
+    public ResponseEntity<?> getUserById(@PathVariable String id) {
+        try {
+            Optional<User> userOpt = userRepository.findById(id);
+
+            if (userOpt.isEmpty()) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body("Usuario no encontrado");
+            }
+
+            return ResponseEntity.ok(userOpt.get());
+
+        } catch (Exception e) {
+            System.out.println("ERROR GET USER: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error obteniendo usuario");
+        }
     }
 
 }

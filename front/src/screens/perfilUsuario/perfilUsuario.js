@@ -28,6 +28,9 @@ export default function PerfilUsuario(props) {
 
   console.log("USERID CONTEXT:", userId);
 
+  // ✅ NUEVO: usuario real de BBDD
+  const [dbUser, setDbUser] = useState(null);
+
   const [faceId, setFaceId] = useState(true);
   const [isDarkMode, setIsDarkMode] = useState(true);
 
@@ -38,6 +41,31 @@ export default function PerfilUsuario(props) {
   const [currency, setCurrency] = useState("USD");
   const [currencyModalVisible, setCurrencyModalVisible] = useState(false);
   const CURRENCIES = ["USD", "EUR", "GBP", "MXN"];
+
+  // ✅ NUEVO: cargar usuario desde BBDD por userId
+  useEffect(() => {
+    if (!userId) return;
+
+    const loadUser = async () => {
+      try {
+        // ⚠️ Ajusta este endpoint si tu backend usa otro nombre
+        const res = await fetch(`${BASE_URL}/API/User/${userId}`);
+
+        if (!res.ok) {
+          const txt = await res.text();
+          console.log("GET USER ERROR", res.status, txt);
+          return;
+        }
+
+        const data = await res.json();
+        setDbUser(data);
+      } catch (e) {
+        console.log("LOAD USER EXCEPTION", e);
+      }
+    };
+
+    loadUser();
+  }, [userId]);
 
   useEffect(() => {
     if (!userId) return;
@@ -90,15 +118,13 @@ export default function PerfilUsuario(props) {
         console.log("PUT SETTINGS ERROR", res.status, txt);
         return;
       }
-
-      // (opcional) si quieres confirmar qué devuelve el back
-      // const saved = await res.json();
-      // console.log("PUT SETTINGS OK", saved);
-
     } catch (e) {
       console.log("SAVE SETTINGS EXCEPTION", e);
     }
   };
+
+  // ✅ usar dbUser si existe, si no fallback al user que ya tenías
+  const shownUser = dbUser ?? user;
 
   return (
     <SafeAreaView style={common.safe}>
@@ -116,7 +142,8 @@ export default function PerfilUsuario(props) {
             <Image
               source={{
                 uri:
-                  user?.userImageUrl ||
+                  shownUser?.userImageUrl ||
+                  shownUser?.userImage ||
                   "https://randomuser.me/api/portraits/men/1.jpg",
               }}
               style={styles.avatar}
@@ -126,13 +153,13 @@ export default function PerfilUsuario(props) {
             </View>
           </View>
 
-          <Text style={styles.name}>{user?.firstName || "Usuario"}</Text>
+          <Text style={styles.name}>{shownUser?.firstName || "Usuario"}</Text>
 
           <View style={styles.walletRow}>
             <View style={styles.dot} />
             <Text style={styles.walletText}>
-              {user?.walletAddress
-                ? user.walletAddress.substring(0, 6) + "..."
+              {shownUser?.walletAddress
+                ? shownUser.walletAddress.substring(0, 6) + "..."
                 : "Sin dirección"}
             </Text>
             <Icon name="content-copy" size={14} color={COLORS.textMuted} />
@@ -146,7 +173,7 @@ export default function PerfilUsuario(props) {
             onPress={() =>
               props.navigation.navigate("EditarPerfil", {
                 user:
-                  user ?? {
+                  shownUser ?? {
                     id: "698f3af76ed4f87933e2018d",
                     firstName: "Dani",
                     lastName: "Arastell",
