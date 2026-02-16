@@ -74,6 +74,14 @@ public class UserController {
             }
 
             System.out.println("Login correcto: " + loginUser.getEmail());
+
+            java.util.HashMap<String, Object> payload = new java.util.HashMap<>();
+            payload.put("message", "Login correcto");
+            payload.put("id", userDB.getId());
+            payload.put("email", userDB.getEmail());
+            payload.put("firstName", userDB.getFirstName());
+            payload.put("lastName", userDB.getLastName());
+
             return ResponseEntity.ok("Login correcto");
 
         } catch (Exception e) {
@@ -144,4 +152,28 @@ public class UserController {
                     .body("Error al borrar usuario");
         }
     }
+
+    // http://localhost:8080/API/UserIdByEmail?email=correo@x.com
+    @GetMapping("/API/UserIdByEmail")
+    public ResponseEntity<Object> getUserIdByEmail(@RequestParam String email) {
+        try {
+            Optional<User> userOpt = userRepository.findByEmail(email);
+
+            if (userOpt.isEmpty()) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body("Usuario no encontrado");
+            }
+
+            // Devuelve SOLO lo necesario
+            return ResponseEntity.ok(new java.util.HashMap<String, Object>() {{
+                put("id", userOpt.get().getId());
+            }});
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error obteniendo ID");
+        }
+    }
+
 }

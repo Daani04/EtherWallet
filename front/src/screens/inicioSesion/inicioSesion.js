@@ -11,15 +11,15 @@ import {
   KeyboardAvoidingView,
   Platform,
   Alert,
-  Pressable
+  Pressable,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { MaterialIcons } from "@expo/vector-icons";
-import * as LocalAuthentication from 'expo-local-authentication';
-import { useTranslation } from 'react-i18next';
-import CryptoJS from 'crypto-js';
+import * as LocalAuthentication from "expo-local-authentication";
+import { useTranslation } from "react-i18next";
+import CryptoJS from "crypto-js";
 
-import Context from '../../context/Context';
+import Context from "../../context/Context";
 
 const { width } = Dimensions.get("window");
 
@@ -28,11 +28,10 @@ const InicioSesion = (props) => {
   const { t } = useTranslation();
   const [showPassword, setShowPassword] = useState(false);
 
-  const { loginUser } = useContext(Context);
+  const { loginUser, userId, setUserId } = useContext(Context);
 
   const [mail, setMail] = useState("");
   const [psw, setPsw] = useState("");
-
 
   useEffect(() => {
     (async () => {
@@ -43,71 +42,107 @@ const InicioSesion = (props) => {
 
   const handleBiometricAuth = async () => {
     try {
-      // 1. Verificar qué detecta el teléfono exactamente
       const hasHardware = await LocalAuthentication.hasHardwareAsync();
-      const supportedTypes = await LocalAuthentication.supportedAuthenticationTypesAsync();
+      const supportedTypes =
+        await LocalAuthentication.supportedAuthenticationTypesAsync();
       const isEnrolled = await LocalAuthentication.isEnrolledAsync();
 
-      // Debug: Esto te dirá en pantalla qué está pasando
-      // Si sale hardware: false, es un tema de permisos/configuración de Expo
       console.log({ hasHardware, isEnrolled, supportedTypes });
 
       if (!hasHardware) {
-        return Alert.alert('Error', 'Este dispositivo no soporta biometría.');
+        return Alert.alert("Error", "Este dispositivo no soporta biometría.");
       }
 
       if (!isEnrolled) {
-        return Alert.alert('Error', 'No tienes un rostro registrado en este iPhone.');
+        return Alert.alert(
+          "Error",
+          "No tienes un rostro registrado en este iPhone."
+        );
       }
 
-      // 2. Autenticación (Configuración más compatible para iPhone 13)
       const result = await LocalAuthentication.authenticateAsync({
-        promptMessage: 'Autentícate con Face ID',
-        fallbackLabel: 'Introducir código',
+        promptMessage: "Autentícate con Face ID",
+        fallbackLabel: "Introducir código",
       });
 
       if (result.success) {
-        Alert.alert('Éxito', 'Bienvenido');
+        Alert.alert("Éxito", "Bienvenido");
       } else {
-        Alert.alert('No autenticado', result.error ? `Motivo: ${result.error}` : 'Cancelado');
+        Alert.alert(
+          "No autenticado",
+          result.error ? `Motivo: ${result.error}` : "Cancelado"
+        );
       }
     } catch (error) {
-      Alert.alert('Error crítico', error.message);
+      Alert.alert("Error crítico", error.message);
     }
   };
 
   const handleLogin = async () => {
-  console.log("LOGIN CLICK", { mail, psw });
+    console.log("LOGIN CLICK", { mail, psw });
 
-  if (!mail || !psw) {
-    Alert.alert("Error", "Por favor, rellena todos los campos");
-    return;
-  }
-
-  const hashedPassword = CryptoJS.SHA256(psw).toString();
-  console.log("HASHED", hashedPassword);
-
-  try {
-    const response = await fetch("http://10.10.5.215:8080/API/Login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email: mail, password: hashedPassword }),
-    });
-
-    const text = await response.text();
-    console.log("RESP", response.status, text);
-
-    Alert.alert(response.ok ? "Éxito" : "Error", text);
-
-    if (response.ok){
-      await loginUser({ email: mail }); 
-      props.navigation.navigate('HomeNav');
+    if (!mail || !psw) {
+      Alert.alert("Error", "Por favor, rellena todos los campos");
+      return;
     }
-  } catch (error) {
-    console.log("FETCH ERROR", error);
-    Alert.alert("Error", "Error de conexión. Inténtalo más tarde.");
-  }
-};
+
+    const hashedPassword = CryptoJS.SHA256(psw).toString();
+    console.log("HASHED", hashedPassword);
+
+    try {
+      // 1) LOGIN
+      const response = await fetch("http://172.20.10.2:8080/API/Login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: mail, password: hashedPassword }),
+      });
+
+      const text = await response.text();
+      console.log("RESP", response.status, text);
+
+      if (!response.ok) {
+        Alert.alert("Error", text);
+        return;
+      }
+
+      Alert.alert("Éxito", text);
+
+      const idRes = await fetch(
+        `http://172.20.10.2:8080/API/UserIdByEmail?email=${encodeURIComponent(
+          mail
+        )}`,
+        { method: "GET" }
+      );
+
+      if (!idRes.ok) {
+        const idText = await idRes.text();
+        console.log("ID ERROR", idRes.status, idText);
+        Alert.alert(
+          "Error",
+          "Login OK, pero no se pudo obtener el ID de usuario."
+        );
+        return;
+      }
+
+      const idData = await idRes.json();
+      const fetchedId = idData?.id;
+
+      if (!fetchedId) {
+        console.log("ID DATA", idData);
+        Alert.alert("Error", "Login OK, pero la respuesta no trae un ID válido.");
+        return;
+      }
+
+      setUserId(fetchedId);
+
+      await loginUser({ email: mail, userId: fetchedId });
+
+      props.navigation.navigate("HomeNav");
+    } catch (error) {
+      console.log("FETCH ERROR", error);
+      Alert.alert("Error", "Error de conexión. Inténtalo más tarde.");
+    }
+  };
 
   return (
     <KeyboardAvoidingView
@@ -142,7 +177,12 @@ const InicioSesion = (props) => {
 
             <View style={styles.form}>
               <View style={styles.inputContainer}>
-                <MaterialIcons name="mail-outline" size={20} color="#9db9a8" style={styles.inputIcon} />
+                <MaterialIcons
+                  name="mail-outline"
+                  size={20}
+                  color="#9db9a8"
+                  style={styles.inputIcon}
+                />
                 <TextInput
                   placeholder="Correo electrónico"
                   placeholderTextColor="#9db9a8"
@@ -154,7 +194,12 @@ const InicioSesion = (props) => {
               </View>
 
               <View style={styles.inputContainer}>
-                <MaterialIcons name="lock-outline" size={20} color="#9db9a8" style={styles.inputIcon} />
+                <MaterialIcons
+                  name="lock-outline"
+                  size={20}
+                  color="#9db9a8"
+                  style={styles.inputIcon}
+                />
                 <TextInput
                   placeholder="••••••••••••"
                   placeholderTextColor="rgba(157,185,168,0.55)"
@@ -176,10 +221,16 @@ const InicioSesion = (props) => {
               </View>
 
               <TouchableOpacity style={styles.forgotPassRow}>
-                <Text style={styles.forgotPassText}>¿Olvidaste tu contraseña?</Text>
+                <Text style={styles.forgotPassText}>
+                  ¿Olvidaste tu contraseña?
+                </Text>
               </TouchableOpacity>
 
-              <TouchableOpacity style={styles.primaryBtn} activeOpacity={0.8} onPress={handleLogin}>
+              <TouchableOpacity
+                style={styles.primaryBtn}
+                activeOpacity={0.8}
+                onPress={handleLogin}
+              >
                 <Text style={styles.primaryBtnText}>Iniciar Sesión</Text>
               </TouchableOpacity>
 
@@ -189,18 +240,21 @@ const InicioSesion = (props) => {
                 onPress={handleBiometricAuth}
               >
                 <MaterialIcons name="face" size={24} color="#ffffff" />
-                <Text style={styles.secondaryBtnText}>Ingresar con Face ID</Text>
+                <Text style={styles.secondaryBtnText}>
+                  Ingresar con Face ID
+                </Text>
               </TouchableOpacity>
             </View>
 
             <View style={styles.footer}>
               <Text style={styles.footerText}>
-                {t('NoAccount.Question')}
-                {" "}
-                <Pressable onPress={() => props.navigation.navigate('RegistroUsuario')}>
+                {t("NoAccount.Question")}{" "}
+                <Pressable
+                  onPress={() => props.navigation.navigate("RegistroUsuario")}
+                >
                   <Text style={styles.footerLink}>Regístrate</Text>
-                </Pressable>
-                <Pressable onPress={() => props.navigation.navigate('HomeNav')}>
+                </Pressable>{" "}
+                <Pressable onPress={() => props.navigation.navigate("HomeNav")}>
                   <Text style={styles.footerLink}>PerfilUsuari</Text>
                 </Pressable>
               </Text>
@@ -210,7 +264,7 @@ const InicioSesion = (props) => {
       </ScrollView>
     </KeyboardAvoidingView>
   );
-}
+};
 
 const COLORS = {
   primary: "#2bee79",
@@ -223,38 +277,36 @@ const COLORS = {
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: COLORS.backgroundDark },
   scrollContainer: { flexGrow: 1 },
-  root: { flex: 1, alignItems: "center", justifyContent: "center", paddingVertical: 40 },
+  root: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 40,
+  },
 
-  blob: { position: "absolute", backgroundColor: "rgba(43,238,121,0.08)", borderRadius: 999 },
+  blob: {
+    position: "absolute",
+    backgroundColor: "rgba(43,238,121,0.08)",
+    borderRadius: 999,
+  },
   blobTopRight: { width: 400, height: 400, top: -100, right: -100 },
   blobBottomLeft: { width: 300, height: 300, bottom: -50, left: -100 },
 
   container: { width: "100%", maxWidth: 450, paddingHorizontal: 24 },
 
-  heroWrap: {
-    marginBottom: 20,
-    alignItems: "center",
-    width: "100%", 
-  },
+  heroWrap: { marginBottom: 20, alignItems: "center", width: "100%" },
   heroCard: {
-    width: "90%", 
+    width: "90%",
     aspectRatio: 16.4 / 12,
     borderRadius: 24,
-    backgroundColor: 'transparent',
+    backgroundColor: "transparent",
     shadowColor: COLORS.primary,
     shadowOpacity: 0.2,
     shadowRadius: 15,
     elevation: 10,
   },
-  heroImg: {
-    flex: 1,
-    width: "100%",
-    height: "100%",
-  },
-  heroImgRadius: {
-    borderRadius: 24,
-    resizeMode: "contain", 
-  },
+  heroImg: { flex: 1, width: "100%", height: "100%" },
+  heroImgRadius: { borderRadius: 24, resizeMode: "contain" },
 
   head: { marginBottom: 32, alignItems: "center" },
   title: { fontSize: 32, fontWeight: "700", color: "#fff", marginBottom: 8 },
@@ -291,7 +343,11 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 4 },
     elevation: 6,
   },
-  primaryBtnText: { color: COLORS.backgroundDark, fontSize: 18, fontWeight: "700" },
+  primaryBtnText: {
+    color: COLORS.backgroundDark,
+    fontSize: 18,
+    fontWeight: "700",
+  },
 
   secondaryBtn: {
     flexDirection: "row",

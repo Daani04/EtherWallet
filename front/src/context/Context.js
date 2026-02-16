@@ -10,6 +10,7 @@ export const Provider = ({ children }) => {
   const [user, setUser] = useState(null); 
   const [isLogged, setIsLogged] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [userId, setUserId] = useState(0);
 
   useEffect(() => {
     const checkSession = async () => {
@@ -58,7 +59,9 @@ export const Provider = ({ children }) => {
       isLogged, 
       isLoading, 
       loginUser, 
-      logoutUser 
+      logoutUser,
+      userId,
+      setUserId
     }}>
       {children}
     </Context.Provider>
