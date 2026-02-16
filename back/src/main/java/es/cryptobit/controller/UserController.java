@@ -80,14 +80,9 @@ public class UserController {
 
             System.out.println("Login correcto: " + loginUser.getEmail());
 
-            java.util.HashMap<String, Object> payload = new java.util.HashMap<>();
-            payload.put("message", "Login correcto");
-            payload.put("id", userDB.getId());
-            payload.put("email", userDB.getEmail());
-            payload.put("firstName", userDB.getFirstName());
-            payload.put("lastName", userDB.getLastName());
-
-            return ResponseEntity.ok("Login correcto");
+            //IMPORTANTE: Devolvemos userDB. Spring lo convertirá automáticamente a JSON
+            // con todos sus campos (email, walletAddress, etc.)
+            return ResponseEntity.ok(userDB);
 
         } catch (Exception e) {
             e.printStackTrace();
