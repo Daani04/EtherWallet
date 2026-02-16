@@ -8,6 +8,8 @@ import {
   ScrollView,
   Switch,
   SafeAreaView,
+  Modal,
+  Pressable,
 } from "react-native";
 import Icon from "react-native-vector-icons/MaterialIcons";
 import Nav from "../../components/Nav";
@@ -23,6 +25,17 @@ const COLORS = {
 
 export default function PerfilUsuario(props) {
   const [faceId, setFaceId] = useState(true);
+
+  const [isDarkMode, setIsDarkMode] = useState(true);
+  const [language, setLanguage] = useState("EN");
+  const [languageModalVisible, setLanguageModalVisible] = useState(false);
+
+  const LANGUAGES = ["ES", "EN", "CA"];
+
+  const [currency, setCurrency] = useState("USD"); 
+  const [currencyModalVisible, setCurrencyModalVisible] = useState(false);
+
+  const CURRENCIES = ["USD", "EUR", "GBP", "MXN"];
 
   return (
     <SafeAreaView style={styles.container}>
@@ -58,22 +71,33 @@ export default function PerfilUsuario(props) {
           <Item
             icon="person"
             label="Editar Perfil"
-            onPress={() => props.navigation.navigate("EditarPerfil", {
-              user: {
-                id: "698f3af76ed4f87933e2018d",
-                firstName: "Dani",
-                lastName: "Arastell",
-                birthDate: "13/01/2002",
-                userImage: "default-avatar.png",
-                email: "dani@gmail.com",
-                dni: "24508735Z",
-                password: "03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4",
-                favoriteId: "null",
-              },
-            })
+            onPress={() =>
+              props.navigation.navigate("EditarPerfil", {
+                user: {
+                  id: "698f3af76ed4f87933e2018d",
+                  firstName: "Dani",
+                  lastName: "Arastell",
+                  birthDate: "13/01/2002",
+                  userImage: "default-avatar.png",
+                  email: "dani@gmail.com",
+                  dni: "24508735Z",
+                  password:
+                    "03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4",
+                  favoriteId: "null",
+                },
+              })
             }
           />
-          <Item icon="badge" label="Verificación KYC" subLabel="Verificado nivel 2" />
+
+          {/* NUEVO: Theme (modo oscuro/claro) */}
+          <Item icon="dark-mode" label="Claro/Oscuro">
+            <Switch
+              value={isDarkMode}
+              onValueChange={setIsDarkMode}
+              trackColor={{ false: "#3e3e3e", true: COLORS.primary }}
+              thumbColor="#fff"
+            />
+          </Item>
         </Section>
 
         <Section title="Seguridad">
@@ -86,11 +110,23 @@ export default function PerfilUsuario(props) {
             />
           </Item>
           <Item icon="shield" label="Autenticación 2FA" rightText="Activado" />
+          <Item icon="badge" label="Verificación KYC" subLabel="Verificado nivel 2" />
         </Section>
 
         <Section title="Preferencias">
           <Item icon="notifications" label="Notificaciones" />
-          <Item icon="currency-exchange" label="Moneda Local" rightText="USD" />
+          <Item
+            icon="currency-exchange"
+            label="Moneda Local"
+            rightText={currency}
+            onPress={() => setCurrencyModalVisible(true)}
+          />
+          <Item
+            icon="language"
+            label="Idioma"
+            rightText={language}
+            onPress={() => setLanguageModalVisible(true)}
+          />
         </Section>
 
         <TouchableOpacity style={styles.logoutBtn}>
@@ -100,7 +136,80 @@ export default function PerfilUsuario(props) {
 
         <Text style={styles.version}>Versión 0.1.0</Text>
       </ScrollView>
+      <Modal
+        transparent
+        visible={languageModalVisible}
+        animationType="fade"
+        onRequestClose={() => setLanguageModalVisible(false)}
+      >
+        <Pressable
+          style={styles.modalOverlay}
+          onPress={() => setLanguageModalVisible(false)}
+        >
+          <View style={styles.modalContent}>
+            {LANGUAGES.map((lang) => (
+              <TouchableOpacity
+                key={lang}
+                style={styles.modalItem}
+                onPress={() => {
+                  setLanguage(lang);
+                  setLanguageModalVisible(false);
+                }}
+              >
+                <Text
+                  style={[
+                    styles.modalText,
+                    lang === language && { color: COLORS.primary },
+                  ]}
+                >
+                  {lang}
+                </Text>
+                {lang === language && (
+                  <Icon name="check" size={20} color={COLORS.primary} />
+                )}
+              </TouchableOpacity>
+            ))}
+          </View>
+        </Pressable>
+      </Modal>
 
+      <Modal
+        transparent
+        visible={currencyModalVisible}
+        animationType="fade"
+        onRequestClose={() => setCurrencyModalVisible(false)}
+      >
+        <Pressable
+          style={styles.modalOverlay}
+          onPress={() => setCurrencyModalVisible(false)}
+        >
+          <View style={styles.modalContent}>
+            {CURRENCIES.map((cur) => (
+              <TouchableOpacity
+                key={cur}
+                style={styles.modalItem}
+                onPress={() => {
+                  setCurrency(cur);
+                  setCurrencyModalVisible(false);
+                }}
+              >
+                <Text
+                  style={[
+                    styles.modalText,
+                    cur === currency && { color: COLORS.primary },
+                  ]}
+                >
+                  {cur}
+                </Text>
+
+                {cur === currency && (
+                  <Icon name="check" size={20} color={COLORS.primary} />
+                )}
+              </TouchableOpacity>
+            ))}
+          </View>
+        </Pressable>
+      </Modal>
       <Nav />
     </SafeAreaView>
   );
@@ -254,5 +363,32 @@ const styles = StyleSheet.create({
     textAlign: "center",
     fontSize: 12,
     color: COLORS.muted,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+
+  modalContent: {
+    backgroundColor: COLORS.white,
+    borderRadius: 16,
+    paddingVertical: 10,
+    width: 200,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+  },
+
+  modalItem: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    padding: 14,
+  },
+
+  modalText: {
+    color: COLORS.black,
+    fontSize: 16,
   },
 });
