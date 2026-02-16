@@ -38,11 +38,10 @@ const Billetera = (props) => {
 
   useEffect(() => {
     const fetchBalance = async () => {
-      console.log("Datos del usuario en Context:" + user + user.walletAddress);
+      console.log("Datos del usuario en Context:", user);
+
       if (user && user.walletAddress && user.email) {
         try {
-          // 2. En simulador iOS, 'localhost' funciona bien. 
-          // IMPORTANTE: Añadimos el ?email=${user.email} que pide tu Java
           const url = `http://localhost:8080/api/blockchain/balance/${user.walletAddress}?email=${user.email}`;
 
           console.log("Consultando saldo a:", url);
@@ -50,31 +49,31 @@ const Billetera = (props) => {
           const response = await fetch(url);
 
           if (!response.ok) {
-            // Si el backend da error, lo veremos en la consola
             const errorData = await response.text();
             throw new Error(`Error del servidor: ${errorData}`);
           }
 
           const data = await response.json();
-
-          // 4. Seteamos el saldo real (ej: 0.168)
           setEthBalance(data.toString());
         } catch (error) {
           console.error("Error al obtener saldo:", error);
-          setEthBalance("N/A"); // Para saber que falló la red
+          setEthBalance("N/A");
         } finally {
           setLoadingBalance(false);
         }
       } else {
         setLoadingBalance(false);
       }
+    };
+
+    if (isLogged) {
+      fetchBalance();
     } else {
       setLoadingBalance(false);
     }
-  };
 
-    if (isLogged) fetchBalance();
   }, [user, isLogged]);
+
 
   if (isLoading || loadingBalance) {
     return (
