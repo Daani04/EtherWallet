@@ -32,7 +32,7 @@ export default function MenuPrincipal({ navigation }) {
   const [search, setSearch] = useState("");
 
   const formatEUR = (n) => n.toFixed(2).replace(".", ",") + " €";
-  const sube = variacion24h >= 0;
+  
 
   return (
     <SafeAreaView style={styles.safeArea}>

@@ -36,29 +36,34 @@ const Billetera = (props) => {
     setLastUpdate(hh + ":" + mm);
   }, []);
 
-  useEffect(() => {
-    const fetchBalance = async () => {
-      if (user && user.walletAddress) {
-        try {
-          const response = await fetch(`http://localhost:8080/api/blockchain/balance/${user.walletAddress}`);
-          if (!response.ok) throw new Error("Error en respuesta");
-          
-          const data = await response.json();
-          setEthBalance(data.toString());
-        } catch (error) {
-          console.error("Error al obtener saldo:", error);
-          setEthBalance("N/A");
-        } finally {
-          setLoadingBalance(false);
-        }
-      } else {
+ useEffect(() => {
+  const fetchBalance = async () => {
+    if (user && user.walletAddress) {
+      try {
+        const response = await fetch(
+          `http://localhost:8080/api/blockchain/balance/${user.walletAddress}`
+        );
+
+        if (!response.ok) throw new Error("Error en respuesta");
+
+        const data = await response.json();
+        setEthBalance(data.toString());
+      } catch (error) {
+        console.error("Error al obtener saldo:", error);
+        setEthBalance("N/A");
+      } finally {
         setLoadingBalance(false);
       }
-    };
-  }, []);
+    } else {
+      setLoadingBalance(false);
+    }
+  };
 
-    if (isLogged) fetchBalance();
-  }, [user, isLogged]); 
+  if (isLogged) {
+    fetchBalance();
+  }
+
+}, [user, isLogged]);
 
   if (isLoading || loadingBalance) {
     return (
