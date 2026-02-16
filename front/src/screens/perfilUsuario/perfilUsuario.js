@@ -10,11 +10,8 @@ import {
   SafeAreaView,
   Modal,
   Pressable,
-  TextInput,
-  Alert,
 } from "react-native";
 import Icon from "react-native-vector-icons/MaterialIcons";
-import CryptoJS from "crypto-js";
 import Nav from "../../components/Nav";
 import Context from "../../context/Context";
 import common from "../../styles/common";
@@ -22,9 +19,14 @@ import theme from "../../styles/theme";
 
 const COLORS = theme.colors;
 
+// ✅ MISMO BACKEND PARA TODA LA APP
+const BASE_URL = "http://192.168.1.37:8080";
+
 export default function PerfilUsuario(props) {
-  const { userId } = useContext(Context);
-  const { logoutUser } = useContext(Context);
+  const { userId, logoutUser, user: userFromContext } = useContext(Context);
+  const user = userFromContext ?? props.route?.params?.user ?? null;
+
+  console.log("USERID CONTEXT:", userId);
 
   const [faceId, setFaceId] = useState(true);
   const [isDarkMode, setIsDarkMode] = useState(true);
@@ -37,15 +39,18 @@ export default function PerfilUsuario(props) {
   const [currencyModalVisible, setCurrencyModalVisible] = useState(false);
   const CURRENCIES = ["USD", "EUR", "GBP", "MXN"];
 
-  const BASE_URL = "http://10.10.5.215:8080";
-
   useEffect(() => {
     if (!userId) return;
 
     const loadSettings = async () => {
       try {
         const res = await fetch(`${BASE_URL}/API/Settings/${userId}`);
-        if (!res.ok) return;
+
+        if (!res.ok) {
+          const txt = await res.text();
+          console.log("GET SETTINGS ERROR", res.status, txt);
+          return;
+        }
 
         const data = await res.json();
 
@@ -54,7 +59,7 @@ export default function PerfilUsuario(props) {
         if (data.language) setLanguage(data.language);
         if (data.currency) setCurrency(data.currency);
       } catch (e) {
-        console.log("LOAD SETTINGS ERROR", e);
+        console.log("LOAD SETTINGS EXCEPTION", e);
       }
     };
 
@@ -82,8 +87,14 @@ export default function PerfilUsuario(props) {
 
       if (!res.ok) {
         const txt = await res.text();
-        console.log("SAVE SETTINGS ERROR", res.status, txt);
+        console.log("PUT SETTINGS ERROR", res.status, txt);
+        return;
       }
+
+      // (opcional) si quieres confirmar qué devuelve el back
+      // const saved = await res.json();
+      // console.log("PUT SETTINGS OK", saved);
+
     } catch (e) {
       console.log("SAVE SETTINGS EXCEPTION", e);
     }
@@ -92,7 +103,7 @@ export default function PerfilUsuario(props) {
   return (
     <SafeAreaView style={common.safe}>
       <View style={styles.header}>
-        <TouchableOpacity>
+        <TouchableOpacity onPress={() => props.navigation.goBack()}>
           <Icon name="arrow-back-ios-new" size={22} color={COLORS.textMain} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Configuración</Text>
@@ -103,14 +114,20 @@ export default function PerfilUsuario(props) {
         <View style={styles.profileContainer}>
           <View>
             <Image
-              source={{ uri: "https://randomuser.me/api/portraits/men/1.jpg" }}
+              source={{
+                uri:
+                  user?.userImageUrl ||
+                  "https://randomuser.me/api/portraits/men/1.jpg",
+              }}
               style={styles.avatar}
             />
             <View style={styles.editBadge}>
               <Icon name="edit" size={14} color="#000" />
             </View>
           </View>
+
           <Text style={styles.name}>{user?.firstName || "Usuario"}</Text>
+
           <View style={styles.walletRow}>
             <View style={styles.dot} />
             <Text style={styles.walletText}>
@@ -128,23 +145,23 @@ export default function PerfilUsuario(props) {
             label="Editar Perfil"
             onPress={() =>
               props.navigation.navigate("EditarPerfil", {
-                user: {
-                  id: "698f3af76ed4f87933e2018d",
-                  firstName: "Dani",
-                  lastName: "Arastell",
-                  birthDate: "13/01/2002",
-                  userImage: "default-avatar.png",
-                  email: "dani@gmail.com",
-                  dni: "24508735Z",
-                  password:
-                    "03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4",
-                  favoriteId: "null",
-                },
+                user:
+                  user ?? {
+                    id: "698f3af76ed4f87933e2018d",
+                    firstName: "Dani",
+                    lastName: "Arastell",
+                    birthDate: "13/01/2002",
+                    userImage: "default-avatar.png",
+                    email: "dani@gmail.com",
+                    dni: "24508735Z",
+                    password:
+                      "03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4",
+                    favoriteId: "null",
+                  },
               })
             }
           />
 
-          {/* Theme */}
           <Item icon="dark-mode" label="Claro/Oscuro">
             <Switch
               value={isDarkMode}
@@ -181,7 +198,6 @@ export default function PerfilUsuario(props) {
         <Section title="Preferencias">
           <Item icon="notifications" label="Notificaciones" />
 
-          {/* Moneda Local -> modal */}
           <Item
             icon="currency-exchange"
             label="Moneda Local"
@@ -189,7 +205,6 @@ export default function PerfilUsuario(props) {
             onPress={() => setCurrencyModalVisible(true)}
           />
 
-          {/* Idioma -> modal */}
           <Item
             icon="language"
             label="Idioma"
@@ -315,11 +330,7 @@ const Item = ({ icon, label, subLabel, rightText, children, onPress }) => (
 );
 
 const styles = StyleSheet.create({
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    padding: 16,
-  },
+  header: { flexDirection: "row", alignItems: "center", padding: 16 },
   headerTitle: {
     flex: 1,
     textAlign: "center",
@@ -327,10 +338,7 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     color: COLORS.textMain,
   },
-  profileContainer: {
-    alignItems: "center",
-    paddingVertical: 20,
-  },
+  profileContainer: { alignItems: "center", paddingVertical: 20 },
   avatar: {
     width: 90,
     height: 90,
@@ -368,10 +376,7 @@ const styles = StyleSheet.create({
     borderRadius: 4,
     marginRight: 6,
   },
-  walletText: {
-    color: COLORS.textMain,
-    fontSize: 12,
-  },
+  walletText: { color: COLORS.textMain, fontSize: 12 },
   sectionTitle: {
     fontSize: 12,
     color: COLORS.textMuted,
@@ -394,18 +399,10 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderColor: "rgba(255,255,255,0.05)",
   },
-  itemText: {
-    fontSize: 16,
-    color: COLORS.textMain,
-  },
-  subLabel: {
-    fontSize: 12,
-    color: COLORS.primary,
-  },
-  rightText: {
-    color: COLORS.textMuted,
-    marginRight: 4,
-  },
+  row: { flexDirection: "row", alignItems: "center" },
+  itemText: { fontSize: 16, color: COLORS.textMain },
+  subLabel: { fontSize: 12, color: COLORS.primary },
+  rightText: { color: COLORS.textMuted, marginRight: 4 },
   logoutBtn: {
     flexDirection: "row",
     justifyContent: "center",
@@ -414,18 +411,11 @@ const styles = StyleSheet.create({
     margin: 20,
     padding: 16,
     borderRadius: 16,
+    gap: 8,
   },
-  logoutText: {
-    color: COLORS.danger,
-    fontWeight: "600",
-  },
-  version: {
-    textAlign: "center",
-    fontSize: 12,
-    color: COLORS.textMuted,
-  },
+  logoutText: { color: COLORS.danger, fontWeight: "600" },
+  version: { textAlign: "center", fontSize: 12, color: COLORS.textMuted },
 
-  // Modal (reutilizado para idioma y divisa)
   modalOverlay: {
     flex: 1,
     backgroundColor: "rgba(0,0,0,0.5)",
@@ -433,12 +423,12 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   modalContent: {
-    backgroundColor: COLORS.card,
+    backgroundColor: COLORS.cardBg,
+    borderColor: COLORS.border,
     borderRadius: 16,
     paddingVertical: 10,
     width: 200,
     borderWidth: 1,
-    borderColor: COLORS.border,
   },
   modalItem: {
     flexDirection: "row",
@@ -446,8 +436,5 @@ const styles = StyleSheet.create({
     alignItems: "center",
     padding: 14,
   },
-  modalText: {
-    color: COLORS.white,
-    fontSize: 16,
-  },
+  modalText: { color: COLORS.textMain, fontSize: 16 },
 });

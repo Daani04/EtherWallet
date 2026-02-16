@@ -43,34 +43,30 @@ public class SettingsController {
     // http://localhost:8080/API/Settings/{userId}
     @GetMapping("/Settings/{userId}")
     public ResponseEntity<Object> getSettings(@PathVariable String userId) {
-        try {
-            Optional<Settings> settingsOpt = settingsRepository.findById(userId);
-            if (settingsOpt.isEmpty()) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Settings no encontrados");
-            }
-            return ResponseEntity.ok(settingsOpt.get());
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error al obtener settings");
-        }
+        return settingsRepository.findByUserId(userId)
+                .<ResponseEntity<Object>>map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).body("Settings no encontrados"));
     }
 
     @PutMapping("/EditSettings/{userId}")
-    public ResponseEntity<Object> editSettings(@PathVariable String userId, @RequestBody Settings updated) {
-        try {
-            Settings existing = settingsRepository.findById(userId)
-                    .orElse(new Settings(userId, "EN", true, "USD", false));
+    public ResponseEntity<?> editSettings(@PathVariable String userId,
+                                          @RequestBody Settings newSettings) {
 
-            existing.setLanguage(updated.getLanguage());
-            existing.setTheme(updated.getTheme());
-            existing.setCurrency(updated.getCurrency());
-            existing.setFaceId(updated.getFaceId());
+        Optional<Settings> existing = settingsRepository.findByUserId(userId);
 
-            settingsRepository.save(existing);
-            return ResponseEntity.ok(existing);
+        Settings settings = existing.orElseGet(() -> {
+            Settings s = new Settings();
+            s.setUserId(userId); // como @Id
+            return s;
+        });
 
-        } catch (Exception e) {
-            System.out.println("ERROR AL ACTUALIZAR SETTINGS: " + e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error al actualizar settings");
-        }
+        settings.setTheme(newSettings.getTheme());
+        settings.setLanguage(newSettings.getLanguage());
+        settings.setCurrency(newSettings.getCurrency());
+        settings.setFaceId(newSettings.getFaceId());
+
+        settingsRepository.save(settings);
+        return ResponseEntity.ok(settings);
     }
+
 }
