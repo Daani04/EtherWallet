@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import {
   View,
   Text,
@@ -11,6 +11,7 @@ import {
 } from "react-native";
 import Icon from "react-native-vector-icons/MaterialIcons";
 import Nav from "../../components/Nav";
+import Context from '../../context/Context';
 
 const COLORS = {
   primary: "#2bee79",
@@ -23,6 +24,7 @@ const COLORS = {
 
 export default function PerfilUsuario(props) {
   const [faceId, setFaceId] = useState(true);
+  const { logoutUser } = useContext(Context);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -93,7 +95,7 @@ export default function PerfilUsuario(props) {
           <Item icon="currency-exchange" label="Moneda Local" rightText="USD" />
         </Section>
 
-        <TouchableOpacity style={styles.logoutBtn}>
+        <TouchableOpacity style={styles.logoutBtn} onPress={logoutUser}>
           <Icon name="logout" size={20} color="#ff4444" />
           <Text style={styles.logoutText}>Cerrar Sesión</Text>
         </TouchableOpacity>
