@@ -10,7 +10,7 @@ import {
   SafeAreaView,
 } from "react-native";
 import Icon from "react-native-vector-icons/MaterialIcons";
-import Nav from "../../components/Nav"; 
+import Nav from "../../components/Nav";
 
 const COLORS = {
   primary: "#2bee79",
@@ -26,7 +26,6 @@ export default function PerfilUsuario(props) {
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* CABECERA */}
       <View style={styles.header}>
         <TouchableOpacity>
           <Icon name="arrow-back-ios-new" size={22} color={COLORS.white} />
@@ -36,7 +35,6 @@ export default function PerfilUsuario(props) {
       </View>
 
       <ScrollView contentContainerStyle={{ paddingBottom: 100 }}>
-        {/* PERFIL */}
         <View style={styles.profileContainer}>
           <View>
             <Image
@@ -55,9 +53,26 @@ export default function PerfilUsuario(props) {
           </View>
         </View>
 
-        {/* SECCIONES */}
         <Section title="Cuenta">
-          <Item icon="person" label="Editar Perfil" />
+          {/* POR TERMINAR UPDATE USUARIO */}
+          <Item
+            icon="person"
+            label="Editar Perfil"
+            onPress={() => props.navigation.navigate("EditarPerfil", {
+              user: {
+                id: "698f3af76ed4f87933e2018d",
+                firstName: "Dani",
+                lastName: "Arastell",
+                birthDate: "13/01/2002",
+                userImage: "default-avatar.png",
+                email: "dani@gmail.com",
+                dni: "24508735Z",
+                password: "03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4",
+                favoriteId: "null",
+              },
+            })
+            }
+          />
           <Item icon="badge" label="Verificación KYC" subLabel="Verificado nivel 2" />
         </Section>
 
@@ -78,13 +93,12 @@ export default function PerfilUsuario(props) {
           <Item icon="currency-exchange" label="Moneda Local" rightText="USD" />
         </Section>
 
-        {/* CERRAR SESIÓN */}
         <TouchableOpacity style={styles.logoutBtn}>
           <Icon name="logout" size={20} color="#ff4444" />
           <Text style={styles.logoutText}>Cerrar Sesión</Text>
         </TouchableOpacity>
 
-        <Text style={styles.version}>Versión 2.4.0 (Build 592)</Text>
+        <Text style={styles.version}>Versión 0.1.0</Text>
       </ScrollView>
 
       <Nav />
@@ -92,7 +106,6 @@ export default function PerfilUsuario(props) {
   );
 }
 
-/* ================= COMPONENTES INTERNOS ================= */
 
 const Section = ({ title, children }) => (
   <View style={styles.section}>
@@ -101,8 +114,8 @@ const Section = ({ title, children }) => (
   </View>
 );
 
-const Item = ({ icon, label, subLabel, rightText, children }) => (
-  <TouchableOpacity style={styles.item} disabled={!!children}>
+const Item = ({ icon, label, subLabel, rightText, children, onPress }) => (
+  <TouchableOpacity style={styles.item} disabled={!!children} onPress={onPress}>
     <View style={styles.row}>
       <Icon name={icon} size={22} color={COLORS.white} />
       <View style={{ marginLeft: 12 }}>
@@ -118,8 +131,6 @@ const Item = ({ icon, label, subLabel, rightText, children }) => (
     )}
   </TouchableOpacity>
 );
-
-/* ================= ESTILOS ================= */
 
 const styles = StyleSheet.create({
   container: {
