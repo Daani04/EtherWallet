@@ -31,6 +31,9 @@ const COLORS = {
 export default function MenuPrincipal({ navigation }) {
   const [search, setSearch] = useState("");
 
+  const formatEUR = (n) => n.toFixed(2).replace(".", ",") + " €";
+  
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>

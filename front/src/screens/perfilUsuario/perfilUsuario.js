@@ -10,19 +10,17 @@ import {
   SafeAreaView,
   Modal,
   Pressable,
+  TextInput,
+  Alert,
 } from "react-native";
 import Icon from "react-native-vector-icons/MaterialIcons";
+import CryptoJS from "crypto-js";
 import Nav from "../../components/Nav";
 import Context from "../../context/Context";
+import common from "../../styles/common";
+import theme from "../../styles/theme";
 
-const COLORS = {
-  primary: "#2bee79",
-  bg: "#0d1a12",
-  card: "rgba(255, 255, 255, 0.08)",
-  border: "rgba(255, 255, 255, 0.15)",
-  white: "#ffffff",
-  muted: "rgba(255, 255, 255, 0.6)",
-};
+const COLORS = theme.colors;
 
 export default function PerfilUsuario(props) {
   const { userId } = useContext(Context);
@@ -92,16 +90,16 @@ export default function PerfilUsuario(props) {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={common.safe}>
       <View style={styles.header}>
         <TouchableOpacity>
-          <Icon name="arrow-back-ios-new" size={22} color={COLORS.white} />
+          <Icon name="arrow-back-ios-new" size={22} color={COLORS.textMain} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Configuración</Text>
         <View style={{ width: 24 }} />
       </View>
 
-      <ScrollView contentContainerStyle={{ paddingBottom: 100 }}>
+      <ScrollView contentContainerStyle={{ paddingBottom: 120 }}>
         <View style={styles.profileContainer}>
           <View>
             <Image
@@ -112,16 +110,19 @@ export default function PerfilUsuario(props) {
               <Icon name="edit" size={14} color="#000" />
             </View>
           </View>
-          <Text style={styles.name}>Juan Pérez</Text>
+          <Text style={styles.name}>{user?.firstName || "Usuario"}</Text>
           <View style={styles.walletRow}>
             <View style={styles.dot} />
-            <Text style={styles.walletText}>0x71C...9A21</Text>
-            <Icon name="content-copy" size={14} color={COLORS.muted} />
+            <Text style={styles.walletText}>
+              {user?.walletAddress
+                ? user.walletAddress.substring(0, 6) + "..."
+                : "Sin dirección"}
+            </Text>
+            <Icon name="content-copy" size={14} color={COLORS.textMuted} />
           </View>
         </View>
 
         <Section title="Cuenta">
-          {/* POR TERMINAR UPDATE USUARIO */}
           <Item
             icon="person"
             label="Editar Perfil"
@@ -289,7 +290,7 @@ export default function PerfilUsuario(props) {
 }
 
 const Section = ({ title, children }) => (
-  <View style={styles.section}>
+  <View style={{ paddingHorizontal: 16, marginTop: 20 }}>
     <Text style={styles.sectionTitle}>{title}</Text>
     <View style={styles.cardBox}>{children}</View>
   </View>
@@ -298,7 +299,7 @@ const Section = ({ title, children }) => (
 const Item = ({ icon, label, subLabel, rightText, children, onPress }) => (
   <TouchableOpacity style={styles.item} disabled={!!children} onPress={onPress}>
     <View style={styles.row}>
-      <Icon name={icon} size={22} color={COLORS.white} />
+      <Icon name={icon} size={22} color={COLORS.textMain} />
       <View style={{ marginLeft: 12 }}>
         <Text style={styles.itemText}>{label}</Text>
         {subLabel && <Text style={styles.subLabel}>{subLabel}</Text>}
@@ -314,14 +315,6 @@ const Item = ({ icon, label, subLabel, rightText, children, onPress }) => (
 );
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: COLORS.bg,
-  },
-  row: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
   header: {
     flexDirection: "row",
     alignItems: "center",
@@ -332,7 +325,7 @@ const styles = StyleSheet.create({
     textAlign: "center",
     fontSize: 18,
     fontWeight: "700",
-    color: COLORS.white,
+    color: COLORS.textMain,
   },
   profileContainer: {
     alignItems: "center",
@@ -357,12 +350,12 @@ const styles = StyleSheet.create({
     fontSize: 22,
     fontWeight: "700",
     marginTop: 10,
-    color: COLORS.white,
+    color: COLORS.textMain,
   },
   walletRow: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "rgba(255,255,255,0.1)",
+    backgroundColor: COLORS.cardBg,
     paddingHorizontal: 12,
     paddingVertical: 5,
     borderRadius: 20,
@@ -376,23 +369,19 @@ const styles = StyleSheet.create({
     marginRight: 6,
   },
   walletText: {
-    color: COLORS.white,
+    color: COLORS.textMain,
     fontSize: 12,
-  },
-  section: {
-    paddingHorizontal: 16,
-    marginTop: 20,
   },
   sectionTitle: {
     fontSize: 12,
-    color: COLORS.muted,
+    color: COLORS.textMuted,
     marginBottom: 8,
     marginLeft: 4,
     textTransform: "uppercase",
   },
   cardBox: {
-    backgroundColor: COLORS.card,
-    borderRadius: 20,
+    backgroundColor: COLORS.cardBg,
+    borderRadius: theme.radius.lg,
     overflow: "hidden",
     borderWidth: 1,
     borderColor: COLORS.border,
@@ -407,34 +396,33 @@ const styles = StyleSheet.create({
   },
   itemText: {
     fontSize: 16,
-    color: COLORS.white,
+    color: COLORS.textMain,
   },
   subLabel: {
     fontSize: 12,
     color: COLORS.primary,
   },
   rightText: {
-    color: COLORS.muted,
+    color: COLORS.textMuted,
     marginRight: 4,
   },
   logoutBtn: {
     flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",
-    gap: 8,
-    backgroundColor: "rgba(255, 70, 70, 0.1)",
+    backgroundColor: COLORS.dangerSoft,
     margin: 20,
     padding: 16,
     borderRadius: 16,
   },
   logoutText: {
-    color: "#ff4444",
+    color: COLORS.danger,
     fontWeight: "600",
   },
   version: {
     textAlign: "center",
     fontSize: 12,
-    color: COLORS.muted,
+    color: COLORS.textMuted,
   },
 
   // Modal (reutilizado para idioma y divisa)

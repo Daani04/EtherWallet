@@ -68,7 +68,10 @@ const Billetera = (props) => {
       } else {
         setLoadingBalance(false);
       }
-    };
+    } else {
+      setLoadingBalance(false);
+    }
+  };
 
     if (isLogged) fetchBalance();
   }, [user, isLogged]);
@@ -200,6 +203,7 @@ const Billetera = (props) => {
       <Nav />
     </SafeAreaView>
   );
+
 };
 
 const styles = StyleSheet.create({
