@@ -182,6 +182,36 @@ export default function PerfilUsuario(props) {
     );
   };
 
+  const resolveAvatarUri = () => {
+    const raw =
+      shownUser?.userImageUrl ||
+      shownUser?.userImage ||
+      "";
+
+    if (!raw) return "https://randomuser.me/api/portraits/men/1.jpg";
+
+    const s = String(raw).trim();
+
+    // ya viene como url / data-uri / file / content
+    if (
+      s.startsWith("http://") ||
+      s.startsWith("https://") ||
+      s.startsWith("data:image/") ||
+      s.startsWith("file://") ||
+      s.startsWith("content://")
+    ) {
+      return s;
+    }
+
+    // si ya contiene "base64," pero sin data:image
+    if (s.includes("base64,")) {
+      return s.startsWith("data:") ? s : `data:image/jpeg;${s}`;
+    }
+
+    // si parece base64 "pelado"
+    return `data:image/jpeg;base64,${s}`;
+  };
+
   return (
     <SafeAreaView style={common.safe}>
       <View style={styles.header}>
@@ -198,12 +228,7 @@ export default function PerfilUsuario(props) {
         <View style={styles.profileContainer}>
           <View>
             <Image
-              source={{
-                uri:
-                  shownUser?.userImageUrl ||
-                  shownUser?.userImage ||
-                  "https://randomuser.me/api/portraits/men/1.jpg",
-              }}
+              source={{ uri: resolveAvatarUri() }}
               style={styles.avatar}
             />
             <View style={styles.editBadge}>
