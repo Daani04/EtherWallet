@@ -15,9 +15,9 @@ import {
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { MaterialIcons } from "@expo/vector-icons";
-import * as LocalAuthentication from 'expo-local-authentication';
-import { useTranslation } from 'react-i18next';
-import CryptoJS from 'crypto-js';
+import * as LocalAuthentication from "expo-local-authentication";
+import { useTranslation } from "react-i18next";
+import CryptoJS from "crypto-js";
 
 import common from "../../styles/common";
 import theme from "../../styles/theme";
@@ -27,12 +27,14 @@ const COLORS = theme?.colors || theme?.COLORS || theme;
 
 const { width } = Dimensions.get("window");
 
+const BASE_URL = "http://10.10.6.221:8080";
+
 const InicioSesion = (props) => {
   const [isBiometricSupported, setIsBiometricSupported] = useState(false);
   const { t } = useTranslation();
   const [showPassword, setShowPassword] = useState(false);
 
-  const { loginUser } = useContext(Context);
+  const { loginUser, setUserId } = useContext(Context);
 
   const [mail, setMail] = useState("");
   const [psw, setPsw] = useState("");
@@ -44,34 +46,60 @@ const InicioSesion = (props) => {
     })();
   }, []);
 
+  useEffect(() => {
+    const checkSession = async () => {
+      try {
+        const savedUser = await SecureStore.getItemAsync("user_session");
+        if (savedUser) {
+          const parsed = JSON.parse(savedUser);
+
+          setUser(parsed);
+          setIsLogged(true);
+
+          if (parsed?.userId) setUserId(parsed.userId);
+          else if (parsed?.id) setUserId(parsed.id);
+        }
+      } catch (error) {
+        console.error("Error recuperando sesión:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    checkSession();
+  }, []);
+
   const handleBiometricAuth = async () => {
     try {
       const hasHardware = await LocalAuthentication.hasHardwareAsync();
-      const supportedTypes = await LocalAuthentication.supportedAuthenticationTypesAsync();
+      const supportedTypes =
+        await LocalAuthentication.supportedAuthenticationTypesAsync();
       const isEnrolled = await LocalAuthentication.isEnrolledAsync();
 
       console.log({ hasHardware, isEnrolled, supportedTypes });
 
       if (!hasHardware) {
-        return Alert.alert('Error', 'Este dispositivo no soporta biometría.');
+        return Alert.alert("Error", "Este dispositivo no soporta biometría.");
       }
 
       if (!isEnrolled) {
-        return Alert.alert('Error', 'No tienes un rostro registrado en este iPhone.');
+        return Alert.alert("Error", "No tienes un rostro registrado en este iPhone.");
       }
 
       const result = await LocalAuthentication.authenticateAsync({
-        promptMessage: 'Autentícate con Face ID',
-        fallbackLabel: 'Introducir código',
+        promptMessage: "Autentícate con Face ID",
+        fallbackLabel: "Introducir código",
       });
 
       if (result.success) {
-        Alert.alert('Éxito', 'Bienvenido');
+        Alert.alert("Éxito", "Bienvenido");
       } else {
-        Alert.alert('No autenticado', result.error ? `Motivo: ${result.error}` : 'Cancelado');
+        Alert.alert(
+          "No autenticado",
+          result.error ? `Motivo: ${result.error}` : "Cancelado"
+        );
       }
     } catch (error) {
-      Alert.alert('Error crítico', error.message);
+      Alert.alert("Error crítico", error.message);
     }
   };
 
@@ -87,26 +115,57 @@ const InicioSesion = (props) => {
     console.log("HASHED", hashedPassword);
 
     try {
-      const response = await fetch("http://10.10.5.215:8080/API/Login", {
+      // 1) LOGIN
+      const response = await fetch(`${BASE_URL}/API/Login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: mail, password: hashedPassword }),
       });
 
       const text = await response.text();
-      console.log("RESP", response.status, text);
+      console.log("LOGIN RESP", response.status, text);
 
-      Alert.alert(response.ok ? "Éxito" : "Error", text);
-
-      if (response.ok) {
-        await loginUser({ email: mail });
-        props.navigation.navigate('HomeNav');
+      if (!response.ok) {
+        Alert.alert("Error", text);
+        return;
       }
+
+      // 2) SOLO SI LOGIN OK -> pedir ID por email
+      const idRes = await fetch(
+        `${BASE_URL}/API/UserIdByEmail?email=${encodeURIComponent(mail)}`,
+        { method: "GET" }
+      );
+
+      const idText = await idRes.text();
+      console.log("ID RESP", idRes.status, idText);
+
+      if (!idRes.ok) {
+        Alert.alert("Error", "Login OK, pero no se pudo obtener el ID.");
+        return;
+      }
+
+      const idData = JSON.parse(idText);
+      const fetchedId = idData?.id;
+
+      console.log("FETCHED USER ID:", fetchedId);
+
+      if (!fetchedId) {
+        Alert.alert("Error", "Login OK, pero la respuesta no trae un ID válido.");
+        return;
+      }
+
+      // 3) GUARDAR EN CONTEXT (state) + sesión
+      setUserId(fetchedId);
+      await loginUser({ email: mail, userId: fetchedId });
+
+      // 4) navegar
+      props.navigation.navigate("HomeNav");
     } catch (error) {
       console.log("FETCH ERROR", error);
       Alert.alert("Error", "Error de conexión. Inténtalo más tarde.");
     }
   };
+
 
   return (
     <KeyboardAvoidingView
@@ -144,7 +203,7 @@ const InicioSesion = (props) => {
                 <MaterialIcons
                   name="mail-outline"
                   size={20}
-                  color={COLORS?.textMuted || "#9db9a8"}
+                  color="#9db9a8"
                   style={styles.inputIcon}
                 />
                 <TextInput
@@ -161,7 +220,7 @@ const InicioSesion = (props) => {
                 <MaterialIcons
                   name="lock-outline"
                   size={20}
-                  color={COLORS?.textMuted || "#9db9a8"}
+                  color="#9db9a8"
                   style={styles.inputIcon}
                 />
                 <TextInput
@@ -185,10 +244,16 @@ const InicioSesion = (props) => {
               </View>
 
               <TouchableOpacity style={styles.forgotPassRow}>
-                <Text style={styles.forgotPassText}>¿Olvidaste tu contraseña?</Text>
+                <Text style={styles.forgotPassText}>
+                  ¿Olvidaste tu contraseña?
+                </Text>
               </TouchableOpacity>
 
-              <TouchableOpacity style={styles.primaryBtn} activeOpacity={0.8} onPress={handleLogin}>
+              <TouchableOpacity
+                style={styles.primaryBtn}
+                activeOpacity={0.8}
+                onPress={handleLogin}
+              >
                 <Text style={styles.primaryBtnText}>Iniciar Sesión</Text>
               </TouchableOpacity>
 
@@ -204,9 +269,10 @@ const InicioSesion = (props) => {
 
             <View style={styles.footer}>
               <Text style={styles.footerText}>
-                {t('NoAccount.Question')}
-                {" "}
-                <Pressable onPress={() => props.navigation.navigate('RegistroUsuario')}>
+                {t("NoAccount.Question")}{" "}
+                <Pressable
+                  onPress={() => props.navigation.navigate("RegistroUsuario")}
+                >
                   <Text style={styles.footerLink}>Regístrate</Text>
                 </Pressable>
               </Text>
@@ -216,7 +282,7 @@ const InicioSesion = (props) => {
       </ScrollView>
     </KeyboardAvoidingView>
   );
-}
+};
 
 const styles = StyleSheet.create({
   // ✅ fallback solo si common.safe no existe
@@ -239,15 +305,13 @@ const styles = StyleSheet.create({
     aspectRatio: 16.4 / 12,
     borderRadius: 24,
     backgroundColor: "transparent",
-    shadowColor: COLORS?.primary || "#2bee79",
+    shadowColor: COLORS.primary,
     shadowOpacity: 0.2,
     shadowRadius: 15,
     elevation: 10,
     overflow: "hidden",
   },
   heroImg: { flex: 1, width: "100%", height: "100%" },
-
-  heroGradient: { position: "absolute", left: 0, right: 0, top: 0, bottom: 0 },
 
   head: { marginBottom: 32, alignItems: "center" },
   title: { fontSize: 32, fontWeight: "700", color: COLORS?.textMain || "#fff", marginBottom: 8 },

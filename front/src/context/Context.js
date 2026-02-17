@@ -7,7 +7,7 @@ export const Provider = ({ children }) => {
   const [data, setData] = useState([]);
 
   //Context para guardar sesion
-  const [user, setUser] = useState(null); 
+  const [user, setUser] = useState(null);
   const [isLogged, setIsLogged] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [userId, setUserId] = useState(0);
@@ -17,8 +17,15 @@ export const Provider = ({ children }) => {
       try {
         const savedUser = await SecureStore.getItemAsync('user_session');
         if (savedUser) {
-          setUser(JSON.parse(savedUser));
+          const parsed = JSON.parse(savedUser);
+          setUser(parsed);
           setIsLogged(true);
+
+          if (parsed?.userId) {
+            setUserId(parsed.userId);
+          } else if (parsed?.id) {
+            setUserId(parsed.id);
+          }
         }
       } catch (error) {
         console.error("Error recuperando sesión:", error);
@@ -52,13 +59,13 @@ export const Provider = ({ children }) => {
   };
 
   return (
-    <Context.Provider value={{ 
-      data, 
-      setData, 
-      user, 
-      isLogged, 
-      isLoading, 
-      loginUser, 
+    <Context.Provider value={{
+      data,
+      setData,
+      user,
+      isLogged,
+      isLoading,
+      loginUser,
       logoutUser,
       userId,
       setUserId
