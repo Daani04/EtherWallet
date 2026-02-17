@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useContext } from "react";
-import { View, Text, StyleSheet, ScrollView, Pressable, Dimensions, Platform, SafeAreaView, ActivityIndicator, Alert } from "react-native";
+import { View, Text, StyleSheet, ScrollView, Pressable, Dimensions, Platform, SafeAreaView, ActivityIndicator } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import Nav from "../../components/Nav";
@@ -17,60 +17,48 @@ const Billetera = (props) => {
 
   const { user, isLogged, isLoading } = useContext(Context);
 
-  const [ethBalance, setEthBalance] = useState("0.00");
+  // ESTADO PARA LA RESPUESTA DEL BACKEND
+  const [portfolio, setPortfolio] = useState({
+    totalBalanceEur: 0,
+    assets: []
+  });
   const [loadingBalance, setLoadingBalance] = useState(true);
 
   useEffect(() => {
     const sub = Dimensions.addEventListener("change", ({ window }) => {
       setScreenW(window.width);
     });
-    return () => {
-      if (sub && sub.remove) sub.remove();
-    };
+    return () => { if (sub && sub.remove) sub.remove(); };
   }, []);
 
   useEffect(() => {
     const d = new Date();
-    const hh = String(d.getHours()).padStart(2, "0");
-    const mm = String(d.getMinutes()).padStart(2, "0");
-    setLastUpdate(hh + ":" + mm);
+    setLastUpdate(String(d.getHours()).padStart(2, "0") + ":" + String(d.getMinutes()).padStart(2, "0"));
   }, []);
 
   useEffect(() => {
-    const fetchBalance = async () => {
-      console.log("Datos del usuario en Context:" + user + user.walletAddress);
-      if (user && user.walletAddress && user.email) {
+    const fetchPortfolio = async () => {
+      if (user && user.walletAddress) {
         try {
-          // 2. En simulador iOS, 'localhost' funciona bien. 
-          // IMPORTANTE: Añadimos el ?email=${user.email} que pide tu Java
-          const url = `http://localhost:8080/api/blockchain/balance/${user.walletAddress}?email=${user.email}`;
-
-          console.log("Consultando saldo a:", url);
-
+          // URL actualizada al nuevo endpoint de Portfolio
+          const url = `http://10.10.6.45:8080/api/blockchain/portfolio/${user.walletAddress}`;
+          
+          console.log("Consultando Portfolio real a:", url);
           const response = await fetch(url);
 
-          if (!response.ok) {
-            // Si el backend da error, lo veremos en la consola
-            const errorData = await response.text();
-            throw new Error(`Error del servidor: ${errorData}`);
-          }
+          if (!response.ok) throw new Error("Error en la respuesta del servidor");
 
           const data = await response.json();
-
-          // 4. Seteamos el saldo real (ej: 0.168)
-          setEthBalance(data.toString());
+          setPortfolio(data); // Guardamos el objeto completo (total + lista assets)
         } catch (error) {
-          console.error("Error al obtener saldo:", error);
-          setEthBalance("N/A"); // Para saber que falló la red
+          console.error("Error al obtener portfolio:", error);
         } finally {
           setLoadingBalance(false);
         }
-      } else {
-        setLoadingBalance(false);
       }
     };
 
-    if (isLogged) fetchBalance();
+    if (isLogged) fetchPortfolio();
   }, [user, isLogged]);
 
   if (isLoading || loadingBalance) {
@@ -81,117 +69,70 @@ const Billetera = (props) => {
     );
   }
 
-  let isWeb = Platform.OS === "web";
-  let isPC = isWeb && screenW >= 900;
-
-  const totalBalance = 2450.35;
-  const variation24h = 3.42;
-
-  const assets = [
-    { symbol: "ETH", name: "Ethereum (Real)", amount: ethBalance, valueEUR: "Consultando...", change24h: 0.0 },
-    { symbol: "BTC", name: "Bitcoin", amount: 0.0324, valueEUR: 1336.5, change24h: 2.1 },
-    { symbol: "SOL", name: "Solana", amount: 18.2, valueEUR: 178.9, change24h: 5.7 },
-  ];
-
-  const movements = [
-    { type: "receive", title: "Recibido", subtitle: "0.0100 BTC", date: "Hoy", value: "+412.50 €", status: "Confirmado" },
-    { type: "send", title: "Enviado", subtitle: "0.20 ETH", date: "Ayer", value: "-448.00 €", status: "Confirmado" },
-  ];
-
-  const formatEUR = (num) => {
-    if (isNaN(num)) return "0,00 €";
-    return Number(num).toFixed(2).replace(".", ",") + " €";
-  };
-
-  const trend = (variation24h >= 0) ? {
-    colour: COLORS.primaryDark,
-    bg: "rgba(43,238,121,0.10)",
-    icon: "trending-up"
-  } : {
-    colour: COLORS.danger,
-    bg: "rgba(255,92,92,0.10)",
-    icon: "trending-down"
-  };
-
   return (
     <SafeAreaView style={common.safe || styles.safe}>
       <View style={[styles.blob, styles.blobTop]} />
 
-      <ScrollView
-        style={{ flex: 1 }}
-        contentContainerStyle={styles.scrollContainer}
-        showsVerticalScrollIndicator={false}
-      >
-        {/* CABECERA Y BIENVENIDA */}
+      <ScrollView style={{ flex: 1 }} contentContainerStyle={styles.scrollContainer} showsVerticalScrollIndicator={false}>
+        
+        {/* CABECERA */}
         <View style={styles.topRow}>
           <View>
             <Text style={styles.welcome}>Hola, {user?.firstName || 'Usuario'}</Text>
-            <Text style={styles.miniInfo}>Última actualización: {hideBalance ? "••:••" : lastUpdate}</Text>
+            <Text style={styles.miniInfo}>Actualizado: {hideBalance ? "••:••" : lastUpdate}</Text>
           </View>
-
           <Pressable onPress={() => setHideBalance(!hideBalance)} style={styles.iconBtn}>
             <MaterialIcons name={hideBalance ? "visibility-off" : "visibility"} size={22} color={COLORS.textMuted} />
           </Pressable>
         </View>
 
-        {/* TARJETA DE SALDO BLOCKCHAIN REAL */}
+        {/* TARJETA DE SALDO TOTAL (EUROS) */}
         <View style={styles.balanceCardMain}>
           <LinearGradient colors={[COLORS.primarySoft, "transparent"]} style={styles.balanceGlow} />
-          <Text style={styles.balanceLabel}>Saldo en Ethereum (Red Sepolia)</Text>
+          <Text style={styles.balanceLabel}>Balance Total Estimado</Text>
           <View style={styles.balanceRowTop}>
             <Text style={styles.balanceValue}>
-              {hideBalance ? "••••" : `${ethBalance} ETH`}
+              {hideBalance ? "•••• €" : `${portfolio.totalBalanceEur.toFixed(2)} €`}
             </Text>
-            <View style={[styles.pill, { backgroundColor: trend.bg, borderColor: 'transparent' }]}>
-              <MaterialIcons name={trend.icon} size={16} color={trend.colour} />
-              <Text style={[styles.pillText, { color: trend.colour }]}>
-                {hideBalance ? "••%" : `${variation24h}%`}
-              </Text>
-            </View>
           </View>
           <Text style={styles.addressSub}>
-            {user?.walletAddress
-              ? `${user.walletAddress.substring(0, 8)}...${user.walletAddress.substring(36)}`
-              : "Generando dirección..."}
+            {user?.walletAddress ? `${user.walletAddress.substring(0, 12)}...` : "Sin dirección"}
           </Text>
         </View>
 
-        {/* SECCIÓN DE ACTIVOS */}
+        {/* SECCIÓN DE ACTIVOS REALES (Solo los que devuelve el back) */}
         <View style={styles.card}>
-          <Text style={styles.sectionTitle}>Tus Activos</Text>
-          {assets.map((a, index) => (
-            <View key={a.symbol} style={styles.assetRow}>
-              <View style={styles.assetLeft}>
-                <View style={styles.coinBadge}><Text style={styles.coinBadgeText}>{a.symbol}</Text></View>
-                <View>
-                  <Text style={styles.assetName}>{a.name}</Text>
-                  <Text style={styles.assetSub}>{hideBalance ? "•••" : `${a.amount} ${a.symbol}`}</Text>
-                </View>
-              </View>
-              {index !== assets.length - 1 && <View style={styles.divider} />}
-            </View>
-          ))}
-        </View>
-
-        {/* SECCIÓN DE MOVIMIENTOS */}
-        <View style={styles.card}>
-          <Text style={styles.sectionTitle}>Movimientos recientes</Text>
-          {movements.map((m, index) => (
-            <View key={index} style={styles.movRow}>
-              <View style={styles.movLeft}>
-                <View style={styles.movIconWrap}>
-                  <MaterialIcons name={m.type === "receive" ? "south-west" : "north-east"} size={20} color={COLORS.primary} />
-                </View>
-                <View style={{ flex: 1 }}>
-                  <View style={styles.movHeaderRow}>
-                    <Text style={styles.movTitle}>{m.title}</Text>
-                    <Text style={styles.movValueInline}>{hideBalance ? "••••" : m.value}</Text>
+          <Text style={styles.sectionTitle}>Tus Activos en Cartera</Text>
+          {portfolio.assets.length > 0 ? (
+            portfolio.assets.map((asset, index) => (
+              <View key={asset.symbol}>
+                <View style={styles.assetRow}>
+                  <View style={styles.assetLeft}>
+                    <View style={styles.coinBadge}>
+                      <Text style={styles.coinBadgeText}>{asset.symbol.substring(0, 3)}</Text>
+                    </View>
+                    <View style={{ flex: 1 }}>
+                      <Text style={styles.assetName}>{asset.name}</Text>
+                      <Text style={styles.assetSub}>
+                        {hideBalance ? "•••" : `${asset.cryptoAmount} ${asset.symbol}`}
+                      </Text>
+                    </View>
+                    <View style={{ alignItems: 'flex-end' }}>
+                      <Text style={styles.assetValueEur}>
+                        {hideBalance ? "•••" : `${asset.valueEur.toFixed(2)} €`}
+                      </Text>
+                      <Text style={[styles.assetChange, { color: asset.change24h.includes('-') ? '#ff5c5c' : '#2bee79' }]}>
+                        {asset.change24h}
+                      </Text>
+                    </View>
                   </View>
-                  <Text style={styles.movSub}>{m.subtitle} · {m.date}</Text>
                 </View>
+                {index !== portfolio.assets.length - 1 && <View style={styles.divider} />}
               </View>
-            </View>
-          ))}
+            ))
+          ) : (
+            <Text style={styles.noAssets}>No se encontraron activos con saldo.</Text>
+          )}
         </View>
 
         <View style={{ height: 100 }} />
@@ -203,48 +144,33 @@ const Billetera = (props) => {
 };
 
 const styles = StyleSheet.create({
+  // ... (Mantenemos la mayoría de tus estilos, pero añadimos/ajustamos algunos)
   safe: { flex: 1, backgroundColor: "#102217" },
   scrollContainer: { padding: 20 },
   loaderContainer: { flex: 1, backgroundColor: '#102217', justifyContent: 'center', alignItems: 'center' },
-
   blob: { position: "absolute", width: 500, height: 500, backgroundColor: "rgba(43,238,121,0.05)", borderRadius: 999, top: -200, right: -200 },
-
   topRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 20 },
   welcome: { color: "#fff", fontSize: 26, fontWeight: "800" },
   miniInfo: { color: COLORS.textMuted, fontSize: 12, marginTop: 4 },
-
   iconBtn: { width: 44, height: 44, borderRadius: 22, backgroundColor: "#1c2720", alignItems: "center", justifyContent: "center", borderWidth: 1, borderColor: "#3b5445" },
-
   balanceCardMain: { backgroundColor: "#1c2720", borderRadius: 24, padding: 24, borderWidth: 1, borderColor: "#3b5445", marginBottom: 24, overflow: "hidden" },
   balanceGlow: { position: "absolute", top: 0, height: 100, left: 0, right: 0 },
   balanceLabel: { color: "#9db9a8", fontSize: 13, textTransform: "uppercase", letterSpacing: 1 },
   balanceRowTop: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginTop: 10 },
   balanceValue: { color: "#fff", fontSize: 32, fontWeight: "900" },
-
-  pill: { flexDirection: "row", alignItems: "center", paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20 },
-  pillText: { fontSize: 14, fontWeight: "bold", marginLeft: 4 },
-
-  addressSub: { color: "rgba(157,185,168,0.4)", fontSize: 11, marginTop: 15, fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace' },
-
+  addressSub: { color: "rgba(157,185,168,0.4)", fontSize: 11, marginTop: 15 },
   card: { backgroundColor: "#1c2720", borderRadius: 20, padding: 20, marginBottom: 20, borderWidth: 1, borderColor: "#3b5445" },
   sectionTitle: { color: "#fff", fontSize: 18, fontWeight: "700", marginBottom: 15 },
-
   assetRow: { paddingVertical: 12 },
-  assetLeft: { flexDirection: "row", alignItems: "center" },
+  assetLeft: { flexDirection: "row", alignItems: "center", flex: 1 },
   coinBadge: { width: 40, height: 40, borderRadius: 12, backgroundColor: "rgba(43,238,121,0.1)", alignItems: "center", justifyContent: "center", marginRight: 15 },
-  coinBadgeText: { color: "#2bee79", fontWeight: "bold" },
+  coinBadgeText: { color: "#2bee79", fontWeight: "bold", fontSize: 10 },
   assetName: { color: "#fff", fontWeight: "600" },
   assetSub: { color: "#9db9a8", fontSize: 13 },
-
-  divider: { height: 1, backgroundColor: "#3b5445", marginTop: 12 },
-
-  movRow: { marginBottom: 15 },
-  movLeft: { flexDirection: "row", alignItems: "center" },
-  movIconWrap: { width: 36, height: 36, borderRadius: 10, backgroundColor: "rgba(43,238,121,0.1)", alignItems: "center", justifyContent: "center", marginRight: 12 },
-  movHeaderRow: { flexDirection: "row", justifyContent: "space-between", flex: 1 },
-  movTitle: { color: "#fff", fontWeight: "600" },
-  movValueInline: { color: "#fff", fontWeight: "bold" },
-  movSub: { color: "#9db9a8", fontSize: 12, marginTop: 2 }
+  assetValueEur: { color: "#fff", fontWeight: "700", fontSize: 15 },
+  assetChange: { fontSize: 12, marginTop: 2 },
+  divider: { height: 1, backgroundColor: "#3b5445" },
+  noAssets: { color: "#9db9a8", textAlign: 'center', marginVertical: 20 }
 });
 
 export default Billetera;

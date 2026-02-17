@@ -1,9 +1,9 @@
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 
-import es from './es/es.json';
-import ca from './ca/ca.json';
-import en from './en/en.json';
+import es from './ES/ES.json';
+import ca from './CA/CA.json';
+import en from './EN/EN.json';
 
 const resources = {
     es: { translation: es },
