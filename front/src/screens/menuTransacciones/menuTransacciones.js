@@ -11,16 +11,21 @@ import {
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 
+import common from "../../styles/common";
+import theme from "../../styles/theme";
+
 const BREAKPOINT_MD = 768;
 const BREAKPOINT_LG = 1100;
 
+const THEME = theme?.colors || theme?.COLORS || theme || {};
 const COLORS = {
-  primary: "#2bee79",
-  backgroundDark: "#102217",
-  inputBg: "#1c2720",
-  border: "#3b5445",
-  textMuted: "#9db9a8",
-  textMutedSoft: "rgba(255,255,255,0.6)",
+  primary: THEME.primary || "#2bee79",
+  backgroundDark: THEME.bg || THEME.backgroundDark || "#102217",
+  inputBg: THEME.cardBg || THEME.inputBg || "#1c2720",
+  border: THEME.border || "#3b5445",
+  textMuted: THEME.textMuted || "#9db9a8",
+  textMutedSoft: THEME.textSoft || "rgba(255,255,255,0.6)",
+  danger: THEME.danger || "#ff5a7a",
 };
 
 export default function MenuTransacciones({ navigation }) {
@@ -188,7 +193,7 @@ export default function MenuTransacciones({ navigation }) {
   };
 
   const getMovTitleStyle = () => {
-    const arr = [styles.sectionTitle];
+    const arr = [common.sectionTitle || styles.sectionTitle];
     if (isDesktop) arr.push({ marginTop: 18 });
     return arr;
   };
@@ -276,7 +281,7 @@ export default function MenuTransacciones({ navigation }) {
               <Text style={styles.initialsText}>{r.initials}</Text>
             </View>
 
-            <TouchableOpacity onPress={() => { }} activeOpacity={0.7} style={styles.favBtn}>
+            <TouchableOpacity onPress={() => {}} activeOpacity={0.7} style={styles.favBtn}>
               <MaterialIcons
                 name={getFavIconName(r.favorite)}
                 size={18}
@@ -315,7 +320,7 @@ export default function MenuTransacciones({ navigation }) {
   };
 
   return (
-    <View style={styles.safe}>
+    <View style={[common.safe, styles.safe]}>
       <View style={getHeaderStyle()}>
         <TouchableOpacity onPress={goBack} style={styles.iconBtn} activeOpacity={0.8}>
           <MaterialIcons name="arrow-back" size={22} color="#fff" />
@@ -348,12 +353,12 @@ export default function MenuTransacciones({ navigation }) {
 
           <View style={getLayoutStyle()}>
             <View style={getLeftColStyle()}>
-              <Text style={styles.sectionTitle}>Acciones rápidas</Text>
+              <Text style={common.sectionTitle || styles.sectionTitle}>Acciones rápidas</Text>
 
               <View style={styles.actionsGrid}>{renderQuickActions()}</View>
 
               <View style={styles.sectionRow}>
-                <Text style={styles.sectionTitle}>Últimos destinatarios</Text>
+                <Text style={common.sectionTitle || styles.sectionTitle}>Últimos destinatarios</Text>
                 <TouchableOpacity onPress={() => goToScreen("Destinatarios")} activeOpacity={0.8}>
                   <Text style={styles.link}>Ver todos</Text>
                 </TouchableOpacity>
@@ -526,7 +531,7 @@ const styles = StyleSheet.create({
   txTitle: { fontSize: 15, fontWeight: "900", color: "#fff" },
   txSubtitle: { marginTop: 2, fontSize: 13, color: COLORS.textMutedSoft },
   txAmount: { fontSize: 14, fontWeight: "900" },
-  negative: { color: "#ff5a7a" },
+  negative: { color: COLORS.danger },
   positive: { color: COLORS.primary },
 
   primaryBtn: {
