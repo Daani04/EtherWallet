@@ -1,28 +1,17 @@
 package es.cryptobit.service;
 
-import es.cryptobit.model.TransactionRecord;
-import es.cryptobit.repository.BlockchainRecordRepository;
-import es.cryptobit.repository.BlockchainRepository;
+import es.cryptobit.model.PortfolioResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.web3j.abi.FunctionEncoder;
-import org.web3j.abi.FunctionReturnDecoder;
-import org.web3j.abi.TypeReference;
-import org.web3j.abi.datatypes.Address;
-import org.web3j.abi.datatypes.Function;
-import org.web3j.abi.datatypes.Type;
-import org.web3j.abi.datatypes.generated.Uint256;
+import org.springframework.web.client.RestTemplate;
 import org.web3j.protocol.Web3j;
 import org.web3j.protocol.core.DefaultBlockParameterName;
-import org.web3j.protocol.core.methods.request.Transaction;
-import org.web3j.protocol.core.methods.response.EthBlockNumber;
 import org.web3j.utils.Convert;
 
 import java.math.BigDecimal;
-import java.math.BigInteger;
-import java.util.Arrays;
-import java.util.Collections;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class BlockchainService {
@@ -30,78 +19,56 @@ public class BlockchainService {
     @Autowired
     private Web3j web3j;
 
-    @Autowired
-    private BlockchainRepository repository;
-    @Autowired
-    private BlockchainRecordRepository blockchainRecordRepository;
+    private final RestTemplate restTemplate = new RestTemplate();
 
-    // Obtiene el número del último bloque (Util para verificar conexión)
-    public String getLatestBlockNumber() throws Exception {
-        EthBlockNumber blockNumber = web3j.ethBlockNumber().send();
-        return blockNumber.getBlockNumber().toString();
-    }
+    public PortfolioResponse getCompletePortfolio(String address) throws Exception {
+        // 1. Consultar saldo real de ETH
+        var ethBalanceWei = web3j.ethGetBalance(address, DefaultBlockParameterName.LATEST).send().getBalance();
+        Double ethAmount = Convert.fromWei(ethBalanceWei.toString(), Convert.Unit.ETHER).doubleValue();
 
+        // 2. Consultar precios en CoinGecko
+        String url = "https://api.coingecko.com/api/v3/simple/price?ids=ethereum,bitcoin,solana&vs_currencies=eur&include_24hr_change=true";
 
-    public BigDecimal getEthBalance(String walletAddress, String userEmail) throws Exception {
-        System.out.println("--- NUEVA CONSULTA DE SALDO ---");
-        System.out.println("Usuario: " + userEmail);
-        System.out.println("Dirección: " + walletAddress);
-
-        var ethGetBalance = web3j.ethGetBalance(walletAddress, DefaultBlockParameterName.LATEST).send();
-
-        // Aquí obtenemos el valor bruto (en Wei)
-        BigInteger balanceInWei = ethGetBalance.getBalance();
-        System.out.println("Saldo bruto en Wei: " + balanceInWei);
-
-        // Convertimos a Ether
-        BigDecimal balance = Convert.fromWei(balanceInWei.toString(), Convert.Unit.ETHER);
-        System.out.println("Saldo convertido a ETH: " + balance);
-
-        // GUARDAR REGISTRO EN MONGO
-        TransactionRecord record = new TransactionRecord(
-                userEmail,
-                "ETH_BALANCE_CHECK",
-                walletAddress,
-                balance.toString()
-        );
-        blockchainRecordRepository.save(record);
-        System.out.println("Registro guardado en MongoDB con éxito.");
-        System.out.println("-------------------------------");
-
-        return balance;
-    }
-
-    /**
-     * Obtiene el saldo de CUALQUIER Token ERC-20 (USDT, LINK, etc.)
-     * @param userAddress La dirección 0x del usuario
-     * @param tokenContractAddress La dirección 0x del contrato de la cripto
-     */
-    public BigDecimal getTokenBalance(String userAddress, String tokenContractAddress) throws Exception {
-        // 1. Definimos la función "balanceOf(address)" estándar de los tokens ERC-20
-        Function function = new Function(
-                "balanceOf",
-                Arrays.asList(new Address(userAddress)),
-                Collections.singletonList(new TypeReference<Uint256>() {})
-        );
-
-        // 2. Codificamos la función para enviarla a la blockchain
-        String encodedFunction = FunctionEncoder.encode(function);
-
-        // 3. Hacemos la llamada (Call) al contrato inteligente
-        var response = web3j.ethCall(
-                Transaction.createEthCallTransaction(userAddress, tokenContractAddress, encodedFunction),
-                DefaultBlockParameterName.LATEST).send();
-
-        // 4. Decodificamos la respuesta
-        List<Type> results = FunctionReturnDecoder.decode(response.getValue(), function.getOutputParameters());
-
-        if (results.isEmpty()) {
-            return BigDecimal.ZERO;
+        // Usamos un bloque try-catch interno para la API externa
+        Map<String, Map<String, Object>> prices;
+        try {
+            prices = restTemplate.getForObject(url, Map.class);
+        } catch (Exception e) {
+            System.err.println("CoinGecko API caída, usando precios por defecto.");
+            prices = null;
         }
 
-        BigInteger balance = (BigInteger) results.get(0).getValue();
+        List<PortfolioResponse.AssetDetail> assets = new ArrayList<>();
 
-        // 5. Convertimos considerando 18 decimales (estándar de la mayoría de tokens)
-        return new BigDecimal(balance).movePointLeft(18);
+        // --- PROCESAR ETHEREUM ---
+        Double ethPrice = getSafeDouble(prices, "ethereum", "eur", 2500.0);
+        Double ethChange = getSafeDouble(prices, "ethereum", "eur_24h_change", 0.0);
+        assets.add(new PortfolioResponse.AssetDetail("ETH", "Ethereum", ethAmount, ethAmount * ethPrice, formatChange(ethChange)));
+
+
+
+        // 3. Sumar todo para el total
+        Double totalEur = assets.stream().mapToDouble(PortfolioResponse.AssetDetail::getValueEur).sum();
+
+        return new PortfolioResponse(totalEur, assets);
+    }
+
+    // MÉTODO MAGICO: Extrae el número sin que el programa explote por el tipo de dato
+    private Double getSafeDouble(Map<String, Map<String, Object>> prices, String crypto, String field, Double defaultValue) {
+        try {
+            if (prices != null && prices.get(crypto) != null) {
+                Object value = prices.get(crypto).get(field);
+                if (value instanceof Number) {
+                    return ((Number) value).doubleValue();
+                }
+            }
+        } catch (Exception e) {
+            return defaultValue;
+        }
+        return defaultValue;
+    }
+
+    private String formatChange(Double change) {
+        return (change >= 0 ? "+" : "") + String.format("%.2f", change) + "%";
     }
 }

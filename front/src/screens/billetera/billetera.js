@@ -23,22 +23,22 @@ const COLORS = theme?.colors || theme?.COLORS || theme;
 
 const Billetera = (props) => {
   const [hideBalance, setHideBalance] = useState(false);
-  const [screenW, setScreenW] = useState(Dimensions.get("window").width);
   const [lastUpdate, setLastUpdate] = useState("");
-
   const { user, isLogged, isLoading } = useContext(Context);
 
-  const [ethBalance, setEthBalance] = useState("0.00");
+  const [portfolio, setPortfolio] = useState({ totalBalanceEur: 0, assets: [] });
   const [loadingBalance, setLoadingBalance] = useState(true);
+  
+  const [trend, setTrend] = useState("neutral"); 
+  const prevBalanceRef = useRef(0);
 
-  useEffect(() => {
-    const sub = Dimensions.addEventListener("change", ({ window }) => {
-      setScreenW(window.width);
-    });
-    return () => {
-      if (sub && sub.remove) sub.remove();
-    };
-  }, []);
+  const fetchPortfolio = async () => {
+    if (user && user.walletAddress) {
+      try {
+        const url = `http://10.10.6.45:8080/api/blockchain/portfolio/${user.walletAddress}`;
+        const response = await fetch(url);
+        if (!response.ok) throw new Error("Error en el servidor");
+        const data = await response.json();
 
   useEffect(() => {
     const d = new Date();
@@ -66,10 +66,19 @@ const Billetera = (props) => {
         } finally {
           setLoadingBalance(false);
         }
-      } else {
+
+        prevBalanceRef.current = data.totalBalanceEur;
+        setPortfolio(data);
+        
+        const d = new Date();
+        setLastUpdate(String(d.getHours()).padStart(2, "0") + ":" + String(d.getMinutes()).padStart(2, "0") + ":" + String(d.getSeconds()).padStart(2, "0"));
+      } catch (error) {
+        console.error("Error al obtener portfolio:", error);
+      } finally {
         setLoadingBalance(false);
       }
-    };
+    }
+  };
 
     if (isLogged) fetchBalance();
     else setLoadingBalance(false);
@@ -249,7 +258,6 @@ const Billetera = (props) => {
             <Text style={[styles.title, { fontSize: titleSize }]}>Tu cartera segura</Text>
             <Text style={styles.miniInfo}>Última actualización: {hiddenTime()}</Text>
           </View>
-
           <Pressable onPress={() => setHideBalance(!hideBalance)} style={styles.iconBtn}>
             <MaterialIcons name={getVisibilityIconName()} size={22} color={COLORS.textMuted} />
           </Pressable>
