@@ -7,6 +7,4 @@ import java.util.List;
 
 @Repository
 public interface BlockchainRecordRepository extends MongoRepository<TransactionRecord, String> {
-    //Permite buscar el historial de un usuario concreto
-    List<TransactionRecord> findByUserEmail(String email);
 }
