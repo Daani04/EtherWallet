@@ -10,6 +10,8 @@ import {
   SafeAreaView,
   Modal,
   Pressable,
+  Alert,
+  Platform
 } from "react-native";
 import Icon from "react-native-vector-icons/MaterialIcons";
 import Nav from "../../components/Nav";
@@ -22,12 +24,11 @@ const COLORS = theme?.colors || theme?.COLORS || theme;
 const BASE_URL = "http://10.10.6.221:8080";
 
 export default function PerfilUsuario(props) {
-  const { userId, logoutUser, user: userFromContext } = useContext(Context);
+  const { userId, setUserId, logoutUser, user: userFromContext } = useContext(Context);
   const user = userFromContext ?? props.route?.params?.user ?? null;
 
   console.log("USERID CONTEXT:", userId);
 
-  // ✅ NUEVO: usuario real de BBDD
   const [dbUser, setDbUser] = useState(null);
 
   const [faceId, setFaceId] = useState(true);
@@ -120,8 +121,66 @@ export default function PerfilUsuario(props) {
     }
   };
 
-  // ✅ usar dbUser si existe, si no fallback al user que ya tenías
   const shownUser = dbUser ?? user;
+
+  const handleDeleteAccount = async () => {
+    console.log("[DELETE] Click eliminar. userId:", userId);
+
+    if (!userId) {
+      console.log("[DELETE] Abort: userId vacío");
+      return;
+    }
+
+    const id = String(userId).trim();
+    console.log("[DELETE] id final:", id);
+
+    const doDelete = async () => {
+      console.log("[DELETE] Confirmado -> llamando fetch...");
+
+      try {
+        const url = `${BASE_URL}/API/DeleteUser/${id}`;
+        console.log("[DELETE] URL:", url);
+
+        const res = await fetch(url, { method: "DELETE" });
+
+        const txt = await res.text();
+        console.log("[DELETE] RESP status:", res.status, "ok:", res.ok, "body:", txt);
+
+        if (!res.ok) {
+          Alert.alert("Error", txt || "No se pudo eliminar la cuenta.");
+          return;
+        }
+
+        console.log("[DELETE] OK -> logout + reset navigation");
+        await logoutUser();
+        setUserId(0);
+
+        props.navigation.reset({
+          index: 0,
+          routes: [{ name: "InicioSesion" }],
+        });
+      } catch (e) {
+        console.log("[DELETE] EXCEPTION:", e);
+        Alert.alert("Error", "Error de conexión. Inténtalo más tarde.");
+      }
+    };
+
+    if (Platform.OS === "web") {
+      const ok = window.confirm("Esta acción es irreversible. ¿Seguro que quieres eliminar tu cuenta?");
+      console.log("[DELETE] web confirm:", ok);
+      if (ok) await doDelete();
+      return;
+    }
+
+    Alert.alert(
+      "Eliminar cuenta",
+      "Esta acción es irreversible. ¿Seguro que quieres eliminar tu cuenta?",
+      [
+        { text: "Cancelar", style: "cancel", onPress: () => console.log("[DELETE] cancelado") },
+        { text: "Eliminar", style: "destructive", onPress: doDelete },
+      ]
+    );
+  };
 
   return (
     <SafeAreaView style={common.safe}>
@@ -239,9 +298,13 @@ export default function PerfilUsuario(props) {
           />
         </Section>
 
-        <TouchableOpacity style={styles.logoutBtn}>
+        <TouchableOpacity style={styles.logoutBtn} onPress={logoutUser}>
           <Icon name="logout" size={20} color={COLORS.danger || "#ff4444"} />
           <Text style={styles.logoutText}>Cerrar Sesión</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.deleteBtn} onPress={handleDeleteAccount}>
+          <Icon name="delete-forever" size={20} color="#ff4444" />
+          <Text style={styles.deleteText}>Eliminar Cuenta</Text>
         </TouchableOpacity>
 
         <Text style={styles.version}>Versión 0.1.0</Text>
@@ -464,4 +527,21 @@ const styles = StyleSheet.create({
     padding: 14,
   },
   modalText: { color: COLORS.textMain, fontSize: 16 },
+  deleteBtn: {
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(255, 70, 70, 0.12)",
+    marginHorizontal: 20,
+    marginTop: 8,
+    padding: 16,
+    borderRadius: 16,
+    gap: 8,
+    borderWidth: 1,
+    borderColor: "rgba(255, 70, 70, 0.35)",
+  },
+  deleteText: {
+    color: "#ff4444",
+    fontWeight: "700",
+  },
 });
