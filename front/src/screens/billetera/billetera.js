@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useContext } from "react";
+import React, { useEffect, useState, useContext, useRef } from "react";
 import {
   View,
   Text,
@@ -21,67 +21,86 @@ import Context from "../../context/Context";
 
 const COLORS = theme?.colors || theme?.COLORS || theme;
 
+const { width: screenW } = Dimensions.get("window");
+
 const Billetera = (props) => {
   const [hideBalance, setHideBalance] = useState(false);
   const [lastUpdate, setLastUpdate] = useState("");
+
   const { user, isLogged, isLoading } = useContext(Context);
 
   const [portfolio, setPortfolio] = useState({ totalBalanceEur: 0, assets: [] });
   const [loadingBalance, setLoadingBalance] = useState(true);
-  
-  const [trend, setTrend] = useState("neutral"); 
-  const prevBalanceRef = useRef(0);
 
-  const fetchPortfolio = async () => {
-    if (user && user.walletAddress) {
-      try {
-        const url = `http://10.10.6.45:8080/api/blockchain/portfolio/${user.walletAddress}`;
-        const response = await fetch(url);
-        if (!response.ok) throw new Error("Error en el servidor");
-        const data = await response.json();
+  const [ethBalance, setEthBalance] = useState("0");
+  const prevBalanceRef = useRef(0);
 
   useEffect(() => {
     const d = new Date();
     const hh = String(d.getHours()).padStart(2, "0");
     const mm = String(d.getMinutes()).padStart(2, "0");
-    setLastUpdate(hh + ":" + mm);
+    setLastUpdate(`${hh}:${mm}`);
   }, []);
 
   useEffect(() => {
-    const fetchBalance = async () => {
-      console.log("Datos del usuario en Context:", user);
+    const fetchPortfolio = async () => {
+      if (!user?.walletAddress) return;
 
-      if (user && user.walletAddress && user.email) {
-        try {
-          const response = await fetch(
-            `http://localhost:8080/api/blockchain/balance/${user.walletAddress}`
-          );
-          if (!response.ok) throw new Error("Error en respuesta");
+      try {
+        const url = `http://10.10.6.45:8080/api/blockchain/portfolio/${user.walletAddress}`;
+        const response = await fetch(url);
+        if (!response.ok) throw new Error("Error en el servidor (portfolio)");
 
-          const data = await response.json();
-          setEthBalance(data.toString());
-        } catch (error) {
-          console.error("Error al obtener saldo:", error);
-          setEthBalance("N/A");
-        } finally {
-          setLoadingBalance(false);
-        }
+        const data = await response.json();
 
-        prevBalanceRef.current = data.totalBalanceEur;
-        setPortfolio(data);
-        
+        prevBalanceRef.current = data?.totalBalanceEur ?? 0;
+        setPortfolio({
+          totalBalanceEur: data?.totalBalanceEur ?? 0,
+          assets: Array.isArray(data?.assets) ? data.assets : [],
+        });
+
         const d = new Date();
-        setLastUpdate(String(d.getHours()).padStart(2, "0") + ":" + String(d.getMinutes()).padStart(2, "0") + ":" + String(d.getSeconds()).padStart(2, "0"));
+        setLastUpdate(
+          `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}:${String(
+            d.getSeconds()
+          ).padStart(2, "0")}`
+        );
       } catch (error) {
         console.error("Error al obtener portfolio:", error);
-      } finally {
-        setLoadingBalance(false);
       }
-    }
-  };
+    };
 
-    if (isLogged) fetchBalance();
-    else setLoadingBalance(false);
+    const fetchEthBalance = async () => {
+      if (!user?.walletAddress) return;
+
+      try {
+        const response = await fetch(
+          `http://localhost:8080/api/blockchain/balance/${user.walletAddress}`
+        );
+        if (!response.ok) throw new Error("Error en respuesta (balance)");
+
+        const data = await response.json();
+        setEthBalance(String(data));
+      } catch (error) {
+        console.error("Error al obtener saldo:", error);
+        setEthBalance("N/A");
+      }
+    };
+
+    const run = async () => {
+      if (!isLogged) {
+        setLoadingBalance(false);
+        return;
+      }
+
+      setLoadingBalance(true);
+      console.log("Datos del usuario en Context:", user);
+
+      await Promise.all([fetchPortfolio(), fetchEthBalance()]);
+      setLoadingBalance(false);
+    };
+
+    run();
   }, [user, isLogged]);
 
   if (isLoading || loadingBalance) {
@@ -93,31 +112,28 @@ const Billetera = (props) => {
     );
   }
 
-  let isWeb = false;
-  if (Platform.OS === "web") isWeb = true;
+  const isWeb = Platform.OS === "web";
+  const isPC = isWeb && screenW >= 900;
 
-  let isPC = false;
-  if (isWeb && screenW >= 900) isPC = true;
+  let titleSize = isPC ? 30 : 28;
+  let padH = isPC ? 28 : 24;
 
-  let titleSize = 28;
-  let padH = 24;
+  // ✅ datos “reales” desde portfolio (con fallback)
+  const totalBalance = Number(portfolio?.totalBalanceEur ?? 0);
+  const variation24h = 3.42; // si lo tienes en backend, cámbialo aquí
 
-  if (isPC) {
-    titleSize = 30;
-    padH = 28;
-  }
+  const availableBalance = totalBalance; // si tienes breakdown real, cámbialo
+  const retainedEarnings = 0;
 
-  const totalBalance = 2450.35;
-  const variation24h = 3.42;
-
-  const availableBalance = 2310.2;
-  const retainedEarnings = 140.15;
-
-  const assets = [
-    { symbol: "ETH", name: "Ethereum (Real)", amount: ethBalance, valueEUR: 0, change24h: 0.0 },
-    { symbol: "BTC", name: "Bitcoin", amount: 0.0324, valueEUR: 1336.5, change24h: 2.1 },
-    { symbol: "SOL", name: "Solana", amount: 18.2, valueEUR: 178.9, change24h: 5.7 },
-  ];
+  // ✅ assets: usa los del backend si vienen; si no, fallback demo
+  const assets =
+    portfolio?.assets?.length > 0
+      ? portfolio.assets
+      : [
+          { symbol: "ETH", name: "Ethereum (Real)", amount: ethBalance, valueEUR: 0, change24h: 0.0 },
+          { symbol: "BTC", name: "Bitcoin", amount: 0.0324, valueEUR: 1336.5, change24h: 2.1 },
+          { symbol: "SOL", name: "Solana", amount: 18.2, valueEUR: 178.9, change24h: 5.7 },
+        ];
 
   const movements = [
     { type: "receive", title: "Recibido", subtitle: "0.0100 BTC", date: "Hoy", value: "+412.50 €", status: "Confirmado" },
@@ -131,25 +147,11 @@ const Billetera = (props) => {
     return s + " €";
   };
 
-  const hiddenTime = () => {
-    if (hideBalance) return "••:••";
-    return lastUpdate;
-  };
+  const hiddenTime = () => (hideBalance ? "••:••" : lastUpdate);
 
-  const getBalanceText = () => {
-    if (hideBalance) return "•••••";
-    return formatEUR(totalBalance);
-  };
-
-  const getAvailableText = () => {
-    if (hideBalance) return "••••";
-    return formatEUR(availableBalance);
-  };
-
-  const getRetainedText = () => {
-    if (hideBalance) return "••••";
-    return formatEUR(retainedEarnings);
-  };
+  const getBalanceText = () => (hideBalance ? "•••••" : formatEUR(totalBalance));
+  const getAvailableText = () => (hideBalance ? "••••" : formatEUR(availableBalance));
+  const getRetainedText = () => (hideBalance ? "••••" : formatEUR(retainedEarnings));
 
   const getTrendConfig = () => {
     if (variation24h >= 0) {
@@ -160,7 +162,6 @@ const Billetera = (props) => {
         iconTrend: "trending-up",
       };
     }
-
     return {
       colourTrend: COLORS.danger,
       edgeTrend: COLORS.dangerSoft,
@@ -176,32 +177,31 @@ const Billetera = (props) => {
   };
 
   const iconMovement = (type) => {
-    let icon = "swap-horiz";
-    if (type === "receive") icon = "south-west";
-    else if (type === "send") icon = "north-east";
-    return icon;
+    if (type === "receive") return "south-west";
+    if (type === "send") return "north-east";
+    return "swap-horiz";
   };
 
   const getAssetRowData = (a) => {
     let colourChange = COLORS.danger;
-    if (a.change24h >= 0) colourChange = COLORS.primaryDark;
+    if (Number(a.change24h) >= 0) colourChange = COLORS.primaryDark;
 
     let amountText = "•••";
-    if (!hideBalance) amountText = String(a.amount) + " " + a.symbol;
+    if (!hideBalance) amountText = `${a.amount} ${a.symbol}`;
 
     let valText = "••••";
     if (!hideBalance) {
       if (a.symbol === "ETH" && (a.amount === "N/A" || a.amount === undefined || a.amount === null)) {
         valText = "N/A";
       } else {
-        valText = formatEUR(a.valueEUR);
+        valText = formatEUR(a.valueEUR ?? 0);
       }
     }
 
     let chText = "•••";
     if (!hideBalance) {
-      if (a.change24h >= 0) chText = "+" + a.change24h + "%";
-      else chText = a.change24h + "%";
+      const ch = Number(a.change24h ?? 0);
+      chText = ch >= 0 ? `+${ch}%` : `${ch}%`;
     }
 
     return { colourChange, amountText, valText, chText };
@@ -220,7 +220,7 @@ const Billetera = (props) => {
     return { valMov, statusColour, statusText };
   };
 
-  const trend = getTrendConfig();
+  const trendCfg = getTrendConfig();
   const textBalance = getBalanceText();
   const textAvailable = getAvailableText();
   const retText = getRetainedText();
@@ -231,17 +231,11 @@ const Billetera = (props) => {
     return null;
   };
 
-  const getVisibilityIconName = () => {
-    if (hideBalance) return "visibility-off";
-    return "visibility";
-  };
+  const getVisibilityIconName = () => (hideBalance ? "visibility-off" : "visibility");
 
-  const getBalanceSubText = () => {
-    if (hideBalance) return "últimas 24h";
-    return "últimas 24h · variación estimada";
-  };
+  const getBalanceSubText = () => (hideBalance ? "últimas 24h" : "últimas 24h · variación estimada");
 
-  const topInset = Platform.OS === "android" ? (StatusBar.currentHeight || 0) : 0;
+  const topInset = Platform.OS === "android" ? StatusBar.currentHeight || 0 : 0;
 
   return (
     <SafeAreaView style={[common.safe, { paddingTop: topInset }]}>
@@ -258,7 +252,7 @@ const Billetera = (props) => {
             <Text style={[styles.title, { fontSize: titleSize }]}>Tu cartera segura</Text>
             <Text style={styles.miniInfo}>Última actualización: {hiddenTime()}</Text>
           </View>
-          <Pressable onPress={() => setHideBalance(!hideBalance)} style={styles.iconBtn}>
+          <Pressable onPress={() => setHideBalance((v) => !v)} style={styles.iconBtn}>
             <MaterialIcons name={getVisibilityIconName()} size={22} color={COLORS.textMuted} />
           </Pressable>
         </View>
@@ -271,9 +265,9 @@ const Billetera = (props) => {
           <View style={styles.balanceRowTop}>
             <Text style={styles.balanceValue}>{textBalance}</Text>
 
-            <View style={[styles.pill, { borderColor: trend.edgeTrend, backgroundColor: trend.backgroundTrend }]}>
-              <MaterialIcons name={trend.iconTrend} size={16} color={trend.colourTrend} />
-              <Text style={[styles.pillText, { color: trend.colourTrend }]}>{textVariation}</Text>
+            <View style={[styles.pill, { borderColor: trendCfg.edgeTrend, backgroundColor: trendCfg.backgroundTrend }]}>
+              <MaterialIcons name={trendCfg.iconTrend} size={16} color={trendCfg.colourTrend} />
+              <Text style={[styles.pillText, { color: trendCfg.colourTrend }]}>{textVariation}</Text>
             </View>
           </View>
 
@@ -310,7 +304,7 @@ const Billetera = (props) => {
             const row = getAssetRowData(a);
 
             return (
-              <View key={a.symbol} style={styles.assetRow}>
+              <View key={a.symbol ?? index} style={styles.assetRow}>
                 <View style={styles.assetLeft}>
                   <View style={styles.coinBadge}>
                     <Text style={styles.coinBadgeText}>{a.symbol}</Text>
@@ -373,7 +367,6 @@ const Billetera = (props) => {
       <Nav />
     </SafeAreaView>
   );
-
 };
 
 const styles = StyleSheet.create({
