@@ -1,6 +1,189 @@
 {
-    "NoAccount":{
-      "Question": "¿No tienes una cuenta?",
-      "Register": "Regístrate"
+  "NoAccount": {
+    "Question": "Don't have an account?",
+    "Register": "Sign up"
+  },
+  "news": {
+    "headerTitle": "Geopolitics & Markets",
+    "loading": "Analyzing the market...",
+    "sentiment": {
+      "optimistic": "Optimistic",
+      "bearish": "Bearish",
+      "neutral": "Neutral"
     }
+  },
+  "transactions": {
+    "headerTitle": "Transactions",
+    "searchPlaceholder": "Search recipient or transaction…",
+    "sections": {
+      "quickActions": "Quick actions",
+      "recentRecipients": "Recent recipients",
+      "recentMovements": "Recent activity"
+    },
+    "viewAll": "View all",
+    "newTransaction": "New transaction",
+    "quickActions": {
+      "deposit": {
+        "title": "Deposit",
+        "subtitle": "Add EUR to your wallet"
+      },
+      "transfer": {
+        "title": "Transfer",
+        "subtitle": "To another account/IBAN"
+      },
+      "withdraw": {
+        "title": "Withdraw",
+        "subtitle": "To your bank"
+      }
+    },
+    "types": {
+      "deposit": "Deposit",
+      "withdraw": "Withdrawal",
+      "transfer": "Transfer"
+    },
+    "dates": {
+      "today": "Today",
+      "yesterday": "Yesterday"
+    },
+    "to": {
+      "bank": "Bank"
+    }
+  },
+  "editProfile": {
+    "title": "Edit profile",
+    "helpImageUrl": "Paste an image URL (for now)",
+    "labels": {
+      "image": "Image (userImage)",
+      "firstName": "First name (firstName)",
+      "lastName": "Last name (lastName)",
+      "birthDate": "Birth date (birthDate)",
+      "newPassword": "New password (optional)"
+    },
+    "placeholders": {
+      "imageUrl": "https://...",
+      "firstName": "First name",
+      "lastName": "Last name",
+      "birthDate": "dd/mm/yyyy",
+      "passwordOptional": "Leave empty to keep current"
+    },
+    "buttons": {
+      "save": "Save changes",
+      "cancel": "Cancel"
+    },
+    "alerts": {
+      "errorTitle": "Error",
+      "okTitle": "Ok",
+      "missingId": "I don't have the user id (missing user.id).",
+      "fillFields": "Fill firstName, lastName, birthDate and userImage.",
+      "updated": "Profile updated",
+      "serverError": "Could not connect to the server"
+    }
+  },
+  "register": {
+    "title": "Create your account",
+    "subtitle": "Join the future of crypto finance today.\nSign up to start trading.",
+    "labels": {
+      "profilePhotoOptional": "Profile photo (optional)",
+      "name": "First name",
+      "lastName": "Last name",
+      "email": "Email",
+      "password": "Password",
+      "dni": "ID / NIE",
+      "birthDate": "Date of birth"
+    },
+    "avatar": {
+      "selectImage": "Select image",
+      "fromFiles": "From files",
+      "fromGallery": "From gallery"
+    },
+    "placeholders": {
+      "name": "Your first name",
+      "lastName": "Your last name",
+      "email": "e.g. user@email.com",
+      "password": "••••••••••••",
+      "dni": "12345678X",
+      "birthDate": "Select date of birth"
+    },
+    "terms": {
+      "textPrefix": "I accept the",
+      "termsOfService": "Terms of Service",
+      "and": "and the",
+      "privacyPolicy": "Privacy Policy",
+      "textSuffix": "."
+    },
+    "buttons": {
+      "register": "SIGN UP"
+    },
+    "footer": {
+      "haveAccount": "Already have an account?",
+      "login": "Log in"
+    },
+    "alerts": {
+      "errorTitle": "Error",
+      "successTitle": "Success",
+      "fillAllFields": "Please fill in all fields.",
+      "acceptTerms": "You must accept the terms and conditions.",
+      "permissionDeniedTitle": "Permission denied",
+      "permissionDeniedMsg": "You need permission to access the gallery.",
+      "galleryError": "Could not open the gallery.",
+      "serverError": "Could not connect to the server.",
+      "registerOk": "User registered successfully",
+      "registerFail": "Could not register"
+    }
+  },
+  "login": {
+    "title": "Welcome",
+    "subtitle": "Access your secure wallet",
+    "placeholders": {
+      "email": "Email",
+      "password": "••••••••••••"
+    },
+    "forgotPassword": "Forgot your password?",
+    "buttons": {
+      "login": "Log in",
+      "faceId": "Use Face ID"
+    },
+    "biometric": {
+      "noSupportTitle": "Error",
+      "noSupportMsg": "This device does not support biometrics.",
+      "notEnrolledTitle": "Error",
+      "notEnrolledMsg": "You don't have Face ID set up on this iPhone.",
+      "promptMessage": "Authenticate with Face ID",
+      "fallbackLabel": "Enter passcode",
+      "successTitle": "Success",
+      "successMsg": "Welcome",
+      "notAuthTitle": "Not authenticated",
+      "cancelled": "Cancelled",
+      "criticalTitle": "Critical error"
+    },
+    "alerts": {
+      "errorTitle": "Error",
+      "fillAllFields": "Please fill in all fields",
+      "connectionError": "Connection error. Please try again later."
+    }
+  },
+  "profile": {
+    "settingsTitle": "Settings",
+    "versionPrefix": "Version",
+    "sections": {
+      "account": "Account",
+      "security": "Security",
+      "preferences": "Preferences"
+    },
+    "items": {
+      "editProfile": "Edit profile",
+      "lightDark": "Light/Dark",
+      "faceId": "Face ID",
+      "twoFA": "2FA Authentication",
+      "kyc": "KYC Verification",
+      "notifications": "Notifications",
+      "localCurrency": "Local currency",
+      "language": "Language",
+      "logout": "Log out"
+    },
+    "status": {
+      "enabled": "Enabled",
+      "kycLevel2": "Verified level 2"
+    }
+  }
 }

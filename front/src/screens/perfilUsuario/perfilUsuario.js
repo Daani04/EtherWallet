@@ -10,19 +10,19 @@ import {
   SafeAreaView,
   Modal,
   Pressable,
-  TextInput,
-  Alert,
 } from "react-native";
 import Icon from "react-native-vector-icons/MaterialIcons";
-import CryptoJS from "crypto-js";
 import Nav from "../../components/Nav";
 import Context from "../../context/Context";
 import common from "../../styles/common";
 import theme from "../../styles/theme";
+import { useTranslation } from "react-i18next";
 
 const COLORS = theme?.colors || theme?.COLORS || theme;
 
 export default function PerfilUsuario(props) {
+  const { t } = useTranslation();
+
   const { userId } = useContext(Context);
   const { logoutUser } = useContext(Context);
 
@@ -96,7 +96,9 @@ export default function PerfilUsuario(props) {
           <Icon name="arrow-back-ios-new" size={22} color={COLORS.textMain || "#fff"} />
         </TouchableOpacity>
 
-        <Text style={common.headerTitle || styles.headerTitle}>Configuración</Text>
+        <Text style={common.headerTitle || styles.headerTitle}>
+          {t("profile.settingsTitle")}
+        </Text>
 
         <View style={{ width: 24 }} />
       </View>
@@ -118,14 +120,18 @@ export default function PerfilUsuario(props) {
           <View style={styles.walletRow}>
             <View style={styles.dot} />
             <Text style={styles.walletText}>0x71C...9A21</Text>
-            <Icon name="content-copy" size={14} color={COLORS.textMuted || "rgba(255,255,255,0.6)"} />
+            <Icon
+              name="content-copy"
+              size={14}
+              color={COLORS.textMuted || "rgba(255,255,255,0.6)"}
+            />
           </View>
         </View>
 
-        <Section title="Cuenta">
+        <Section title={t("profile.sections.account")}>
           <Item
             icon="person"
-            label="Editar Perfil"
+            label={t("profile.items.editProfile")}
             onPress={() =>
               props.navigation.navigate("EditarPerfil", {
                 user: {
@@ -144,8 +150,7 @@ export default function PerfilUsuario(props) {
             }
           />
 
-          {/* Theme */}
-          <Item icon="dark-mode" label="Claro/Oscuro">
+          <Item icon="dark-mode" label={t("profile.items.lightDark")}>
             <Switch
               value={isDarkMode}
               onValueChange={(val) => {
@@ -158,8 +163,8 @@ export default function PerfilUsuario(props) {
           </Item>
         </Section>
 
-        <Section title="Seguridad">
-          <Item icon="face" label="Face ID">
+        <Section title={t("profile.sections.security")}>
+          <Item icon="face" label={t("profile.items.faceId")}>
             <Switch
               value={faceId}
               onValueChange={(val) => {
@@ -170,52 +175,62 @@ export default function PerfilUsuario(props) {
               thumbColor="#fff"
             />
           </Item>
-          <Item icon="shield" label="Autenticación 2FA" rightText="Activado" />
+
+          <Item
+            icon="shield"
+            label={t("profile.items.twoFA")}
+            rightText={t("profile.status.enabled")}
+          />
+
           <Item
             icon="badge"
-            label="Verificación KYC"
-            subLabel="Verificado nivel 2"
+            label={t("profile.items.kyc")}
+            subLabel={t("profile.status.kycLevel2")}
           />
         </Section>
 
-        <Section title="Preferencias">
-          <Item icon="notifications" label="Notificaciones" />
+        <Section title={t("profile.sections.preferences")}>
+          <Item icon="notifications" label={t("profile.items.notifications")} />
 
-          {/* Moneda Local -> modal */}
           <Item
             icon="currency-exchange"
-            label="Moneda Local"
+            label={t("profile.items.localCurrency")}
             rightText={currency}
             onPress={() => setCurrencyModalVisible(true)}
           />
 
-          {/* Idioma -> modal */}
           <Item
             icon="language"
-            label="Idioma"
+            label={t("profile.items.language")}
             rightText={language}
             onPress={() => setLanguageModalVisible(true)}
           />
         </Section>
 
-        <TouchableOpacity style={styles.logoutBtn}>
+        <TouchableOpacity
+          style={styles.logoutBtn}
+          onPress={async () => {
+            await logoutUser();
+            props.navigation.replace("InicioSesion");
+          }}
+        >
           <Icon name="logout" size={20} color={COLORS.danger || "#ff4444"} />
-          <Text style={styles.logoutText}>Cerrar Sesión</Text>
+          <Text style={styles.logoutText}>{t("profile.items.logout")}</Text>
         </TouchableOpacity>
 
-        <Text style={styles.version}>Versión 0.1.0</Text>
+        <Text style={styles.version}>
+          {t("profile.versionPrefix")} 0.1.0
+        </Text>
       </ScrollView>
 
+      {/* MODAL IDIOMA */}
       <Modal
         transparent
         visible={languageModalVisible}
         animationType="fade"
         onRequestClose={() => setLanguageModalVisible(false)}
       >
-        <Pressable
-          style={styles.modalOverlay}
-          onPress={() => setLanguageModalVisible(false)}
-        >
+        <Pressable style={styles.modalOverlay} onPress={() => setLanguageModalVisible(false)}>
           <View style={styles.modalContent}>
             {LANGUAGES.map((lang) => (
               <TouchableOpacity
@@ -227,17 +242,10 @@ export default function PerfilUsuario(props) {
                   saveSettings({ language: lang });
                 }}
               >
-                <Text
-                  style={[
-                    styles.modalText,
-                    lang === language && { color: COLORS.primary },
-                  ]}
-                >
+                <Text style={[styles.modalText, lang === language && { color: COLORS.primary }]}>
                   {lang}
                 </Text>
-                {lang === language && (
-                  <Icon name="check" size={20} color={COLORS.primary} />
-                )}
+                {lang === language && <Icon name="check" size={20} color={COLORS.primary} />}
               </TouchableOpacity>
             ))}
           </View>
@@ -251,10 +259,7 @@ export default function PerfilUsuario(props) {
         animationType="fade"
         onRequestClose={() => setCurrencyModalVisible(false)}
       >
-        <Pressable
-          style={styles.modalOverlay}
-          onPress={() => setCurrencyModalVisible(false)}
-        >
+        <Pressable style={styles.modalOverlay} onPress={() => setCurrencyModalVisible(false)}>
           <View style={styles.modalContent}>
             {CURRENCIES.map((cur) => (
               <TouchableOpacity
@@ -266,17 +271,10 @@ export default function PerfilUsuario(props) {
                   saveSettings({ currency: cur });
                 }}
               >
-                <Text
-                  style={[
-                    styles.modalText,
-                    cur === currency && { color: COLORS.primary },
-                  ]}
-                >
+                <Text style={[styles.modalText, cur === currency && { color: COLORS.primary }]}>
                   {cur}
                 </Text>
-                {cur === currency && (
-                  <Icon name="check" size={20} color={COLORS.primary} />
-                )}
+                {cur === currency && <Icon name="check" size={20} color={COLORS.primary} />}
               </TouchableOpacity>
             ))}
           </View>
@@ -323,7 +321,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
 
-  // si no existe common.headerRow/common.headerTitle, cae aquí
   header: {
     flexDirection: "row",
     alignItems: "center",
