@@ -19,8 +19,7 @@ import theme from "../../styles/theme";
 
 const COLORS = theme.colors;
 
-// ✅ MISMO BACKEND PARA TODA LA APP
-const BASE_URL = "http://192.168.1.37:8080";
+const BASE_URL = "http://10.10.6.221:8080";
 
 export default function PerfilUsuario(props) {
   const { userId, logoutUser, user: userFromContext } = useContext(Context);
@@ -42,13 +41,11 @@ export default function PerfilUsuario(props) {
   const [currencyModalVisible, setCurrencyModalVisible] = useState(false);
   const CURRENCIES = ["USD", "EUR", "GBP", "MXN"];
 
-  // ✅ NUEVO: cargar usuario desde BBDD por userId
   useEffect(() => {
     if (!userId) return;
 
     const loadUser = async () => {
       try {
-        // ⚠️ Ajusta este endpoint si tu backend usa otro nombre
         const res = await fetch(`${BASE_URL}/API/User/${userId}`);
 
         if (!res.ok) {

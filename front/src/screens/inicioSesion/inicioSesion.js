@@ -23,7 +23,7 @@ import Context from "../../context/Context";
 
 const { width } = Dimensions.get("window");
 
-const BASE_URL = "http://192.168.1.37:8080";
+const BASE_URL = "http://10.10.6.221:8080";
 
 const InicioSesion = (props) => {
   const [isBiometricSupported, setIsBiometricSupported] = useState(false);
