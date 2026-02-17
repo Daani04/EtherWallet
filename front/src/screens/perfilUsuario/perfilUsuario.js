@@ -20,9 +20,6 @@ import Context from "../../context/Context";
 import common from "../../styles/common";
 import theme from "../../styles/theme";
 
-import common from "../../styles/common";
-import theme from "../../styles/theme";
-
 const COLORS = theme?.colors || theme?.COLORS || theme;
 
 export default function PerfilUsuario(props) {
