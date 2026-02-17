@@ -46,28 +46,6 @@ const InicioSesion = (props) => {
     })();
   }, []);
 
-  useEffect(() => {
-    const checkSession = async () => {
-      try {
-        const savedUser = await SecureStore.getItemAsync("user_session");
-        if (savedUser) {
-          const parsed = JSON.parse(savedUser);
-
-          setUser(parsed);
-          setIsLogged(true);
-
-          if (parsed?.userId) setUserId(parsed.userId);
-          else if (parsed?.id) setUserId(parsed.id);
-        }
-      } catch (error) {
-        console.error("Error recuperando sesión:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    checkSession();
-  }, []);
-
   const handleBiometricAuth = async () => {
     try {
       const hasHardware = await LocalAuthentication.hasHardwareAsync();
