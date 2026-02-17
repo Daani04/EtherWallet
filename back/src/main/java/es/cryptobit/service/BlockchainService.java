@@ -45,17 +45,7 @@ public class BlockchainService {
         Double ethChange = getSafeDouble(prices, "ethereum", "eur_24h_change", 0.0);
         assets.add(new PortfolioResponse.AssetDetail("ETH", "Ethereum", ethAmount, ethAmount * ethPrice, formatChange(ethChange)));
 
-        // --- PROCESAR BITCOIN (Simulado) ---
-        Double btcPrice = getSafeDouble(prices, "bitcoin", "eur", 45000.0);
-        Double btcChange = getSafeDouble(prices, "bitcoin", "eur_24h_change", 0.0);
-        Double btcAmount = 0.0324;
-        assets.add(new PortfolioResponse.AssetDetail("BTC", "Bitcoin", btcAmount, btcAmount * btcPrice, formatChange(btcChange)));
 
-        // --- PROCESAR SOLANA (Simulado) ---
-        Double solPrice = getSafeDouble(prices, "solana", "eur", 100.0);
-        Double solChange = getSafeDouble(prices, "solana", "eur_24h_change", 0.0);
-        Double solAmount = 18.2;
-        assets.add(new PortfolioResponse.AssetDetail("SOL", "Solana", solAmount, solAmount * solPrice, formatChange(solChange)));
 
         // 3. Sumar todo para el total
         Double totalEur = assets.stream().mapToDouble(PortfolioResponse.AssetDetail::getValueEur).sum();
