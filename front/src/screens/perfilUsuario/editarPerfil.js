@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from "react";
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, Image, Alert, ScrollView } from "react-native";
 import CryptoJS from "crypto-js";
+import { useTranslation } from "react-i18next";
 
 const COLORS = {
   primary: "#2bee79",
@@ -14,6 +15,8 @@ const COLORS = {
 const API_BASE = "http://10.10.3.178:8080";
 
 export default function EditarPerfil({ navigation, route }) {
+  const { t } = useTranslation();
+
   const user = route?.params?.user;
 
   const [firstName, setFirstName] = useState(user?.firstName ?? "");
@@ -28,11 +31,11 @@ export default function EditarPerfil({ navigation, route }) {
 
   const onSave = async () => {
     if (!user?.id) {
-      Alert.alert("Error", "No tengo el id del usuario (falta user.id).");
+      Alert.alert(t("common.error"), t("editProfile.errors.missingUserId"));
       return;
     }
     if (!canSave) {
-      Alert.alert("Error", "Rellena firstName, lastName, birthDate y userImage.");
+      Alert.alert(t("common.error"), t("editProfile.errors.fillAllRequired"));
       return;
     }
 
@@ -61,57 +64,81 @@ export default function EditarPerfil({ navigation, route }) {
       const data = await res.text();
 
       if (!res.ok) {
-        Alert.alert("Error", data);
+        Alert.alert(t("common.error"), data);
         return;
       }
 
-      Alert.alert("Ok", "Perfil actualizado");
+      Alert.alert(t("common.ok"), t("editProfile.success.updated"));
       navigation.goBack();
     } catch (e) {
-      Alert.alert("Error", "No se pudo conectar con el servidor");
+      Alert.alert(t("common.error"), t("editProfile.errors.serverConnection"));
     }
   };
 
   return (
     <ScrollView style={{ flex: 1, backgroundColor: COLORS.bg }} contentContainerStyle={{ padding: 16 }}>
-      <Text style={styles.title}>Editar perfil</Text>
+      <Text style={styles.title}>{t("editProfile.title")}</Text>
 
       <View style={styles.avatarBox}>
         <Image
           source={{ uri: userImage?.startsWith("http") ? userImage : "https://via.placeholder.com/90" }}
           style={styles.avatar}
         />
-        <Text style={styles.help}>Pega una URL de imagen (por ahora)</Text>
+        <Text style={styles.help}>{t("editProfile.help.imageUrl")}</Text>
       </View>
 
-      <Text style={styles.label}>Imagen (userImage)</Text>
-      <TextInput value={userImage} onChangeText={setUserImage} style={styles.input} placeholder="https://..." placeholderTextColor={COLORS.muted} />
+      <Text style={styles.label}>{t("editProfile.labels.image")}</Text>
+      <TextInput
+        value={userImage}
+        onChangeText={setUserImage}
+        style={styles.input}
+        placeholder="https://..."
+        placeholderTextColor={COLORS.muted}
+      />
 
-      <Text style={styles.label}>Nombre (firstName)</Text>
-      <TextInput value={firstName} onChangeText={setFirstName} style={styles.input} placeholder="Nombre" placeholderTextColor={COLORS.muted} />
+      <Text style={styles.label}>{t("editProfile.labels.firstName")}</Text>
+      <TextInput
+        value={firstName}
+        onChangeText={setFirstName}
+        style={styles.input}
+        placeholder={t("editProfile.placeholders.firstName")}
+        placeholderTextColor={COLORS.muted}
+      />
 
-      <Text style={styles.label}>Apellidos (lastName)</Text>
-      <TextInput value={lastName} onChangeText={setLastName} style={styles.input} placeholder="Apellidos" placeholderTextColor={COLORS.muted} />
+      <Text style={styles.label}>{t("editProfile.labels.lastName")}</Text>
+      <TextInput
+        value={lastName}
+        onChangeText={setLastName}
+        style={styles.input}
+        placeholder={t("editProfile.placeholders.lastName")}
+        placeholderTextColor={COLORS.muted}
+      />
 
-      <Text style={styles.label}>Fecha nacimiento (birthDate)</Text>
-      <TextInput value={birthDate} onChangeText={setBirthDate} style={styles.input} placeholder="dd/mm/yyyy" placeholderTextColor={COLORS.muted} />
+      <Text style={styles.label}>{t("editProfile.labels.birthDate")}</Text>
+      <TextInput
+        value={birthDate}
+        onChangeText={setBirthDate}
+        style={styles.input}
+        placeholder={t("editProfile.placeholders.birthDate")}
+        placeholderTextColor={COLORS.muted}
+      />
 
-      <Text style={styles.label}>Nueva contraseña (opcional)</Text>
+      <Text style={styles.label}>{t("editProfile.labels.newPassword")}</Text>
       <TextInput
         value={password}
         onChangeText={setPassword}
         style={styles.input}
-        placeholder="Deja vacío para no cambiar"
+        placeholder={t("editProfile.placeholders.newPassword")}
         placeholderTextColor={COLORS.muted}
         secureTextEntry
       />
 
       <TouchableOpacity style={[styles.btn, { opacity: canSave ? 1 : 0.5 }]} onPress={onSave} disabled={!canSave}>
-        <Text style={styles.btnText}>Guardar cambios</Text>
+        <Text style={styles.btnText}>{t("editProfile.actions.save")}</Text>
       </TouchableOpacity>
 
       <TouchableOpacity style={styles.btnGhost} onPress={() => navigation.goBack()}>
-        <Text style={styles.btnGhostText}>Cancelar</Text>
+        <Text style={styles.btnGhostText}>{t("common.cancel")}</Text>
       </TouchableOpacity>
     </ScrollView>
   );

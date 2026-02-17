@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   View,
   Text,
@@ -14,12 +15,15 @@ import Nav from "../../components/Nav";
 
 import common from "../../styles/common";
 import theme from "../../styles/theme";
+import getData from "../../services/services";
+
 
 const COLORS = theme?.colors || theme?.COLORS || theme;
 
 const API_KEY = "698b5155dbadb1.67947020"; 
 const API_URL = `https://www.alphavantage.co/query?function=NEWS_SENTIMENT&topics=economy_macro,finance&limit=15&apikey=${API_KEY}`;
 const menuNoticias = () => {
+  const { t } = useTranslation();
   const [news, setNews] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -40,9 +44,9 @@ const fetchNews = async () => {
 };
 
   const getSentimentStyle = (score) => {
-    if (score > 0.15) return { color: COLORS.primary, label: "Optimista" };
-    if (score < -0.15) return { color: COLORS.danger, label: "Bajista" };
-    return { color: COLORS.textMuted, label: "Neutral" };
+    if (score > 0.15) return { color: COLORS.primary, label: t("news.sentiment.optimistic") };
+    if (score < -0.15) return { color: COLORS.danger, label: t("news.sentiment.bearish") };
+    return { color: COLORS.textMuted, label: t("news.sentiment.neutral") };
   };
 
   const formatFecha = (str) => {
@@ -53,7 +57,8 @@ const fetchNews = async () => {
   return (
     <View style={common.safe}>
       <View style={[common.headerRow, { paddingTop: Platform.OS === "ios" ? 60 : 40 }]}>
-        <Text style={common.headerTitle}>Geopolítica & Mercados</Text>
+        <Text style={common.headerTitle}>{t("news.headerTitle")}</Text>
+
         <TouchableOpacity onPress={fetchNews}>
           <MaterialIcons name="refresh" size={24} color={COLORS.primary} />
         </TouchableOpacity>
@@ -62,7 +67,7 @@ const fetchNews = async () => {
       {loading ? (
         <View style={common.center}>
           <ActivityIndicator size="large" color={COLORS.primary} />
-          <Text style={common.loadingText}>Analizando el mercado...</Text>
+          <Text style={common.loadingText}>{t("news.loading")}</Text>
         </View>
       ) : (
         <ScrollView contentContainerStyle={common.scrollPadding}>

@@ -14,6 +14,7 @@ import {
   Pressable,
   Alert,
   Image,
+  Modal, // ✅ AÑADIDO
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import CryptoJS from "crypto-js";
@@ -21,6 +22,8 @@ import DateTimePicker, { DateTimePickerAndroid } from "@react-native-community/d
 import { ethers } from "ethers";
 import * as SecureStore from "expo-secure-store";
 import * as ImagePicker from "expo-image-picker";
+import { useTranslation } from "react-i18next";
+import i18n from "../../i18n"; // ✅ AÑADIDO (ajusta la ruta si tu i18n está en otro sitio)
 
 import common from "../../styles/common";
 import theme from "../../styles/theme";
@@ -28,6 +31,16 @@ import theme from "../../styles/theme";
 const COLORS = theme?.colors || theme?.COLORS || theme;
 
 const RegistroUsuario = (props) => {
+  const { t } = useTranslation();
+
+  // ✅ AÑADIDO (solo para el selector)
+  const [langModalVisible, setLangModalVisible] = useState(false);
+  const LANGUAGES = ["ES", "EN", "CA"];
+  const changeLang = (lng) => {
+    i18n.changeLanguage(lng);
+    setLangModalVisible(false);
+  };
+
   const [showPassword, setShowPassword] = useState(false);
   const [acceptedTerms, setAcceptedTerms] = useState(false);
 
@@ -55,7 +68,7 @@ const RegistroUsuario = (props) => {
 
       const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
       if (status !== "granted") {
-        Alert.alert("Permiso denegado", "Necesitas permisos para acceder a la galería.");
+        Alert.alert(t("common.error"), t("register.errors.permissionGallery"));
         return;
       }
 
@@ -75,7 +88,7 @@ const RegistroUsuario = (props) => {
       if (asset.base64) setUserImageBase64(asset.base64);
     } catch (e) {
       console.error(e);
-      Alert.alert("Error", "No se pudo abrir la galería.");
+      Alert.alert(t("common.error"), t("register.errors.openGallery"));
     }
   };
 
@@ -97,12 +110,12 @@ const RegistroUsuario = (props) => {
 
   const handleRegister = async () => {
     if (!name || !lastName || !mail || !psw || !dni || !fNac) {
-      Alert.alert("Error", "Por favor, completa todos los campos.");
+      Alert.alert(t("common.error"), t("register.errors.completeAll"));
       return;
     }
 
     if (!acceptedTerms) {
-      Alert.alert("Error", "Debes aceptar los términos y condiciones.");
+      Alert.alert(t("common.error"), t("register.errors.acceptTerms"));
       return;
     }
 
@@ -142,14 +155,14 @@ const RegistroUsuario = (props) => {
       const text = await response.text();
 
       if (response.ok) {
-        Alert.alert("Éxito", "Usuario registrado correctamente");
+        Alert.alert(t("register.success.title"), t("register.success.registered"));
         props.navigation.navigate("InicioSesion");
       } else {
-        Alert.alert("Error", text || "No se pudo registrar");
+        Alert.alert(t("common.error"), text || t("register.errors.cannotRegister"));
       }
     } catch (error) {
       console.error("REGISTER ERROR:", error);
-      Alert.alert("Error", "No se pudo conectar con el servidor.");
+      Alert.alert(t("common.error"), t("register.errors.serverConnection"));
     }
   };
 
@@ -177,15 +190,28 @@ const RegistroUsuario = (props) => {
           <View style={[styles.blob, styles.blobBottomLeft]} />
 
           <View style={styles.container}>
+            {/* ✅ AÑADIDO: botón arriba a la derecha */}
+            <View style={styles.langBtnWrap}>
+              <TouchableOpacity
+                onPress={() => setLangModalVisible(true)}
+                activeOpacity={0.85}
+                style={styles.langBtn}
+              >
+                <MaterialIcons name="language" size={22} color={COLORS.primary} />
+              </TouchableOpacity>
+            </View>
+
             <View style={styles.headLeft}>
-              <Text style={styles.title}>Crea tu cuenta</Text>
+              <Text style={styles.title}>{t("register.title")}</Text>
               <Text style={styles.subtitle}>
-                Únete al futuro de las finanzas cripto hoy.{"\n"}Regístrate para comenzar a operar.
+                {t("register.subtitleLine1")}
+                {"\n"}
+                {t("register.subtitleLine2")}
               </Text>
             </View>
 
             <View style={styles.form}>
-              <Text style={styles.label}>Foto de perfil (opcional)</Text>
+              <Text style={styles.label}>{t("register.profilePhotoLabel")}</Text>
 
               <TouchableOpacity style={styles.avatarRow} activeOpacity={0.85} onPress={pickImage}>
                 <View style={styles.avatarCircle}>
@@ -197,9 +223,9 @@ const RegistroUsuario = (props) => {
                 </View>
 
                 <View style={{ flex: 1 }}>
-                  <Text style={styles.avatarTitle}>Seleccionar imagen</Text>
+                  <Text style={styles.avatarTitle}>{t("register.selectImage")}</Text>
                   <Text style={styles.avatarSub}>
-                    {Platform.OS === "web" ? "Desde archivos" : "Desde galería"}
+                    {Platform.OS === "web" ? t("register.fromFiles") : t("register.fromGallery")}
                   </Text>
                 </View>
 
@@ -216,7 +242,7 @@ const RegistroUsuario = (props) => {
                 />
               )}
 
-              <Text style={styles.label}>Nombre</Text>
+              <Text style={styles.label}>{t("register.labels.firstName")}</Text>
               <View style={styles.inputContainer}>
                 <MaterialIcons
                   name="person-outline"
@@ -225,7 +251,7 @@ const RegistroUsuario = (props) => {
                   style={styles.inputIcon}
                 />
                 <TextInput
-                  placeholder="Tu nombre"
+                  placeholder={t("register.placeholders.firstName")}
                   placeholderTextColor="rgba(157,185,168,0.55)"
                   style={styles.input}
                   value={name}
@@ -233,7 +259,7 @@ const RegistroUsuario = (props) => {
                 />
               </View>
 
-              <Text style={styles.label}>Apellido</Text>
+              <Text style={styles.label}>{t("register.labels.lastName")}</Text>
               <View style={styles.inputContainer}>
                 <MaterialIcons
                   name="person-outline"
@@ -242,7 +268,7 @@ const RegistroUsuario = (props) => {
                   style={styles.inputIcon}
                 />
                 <TextInput
-                  placeholder="Tu apellido"
+                  placeholder={t("register.placeholders.lastName")}
                   placeholderTextColor="rgba(157,185,168,0.55)"
                   style={styles.input}
                   value={lastName}
@@ -250,7 +276,7 @@ const RegistroUsuario = (props) => {
                 />
               </View>
 
-              <Text style={styles.label}>Correo electrónico</Text>
+              <Text style={styles.label}>{t("register.labels.email")}</Text>
               <View style={styles.inputContainer}>
                 <MaterialIcons
                   name="mail-outline"
@@ -259,7 +285,7 @@ const RegistroUsuario = (props) => {
                   style={styles.inputIcon}
                 />
                 <TextInput
-                  placeholder="ej. usuario@email.com"
+                  placeholder={t("register.placeholders.email")}
                   placeholderTextColor="rgba(157,185,168,0.55)"
                   style={styles.input}
                   autoCapitalize="none"
@@ -269,7 +295,7 @@ const RegistroUsuario = (props) => {
                 />
               </View>
 
-              <Text style={styles.label}>Contraseña</Text>
+              <Text style={styles.label}>{t("register.labels.password")}</Text>
               <View style={styles.inputContainer}>
                 <MaterialIcons
                   name="lock-outline"
@@ -295,7 +321,7 @@ const RegistroUsuario = (props) => {
                 </TouchableOpacity>
               </View>
 
-              <Text style={styles.label}>DNI / NIE</Text>
+              <Text style={styles.label}>{t("register.labels.dni")}</Text>
               <View style={styles.inputContainer}>
                 <MaterialIcons
                   name="fingerprint"
@@ -304,7 +330,7 @@ const RegistroUsuario = (props) => {
                   style={styles.inputIcon}
                 />
                 <TextInput
-                  placeholder="12345678X"
+                  placeholder={t("register.placeholders.dni")}
                   placeholderTextColor="rgba(157,185,168,0.55)"
                   style={styles.input}
                   autoCapitalize="characters"
@@ -313,7 +339,7 @@ const RegistroUsuario = (props) => {
                 />
               </View>
 
-              <Text style={styles.label}>Fecha de nacimiento</Text>
+              <Text style={styles.label}>{t("register.labels.birthDate")}</Text>
 
               {Platform.OS === "web" ? (
                 <View style={{ position: "relative" }}>
@@ -335,7 +361,7 @@ const RegistroUsuario = (props) => {
                         { lineHeight: 56 },
                       ]}
                     >
-                      {fNac ? fNac : "Seleccionar fecha de nacimiento"}
+                      {fNac ? fNac : t("register.placeholders.birthDate")}
                     </Text>
                   </TouchableOpacity>
 
@@ -395,7 +421,7 @@ const RegistroUsuario = (props) => {
                       { lineHeight: 56 },
                     ]}
                   >
-                    {fNac ? fNac : "Seleccionar fecha de nacimiento"}
+                    {fNac ? fNac : t("register.placeholders.birthDate")}
                   </Text>
                 </TouchableOpacity>
               )}
@@ -424,23 +450,54 @@ const RegistroUsuario = (props) => {
                 </View>
 
                 <Text style={styles.termsText}>
-                  Acepto los <Text style={styles.termsLink}>Términos de Servicio</Text> y la{" "}
-                  <Text style={styles.termsLink}>Política de Privacidad</Text>.
+                  {t("register.terms.acceptPrefix")}{" "}
+                  <Text style={styles.termsLink}>{t("register.terms.termsOfService")}</Text>{" "}
+                  {t("register.terms.and")}{" "}
+                  <Text style={styles.termsLink}>{t("register.terms.privacyPolicy")}</Text>.
                 </Text>
               </TouchableOpacity>
 
               <TouchableOpacity style={styles.primaryBtn} activeOpacity={0.85} onPress={handleRegister}>
-                <Text style={styles.primaryBtnText}>REGISTRARSE</Text>
+                <Text style={styles.primaryBtnText}>{t("register.actions.register")}</Text>
               </TouchableOpacity>
             </View>
           </View>
 
           <View style={styles.footer}>
-            <Text style={styles.footerText}>¿Ya tienes una cuenta? </Text>
+            <Text style={styles.footerText}>{t("register.footer.haveAccount")} </Text>
             <Pressable onPress={() => props.navigation.navigate("InicioSesion")}>
-              <Text style={styles.footerLink}>Iniciar Sesión</Text>
+              <Text style={styles.footerLink}>{t("register.footer.login")}</Text>
             </Pressable>
           </View>
+
+          {/* ✅ AÑADIDO: modal ES/EN/CA */}
+          <Modal
+            transparent
+            visible={langModalVisible}
+            animationType="fade"
+            onRequestClose={() => setLangModalVisible(false)}
+          >
+            <Pressable
+              style={styles.langOverlay}
+              onPress={() => setLangModalVisible(false)}
+            >
+              <View style={styles.langModal}>
+                {LANGUAGES.map((lng) => (
+                  <TouchableOpacity
+                    key={lng}
+                    style={styles.langItem}
+                    onPress={() => changeLang(lng)}
+                    activeOpacity={0.85}
+                  >
+                    <Text style={styles.langText}>{lng}</Text>
+                    {i18n.language === lng && (
+                      <MaterialIcons name="check" size={20} color={COLORS.primary} />
+                    )}
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </Pressable>
+          </Modal>
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
@@ -459,6 +516,19 @@ const styles = StyleSheet.create({
   blobBottomLeft: { width: 300, height: 300, bottom: -60, left: -120 },
 
   container: { width: "100%", maxWidth: 450, paddingHorizontal: 24 },
+
+  // ✅ AÑADIDO (solo para el botón)
+  langBtnWrap: { alignItems: "flex-end", marginTop: 6 },
+  langBtn: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: COLORS.cardBg || COLORS.inputBg,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+  },
 
   headLeft: { marginTop: 4, marginBottom: 22 },
   title: { fontSize: 32, fontWeight: "800", color: COLORS.textMain || "#fff", marginBottom: 8 },
@@ -562,6 +632,29 @@ const styles = StyleSheet.create({
     overflow: "hidden",
     padding: 6,
   },
+
+  // ✅ AÑADIDO (solo para el modal)
+  langOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  langModal: {
+    width: 220,
+    borderRadius: 16,
+    paddingVertical: 10,
+    backgroundColor: COLORS.cardBg || "#fff",
+    borderWidth: 1,
+    borderColor: COLORS.border || "rgba(0,0,0,0.15)",
+  },
+  langItem: {
+    padding: 14,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  langText: { fontSize: 16, color: COLORS.textMain || "#000" },
 });
 
 export default RegistroUsuario;

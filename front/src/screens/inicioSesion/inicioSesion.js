@@ -21,7 +21,7 @@ import CryptoJS from "crypto-js";
 
 import common from "../../styles/common";
 import theme from "../../styles/theme";
-import Context from '../../context/Context';
+import Context from "../../context/Context";
 
 const COLORS = theme?.colors || theme?.COLORS || theme;
 
@@ -56,28 +56,30 @@ const InicioSesion = (props) => {
       console.log({ hasHardware, isEnrolled, supportedTypes });
 
       if (!hasHardware) {
-        return Alert.alert("Error", "Este dispositivo no soporta biometría.");
+        return Alert.alert(t("common.error"), t("login.errors.noBiometrics"));
       }
 
       if (!isEnrolled) {
-        return Alert.alert("Error", "No tienes un rostro registrado en este iPhone.");
+        return Alert.alert(t("common.error"), t("login.errors.noFaceRegistered"));
       }
 
       const result = await LocalAuthentication.authenticateAsync({
-        promptMessage: "Autentícate con Face ID",
-        fallbackLabel: "Introducir código",
+        promptMessage: t("login.faceId.prompt"),
+        fallbackLabel: t("login.faceId.fallback"),
       });
 
       if (result.success) {
-        Alert.alert("Éxito", "Bienvenido");
+        Alert.alert(t("login.success.title"), t("login.success.welcome"));
       } else {
         Alert.alert(
-          "No autenticado",
-          result.error ? `Motivo: ${result.error}` : "Cancelado"
+          t("login.faceId.notAuthenticatedTitle"),
+          result.error
+            ? `${t("login.faceId.reason")}: ${result.error}`
+            : t("login.faceId.cancelled")
         );
       }
     } catch (error) {
-      Alert.alert("Error crítico", error.message);
+      Alert.alert(t("login.errors.criticalTitle"), error.message);
     }
   };
 
@@ -85,7 +87,7 @@ const InicioSesion = (props) => {
     console.log("LOGIN CLICK", { mail, psw });
 
     if (!mail || !psw) {
-      Alert.alert("Error", "Por favor, rellena todos los campos");
+      Alert.alert(t("common.error"), t("login.errors.fillAll"));
       return;
     }
 
@@ -103,9 +105,11 @@ const InicioSesion = (props) => {
       const text = await response.text();
       console.log("LOGIN RESP", response.status, text);
 
-      if (!response.ok) {
-        Alert.alert("Error", text);
-        return;
+      Alert.alert(response.ok ? t("login.success.title") : t("common.error"), text);
+
+      if (response.ok) {
+        await loginUser({ email: mail });
+        props.navigation.navigate("HomeNav");
       }
 
       // 2) SOLO SI LOGIN OK -> pedir ID por email
@@ -140,7 +144,7 @@ const InicioSesion = (props) => {
       props.navigation.navigate("HomeNav");
     } catch (error) {
       console.log("FETCH ERROR", error);
-      Alert.alert("Error", "Error de conexión. Inténtalo más tarde.");
+      Alert.alert(t("common.error"), t("login.errors.connection"));
     }
   };
 
@@ -158,10 +162,7 @@ const InicioSesion = (props) => {
           <View style={styles.container}>
             <View style={styles.heroWrap}>
               <View style={styles.heroCard}>
-                <ImageBackground
-                  source={require("../../../assets/logo.png")}
-                  style={styles.heroImg}
-                >
+                <ImageBackground source={require("../../../assets/logo.png")} style={styles.heroImg}>
                   <LinearGradient
                     colors={["transparent", "rgba(16,34,23,0.8)", COLORS?.backgroundDark || "#102217"]}
                     locations={[0.0, 0.7, 1.0]}
@@ -172,8 +173,8 @@ const InicioSesion = (props) => {
             </View>
 
             <View style={styles.head}>
-              <Text style={styles.title}>Bienvenido</Text>
-              <Text style={styles.subtitle}>Accede a tu cartera segura</Text>
+              <Text style={styles.title}>{t("login.title")}</Text>
+              <Text style={styles.subtitle}>{t("login.subtitle")}</Text>
             </View>
 
             <View style={styles.form}>
@@ -185,7 +186,7 @@ const InicioSesion = (props) => {
                   style={styles.inputIcon}
                 />
                 <TextInput
-                  placeholder="Correo electrónico"
+                  placeholder={t("login.placeholders.email")}
                   placeholderTextColor={COLORS?.textMuted || "#9db9a8"}
                   style={styles.input}
                   autoCapitalize="none"
@@ -222,36 +223,24 @@ const InicioSesion = (props) => {
               </View>
 
               <TouchableOpacity style={styles.forgotPassRow}>
-                <Text style={styles.forgotPassText}>
-                  ¿Olvidaste tu contraseña?
-                </Text>
+                <Text style={styles.forgotPassText}>{t("login.forgotPassword")}</Text>
               </TouchableOpacity>
 
-              <TouchableOpacity
-                style={styles.primaryBtn}
-                activeOpacity={0.8}
-                onPress={handleLogin}
-              >
-                <Text style={styles.primaryBtnText}>Iniciar Sesión</Text>
+              <TouchableOpacity style={styles.primaryBtn} activeOpacity={0.8} onPress={handleLogin}>
+                <Text style={styles.primaryBtnText}>{t("login.actions.signIn")}</Text>
               </TouchableOpacity>
 
-              <TouchableOpacity
-                style={styles.secondaryBtn}
-                activeOpacity={0.8}
-                onPress={handleBiometricAuth}
-              >
+              <TouchableOpacity style={styles.secondaryBtn} activeOpacity={0.8} onPress={handleBiometricAuth}>
                 <MaterialIcons name="face" size={24} color="#ffffff" />
-                <Text style={styles.secondaryBtnText}>Ingresar con Face ID</Text>
+                <Text style={styles.secondaryBtnText}>{t("login.actions.faceId")}</Text>
               </TouchableOpacity>
             </View>
 
             <View style={styles.footer}>
               <Text style={styles.footerText}>
                 {t("NoAccount.Question")}{" "}
-                <Pressable
-                  onPress={() => props.navigation.navigate("RegistroUsuario")}
-                >
-                  <Text style={styles.footerLink}>Regístrate</Text>
+                <Pressable onPress={() => props.navigation.navigate("RegistroUsuario")}>
+                  <Text style={styles.footerLink}>{t("NoAccount.Register")}</Text>
                 </Pressable>
               </Text>
             </View>
@@ -263,10 +252,7 @@ const InicioSesion = (props) => {
 };
 
 const styles = StyleSheet.create({
-  // ✅ fallback solo si common.safe no existe
   safe: { flex: 1, backgroundColor: COLORS?.backgroundDark || "#102217" },
-
-  // ✅ fallback solo si common.container no existe
   scrollContainer: { flexGrow: 1 },
 
   root: { flex: 1, alignItems: "center", justifyContent: "center", paddingVertical: 40 },
