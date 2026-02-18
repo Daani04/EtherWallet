@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
 import theme from "../styles/theme";
 import Context from "./Context";
+import i18n from "../../assets/i18n";
 
 const SettingsContext = createContext(null);
 
@@ -49,11 +50,16 @@ function buildPalette(isDark) {
 export function SettingsProvider({ children }) {
   const { userId } = useContext(Context);
 
-  // Defaults (antes de cargar BBDD)
   const [isDarkMode, setIsDarkMode] = useState(true);
   const [language, setLanguage] = useState("EN");
   const [currency, setCurrency] = useState("USD");
   const [faceId, setFaceId] = useState(true);
+
+  useEffect(() => {
+    if (language) {
+      i18n.changeLanguage(language);
+    }
+  }, [language]);
 
   useEffect(() => {
     if (!userId) return;
@@ -77,7 +83,6 @@ export function SettingsProvider({ children }) {
     loadSettings();
   }, [userId]);
 
-  // Guardar settings en BBDD (reutilizable por todas)
   const saveSettings = async (partial) => {
     if (!userId) return;
 
