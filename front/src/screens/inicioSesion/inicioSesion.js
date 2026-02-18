@@ -27,7 +27,7 @@ const COLORS = theme?.colors || theme?.COLORS || theme;
 
 const { width } = Dimensions.get("window");
 
-const BASE_URL = "http://10.10.6.221:8080";
+const BASE_URL = "http://10.10.5.213:8080";
 
 const InicioSesion = (props) => {
   const [isBiometricSupported, setIsBiometricSupported] = useState(false);
@@ -81,7 +81,8 @@ const InicioSesion = (props) => {
     }
   };
 
-  const handleLogin = async () => {
+
+const handleLogin = async () => {
     console.log("LOGIN CLICK", { mail, psw });
 
     if (!mail || !psw) {
@@ -93,7 +94,7 @@ const InicioSesion = (props) => {
     console.log("HASHED", hashedPassword);
 
     try {
-      // 1) LOGIN
+      // 1) LOGIN: Validar credenciales
       const response = await fetch(`${BASE_URL}/API/Login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -108,7 +109,7 @@ const InicioSesion = (props) => {
         return;
       }
 
-      // 2) SOLO SI LOGIN OK -> pedir ID por email
+      // 2) Obtener ID por email
       const idRes = await fetch(
         `${BASE_URL}/API/UserIdByEmail?email=${encodeURIComponent(mail)}`,
         { method: "GET" }
@@ -132,18 +133,30 @@ const InicioSesion = (props) => {
         return;
       }
 
-      // 3) GUARDAR EN CONTEXT (state) + sesión
-      setUserId(fetchedId);
-      await loginUser({ email: mail, userId: fetchedId });
+      // 3) NUEVO: Obtener datos completos del usuario (walletAddress, firstName, etc.)
+      const userRes = await fetch(`${BASE_URL}/API/User/${fetchedId}`, {
+        method: "GET"
+      });
 
-      // 4) navegar
+      if (!userRes.ok) {
+        Alert.alert("Error", "Login OK, pero no se pudieron recuperar los datos del perfil.");
+        return;
+      }
+
+      const fullUserData = await userRes.json();
+      console.log("DATOS COMPLETOS RECUPERADOS:", fullUserData);
+
+      // 4) GUARDAR EN CONTEXT (con todos los datos para la Billetera)
+      setUserId(fetchedId);
+      await loginUser({ ...fullUserData, userId: fetchedId });
+
+      // 5) Navegar
       props.navigation.navigate("HomeNav");
     } catch (error) {
       console.log("FETCH ERROR", error);
       Alert.alert("Error", "Error de conexión. Inténtalo más tarde.");
     }
   };
-
 
   return (
     <KeyboardAvoidingView

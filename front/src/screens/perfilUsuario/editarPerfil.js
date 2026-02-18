@@ -11,7 +11,7 @@ const COLORS = {
   muted: "rgba(255, 255, 255, 0.6)",
 };
 
-const API_BASE = "http://10.10.3.178:8080";
+const API_BASE = "http://10.10.5.213:8080";
 
 export default function EditarPerfil({ navigation, route }) {
   const user = route?.params?.user;

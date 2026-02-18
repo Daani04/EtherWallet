@@ -21,7 +21,7 @@ import theme from "../../styles/theme";
 
 const COLORS = theme?.colors || theme?.COLORS || theme;
 
-const BASE_URL = "http://10.10.6.221:8080";
+const BASE_URL = "http://10.10.5.213:8080";
 
 export default function PerfilUsuario(props) {
   const { userId, setUserId, logoutUser, user: userFromContext } = useContext(Context);
