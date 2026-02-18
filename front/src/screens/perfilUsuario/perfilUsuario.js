@@ -27,8 +27,12 @@ const BASE_URL = "http://10.10.5.238:8080";
 export default function PerfilUsuario(props) {
   const { t } = useTranslation();
 
-  const { userId } = useContext(Context);
-  const { logoutUser } = useContext(Context);
+  const { userId, setUserId, logoutUser, user: userFromContext } = useContext(Context);
+  const user = userFromContext ?? props.route?.params?.user ?? null;
+
+  console.log("USERID CONTEXT:", userId);
+
+  const [dbUser, setDbUser] = useState(null);
 
   const [faceId, setFaceId] = useState(true);
   const [isDarkMode, setIsDarkMode] = useState(true);
