@@ -1,6 +1,189 @@
 {
-    "NoAccount":{
-      "Question": "¿No tienes una cuenta?",
-      "Register": "Regístrate"
+  "NoAccount": {
+    "Question": "No tens un compte?",
+    "Register": "Registra't"
+  },
+  "news": {
+    "headerTitle": "Geopolítica i Mercats",
+    "loading": "Analitzant el mercat...",
+    "sentiment": {
+      "optimistic": "Optimista",
+      "bearish": "Baixista",
+      "neutral": "Neutral"
     }
+  },
+  "transactions": {
+    "headerTitle": "Transaccions",
+    "searchPlaceholder": "Cerca destinatari o moviment…",
+    "sections": {
+      "quickActions": "Accions ràpides",
+      "recentRecipients": "Últims destinataris",
+      "recentMovements": "Moviments recents"
+    },
+    "viewAll": "Veure-ho tot",
+    "newTransaction": "Nova transacció",
+    "quickActions": {
+      "deposit": {
+        "title": "Ingressar",
+        "subtitle": "Afig EUR al teu wallet"
+      },
+      "transfer": {
+        "title": "Transferir",
+        "subtitle": "A un altre compte/IBAN"
+      },
+      "withdraw": {
+        "title": "Retirar",
+        "subtitle": "Al teu banc"
+      }
+    },
+    "types": {
+      "deposit": "Ingrés",
+      "withdraw": "Retirada",
+      "transfer": "Transferència"
+    },
+    "dates": {
+      "today": "Hui",
+      "yesterday": "Ahir"
+    },
+    "to": {
+      "bank": "Banc"
+    }
+  },
+  "editProfile": {
+    "title": "Editar perfil",
+    "helpImageUrl": "Apega una URL d'imatge (per ara)",
+    "labels": {
+      "image": "Imatge (userImage)",
+      "firstName": "Nom (firstName)",
+      "lastName": "Cognoms (lastName)",
+      "birthDate": "Data de naixement (birthDate)",
+      "newPassword": "Nova contrasenya (opcional)"
+    },
+    "placeholders": {
+      "imageUrl": "https://...",
+      "firstName": "Nom",
+      "lastName": "Cognoms",
+      "birthDate": "dd/mm/yyyy",
+      "passwordOptional": "Deixa-ho buit per a no canviar"
+    },
+    "buttons": {
+      "save": "Guardar canvis",
+      "cancel": "Cancel·lar"
+    },
+    "alerts": {
+      "errorTitle": "Error",
+      "okTitle": "Ok",
+      "missingId": "No tinc l'id de l'usuari (falta user.id).",
+      "fillFields": "Ompli firstName, lastName, birthDate i userImage.",
+      "updated": "Perfil actualitzat",
+      "serverError": "No s'ha pogut connectar amb el servidor"
+    }
+  },
+  "register": {
+    "title": "Crea el teu compte",
+    "subtitle": "Uneix-te al futur de les finances cripto hui.\nRegistra't per a començar a operar.",
+    "labels": {
+      "profilePhotoOptional": "Foto de perfil (opcional)",
+      "name": "Nom",
+      "lastName": "Cognom",
+      "email": "Correu electrònic",
+      "password": "Contrasenya",
+      "dni": "DNI / NIE",
+      "birthDate": "Data de naixement"
+    },
+    "avatar": {
+      "selectImage": "Seleccionar imatge",
+      "fromFiles": "Des d'arxius",
+      "fromGallery": "Des de galeria"
+    },
+    "placeholders": {
+      "name": "El teu nom",
+      "lastName": "El teu cognom",
+      "email": "p. ex. usuari@email.com",
+      "password": "••••••••••••",
+      "dni": "12345678X",
+      "birthDate": "Seleccionar data de naixement"
+    },
+    "terms": {
+      "textPrefix": "Accepte els",
+      "termsOfService": "Termes del Servei",
+      "and": "i la",
+      "privacyPolicy": "Política de Privacitat",
+      "textSuffix": "."
+    },
+    "buttons": {
+      "register": "REGISTRAR-SE"
+    },
+    "footer": {
+      "haveAccount": "Ja tens un compte?",
+      "login": "Iniciar sessió"
+    },
+    "alerts": {
+      "errorTitle": "Error",
+      "successTitle": "Èxit",
+      "fillAllFields": "Per favor, completa tots els camps.",
+      "acceptTerms": "Has d'acceptar els termes i condicions.",
+      "permissionDeniedTitle": "Permís denegat",
+      "permissionDeniedMsg": "Necessites permisos per a accedir a la galeria.",
+      "galleryError": "No s'ha pogut obrir la galeria.",
+      "serverError": "No s'ha pogut connectar amb el servidor.",
+      "registerOk": "Usuari registrat correctament",
+      "registerFail": "No s'ha pogut registrar"
+    }
+  },
+  "login": {
+    "title": "Benvingut/da",
+    "subtitle": "Accedix a la teua cartera segura",
+    "placeholders": {
+      "email": "Correu electrònic",
+      "password": "••••••••••••"
+    },
+    "forgotPassword": "Has oblidat la contrasenya?",
+    "buttons": {
+      "login": "Iniciar sessió",
+      "faceId": "Entrar amb Face ID"
+    },
+    "biometric": {
+      "noSupportTitle": "Error",
+      "noSupportMsg": "Este dispositiu no suporta biometria.",
+      "notEnrolledTitle": "Error",
+      "notEnrolledMsg": "No tens un rostre registrat en este iPhone.",
+      "promptMessage": "Autentica't amb Face ID",
+      "fallbackLabel": "Introduir codi",
+      "successTitle": "Èxit",
+      "successMsg": "Benvingut/da",
+      "notAuthTitle": "No autenticat",
+      "cancelled": "Cancel·lat",
+      "criticalTitle": "Error crític"
+    },
+    "alerts": {
+      "errorTitle": "Error",
+      "fillAllFields": "Per favor, ompli tots els camps",
+      "connectionError": "Error de connexió. Intenta-ho més tard."
+    }
+  },
+  "profile": {
+    "settingsTitle": "Configuració",
+    "versionPrefix": "Versió",
+    "sections": {
+      "account": "Compte",
+      "security": "Seguretat",
+      "preferences": "Preferències"
+    },
+    "items": {
+      "editProfile": "Editar perfil",
+      "lightDark": "Clar/Fosc",
+      "faceId": "Face ID",
+      "twoFA": "Autenticació 2FA",
+      "kyc": "Verificació KYC",
+      "notifications": "Notificacions",
+      "localCurrency": "Moneda local",
+      "language": "Idioma",
+      "logout": "Tancar sessió"
+    },
+    "status": {
+      "enabled": "Activat",
+      "kycLevel2": "Verificat nivell 2"
+    }
+  }
 }
