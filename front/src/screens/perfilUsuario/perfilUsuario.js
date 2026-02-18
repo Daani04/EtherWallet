@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from "react";
+import React, { useState, useEffect, useContext, useMemo } from "react";
 import {
   View,
   Text,
@@ -11,7 +11,7 @@ import {
   Modal,
   Pressable,
   Alert,
-  Platform
+  Platform,
 } from "react-native";
 import Icon from "react-native-vector-icons/MaterialIcons";
 import Nav from "../../components/Nav";
@@ -19,29 +19,24 @@ import Context from "../../context/Context";
 import common from "../../styles/common";
 import theme from "../../styles/theme";
 import { useTranslation } from "react-i18next";
+import { useSettings } from "../../context/SettingsContext";
 
-const COLORS = theme?.colors || theme?.COLORS || theme;
 
 const BASE_URL = "http://35.170.12.68:8080";
 
 export default function PerfilUsuario(props) {
   const { t } = useTranslation();
+  const { C, isDarkMode, setIsDarkMode, faceId, setFaceId, language, setLanguage, currency, setCurrency, saveSettings } = useSettings();
 
   const { userId, setUserId, logoutUser, user: userFromContext } = useContext(Context);
   const user = userFromContext ?? props.route?.params?.user ?? null;
 
-  console.log("USERID CONTEXT:", userId);
-
   const [dbUser, setDbUser] = useState(null);
 
-  const [faceId, setFaceId] = useState(true);
-  const [isDarkMode, setIsDarkMode] = useState(true);
 
-  const [language, setLanguage] = useState("EN");
   const [languageModalVisible, setLanguageModalVisible] = useState(false);
   const LANGUAGES = ["ES", "EN", "CA"];
 
-  const [currency, setCurrency] = useState("USD");
   const [currencyModalVisible, setCurrencyModalVisible] = useState(false);
   const CURRENCIES = ["USD", "EUR", "GBP", "MXN"];
 
@@ -95,66 +90,24 @@ export default function PerfilUsuario(props) {
     loadSettings();
   }, [userId]);
 
-  const saveSettings = async (partial) => {
-    if (!userId) return;
-
-    const payload = {
-      userId,
-      theme: isDarkMode,
-      language,
-      currency,
-      faceId,
-      ...partial,
-    };
-
-    try {
-      const res = await fetch(`${BASE_URL}/API/EditSettings/${userId}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-
-      if (!res.ok) {
-        const txt = await res.text();
-        console.log("PUT SETTINGS ERROR", res.status, txt);
-        return;
-      }
-    } catch (e) {
-      console.log("SAVE SETTINGS EXCEPTION", e);
-    }
-  };
-
   const shownUser = dbUser ?? user;
 
   const handleDeleteAccount = async () => {
-    console.log("[DELETE] Click eliminar. userId:", userId);
-
-    if (!userId) {
-      console.log("[DELETE] Abort: userId vacío");
-      return;
-    }
+    if (!userId) return;
 
     const id = String(userId).trim();
-    console.log("[DELETE] id final:", id);
 
     const doDelete = async () => {
-      console.log("[DELETE] Confirmado -> llamando fetch...");
-
       try {
         const url = `${BASE_URL}/API/DeleteUser/${id}`;
-        console.log("[DELETE] URL:", url);
-
         const res = await fetch(url, { method: "DELETE" });
-
         const txt = await res.text();
-        console.log("[DELETE] RESP status:", res.status, "ok:", res.ok, "body:", txt);
 
         if (!res.ok) {
           Alert.alert("Error", txt || "No se pudo eliminar la cuenta.");
           return;
         }
 
-        console.log("[DELETE] OK -> logout + reset navigation");
         await logoutUser();
         setUserId(0);
 
@@ -163,14 +116,12 @@ export default function PerfilUsuario(props) {
           routes: [{ name: "InicioSesion" }],
         });
       } catch (e) {
-        console.log("[DELETE] EXCEPTION:", e);
         Alert.alert("Error", "Error de conexión. Inténtalo más tarde.");
       }
     };
 
     if (Platform.OS === "web") {
       const ok = window.confirm("Esta acción es irreversible. ¿Seguro que quieres eliminar tu cuenta?");
-      console.log("[DELETE] web confirm:", ok);
       if (ok) await doDelete();
       return;
     }
@@ -179,23 +130,18 @@ export default function PerfilUsuario(props) {
       "Eliminar cuenta",
       "Esta acción es irreversible. ¿Seguro que quieres eliminar tu cuenta?",
       [
-        { text: "Cancelar", style: "cancel", onPress: () => console.log("[DELETE] cancelado") },
+        { text: "Cancelar", style: "cancel" },
         { text: "Eliminar", style: "destructive", onPress: doDelete },
       ]
     );
   };
 
   const resolveAvatarUri = () => {
-    const raw =
-      shownUser?.userImageUrl ||
-      shownUser?.userImage ||
-      "";
-
+    const raw = shownUser?.userImageUrl || shownUser?.userImage || "";
     if (!raw) return "https://randomuser.me/api/portraits/men/1.jpg";
 
     const s = String(raw).trim();
 
-    // ya viene como url / data-uri / file / content
     if (
       s.startsWith("http://") ||
       s.startsWith("https://") ||
@@ -206,36 +152,34 @@ export default function PerfilUsuario(props) {
       return s;
     }
 
-    // si ya contiene "base64," pero sin data:image
     if (s.includes("base64,")) {
       return s.startsWith("data:") ? s : `data:image/jpeg;${s}`;
     }
 
-    // si parece base64 "pelado"
     return `data:image/jpeg;base64,${s}`;
   };
 
+
+  const styles = useMemo(() => makeStyles(C), [C]);
+
   return (
-    <SafeAreaView style={common.safe}>
+    <SafeAreaView style={[common.safe, { backgroundColor: C.bg }]}>
       <View style={styles.header}>
         <TouchableOpacity onPress={() => props.navigation.goBack()}>
-          <Icon name="arrow-back-ios-new" size={22} color={COLORS.textMain} />
+          <Icon name="arrow-back-ios-new" size={22} color={C.textMain} />
         </TouchableOpacity>
 
-        <Text style={common.headerTitle || styles.headerTitle}>
+        <Text style={[common.headerTitle || styles.headerTitle, { color: C.textMain }]}>
           {t("profile.settingsTitle")}
         </Text>
 
         <View style={{ width: 24 }} />
       </View>
 
-      <ScrollView contentContainerStyle={{ paddingBottom: 120 }}>
+      <ScrollView contentContainerStyle={{ paddingBottom: 120 }} style={{ backgroundColor: C.bg }}>
         <View style={styles.profileContainer}>
           <View>
-            <Image
-              source={{ uri: resolveAvatarUri() }}
-              style={styles.avatar}
-            />
+            <Image source={{ uri: resolveAvatarUri() }} style={styles.avatar} />
           </View>
 
           <Text style={styles.name}>{shownUser?.firstName || "Usuario"}</Text>
@@ -243,15 +187,13 @@ export default function PerfilUsuario(props) {
           <View style={styles.walletRow}>
             <View style={styles.dot} />
             <Text style={styles.walletText}>
-              {shownUser?.walletAddress
-                ? shownUser.walletAddress.substring(0, 6) + "..."
-                : "Sin dirección"}
+              {shownUser?.walletAddress ? shownUser.walletAddress.substring(0, 6) + "..." : "Sin dirección"}
             </Text>
-            <Icon name="content-copy" size={14} color={COLORS.textMuted} />
+            <Icon name="content-copy" size={14} color={C.textMuted} />
           </View>
         </View>
 
-        <Section title={t("profile.sections.account")}>
+        <Section title={t("profile.sections.account")} C={C} styles={styles}>
           <Item
             icon="person"
             label={t("profile.items.editProfile")}
@@ -266,36 +208,37 @@ export default function PerfilUsuario(props) {
                     userImage: "",
                     email: "",
                     dni: "",
-                    password:
-                      "",
+                    password: "",
                     favoriteId: "",
                   },
               })
             }
+            C={C}
+            styles={styles}
           />
 
-          <Item icon="dark-mode" label={t("profile.items.lightDark")}>
+          <Item icon="dark-mode" label={t("profile.items.lightDark")} C={C} styles={styles}>
             <Switch
               value={isDarkMode}
               onValueChange={(val) => {
                 setIsDarkMode(val);
                 saveSettings({ theme: val });
               }}
-              trackColor={{ false: "#3e3e3e", true: COLORS.primary }}
+              trackColor={{ false: "#cbd5e1", true: C.primary }}
               thumbColor="#fff"
             />
           </Item>
         </Section>
 
-        <Section title={t("profile.sections.security")}>
-          <Item icon="face" label={t("profile.items.faceId")}>
+        <Section title={t("profile.sections.security")} C={C} styles={styles}>
+          <Item icon="face" label={t("profile.items.faceId")} C={C} styles={styles}>
             <Switch
               value={faceId}
               onValueChange={(val) => {
                 setFaceId(val);
                 saveSettings({ faceId: val });
               }}
-              trackColor={{ false: "#3e3e3e", true: COLORS.primary }}
+              trackColor={{ false: "#cbd5e1", true: C.primary }}
               thumbColor="#fff"
             />
           </Item>
@@ -304,23 +247,29 @@ export default function PerfilUsuario(props) {
             icon="shield"
             label={t("profile.items.twoFA")}
             rightText={t("profile.status.enabled")}
+            C={C}
+            styles={styles}
           />
 
           <Item
             icon="badge"
             label={t("profile.items.kyc")}
             subLabel={t("profile.status.kycLevel2")}
+            C={C}
+            styles={styles}
           />
         </Section>
 
-        <Section title={t("profile.sections.preferences")}>
-          <Item icon="notifications" label={t("profile.items.notifications")} />
+        <Section title={t("profile.sections.preferences")} C={C} styles={styles}>
+          <Item icon="notifications" label={t("profile.items.notifications")} C={C} styles={styles} />
 
           <Item
             icon="currency-exchange"
             label={t("profile.items.localCurrency")}
             rightText={currency}
             onPress={() => setCurrencyModalVisible(true)}
+            C={C}
+            styles={styles}
           />
 
           <Item
@@ -328,6 +277,8 @@ export default function PerfilUsuario(props) {
             label={t("profile.items.language")}
             rightText={language}
             onPress={() => setLanguageModalVisible(true)}
+            C={C}
+            styles={styles}
           />
         </Section>
 
@@ -338,22 +289,18 @@ export default function PerfilUsuario(props) {
             props.navigation.replace("InicioSesion");
           }}
         >
-          <Icon name="logout" size={20} color={COLORS.danger || "#ff4444"} />
+          <Icon name="logout" size={20} color={C.danger} />
           <Text style={styles.logoutText}>{t("profile.items.logout")}</Text>
         </TouchableOpacity>
+
         <TouchableOpacity style={styles.deleteBtn} onPress={handleDeleteAccount}>
-          <Icon name="delete-forever" size={20} color="#ff4444" />
+          <Icon name="delete-forever" size={20} color={C.danger} />
           <Text style={styles.deleteText}>Eliminar Cuenta</Text>
         </TouchableOpacity>
       </ScrollView>
 
       {/* MODAL IDIOMA */}
-      <Modal
-        transparent
-        visible={languageModalVisible}
-        animationType="fade"
-        onRequestClose={() => setLanguageModalVisible(false)}
-      >
+      <Modal transparent visible={languageModalVisible} animationType="fade" onRequestClose={() => setLanguageModalVisible(false)}>
         <Pressable style={styles.modalOverlay} onPress={() => setLanguageModalVisible(false)}>
           <View style={styles.modalContent}>
             {LANGUAGES.map((lang) => (
@@ -366,10 +313,10 @@ export default function PerfilUsuario(props) {
                   saveSettings({ language: lang });
                 }}
               >
-                <Text style={[styles.modalText, lang === language && { color: COLORS.primary }]}>
+                <Text style={[styles.modalText, lang === language && { color: C.primary }]}>
                   {lang}
                 </Text>
-                {lang === language && <Icon name="check" size={20} color={COLORS.primary} />}
+                {lang === language && <Icon name="check" size={20} color={C.primary} />}
               </TouchableOpacity>
             ))}
           </View>
@@ -377,12 +324,7 @@ export default function PerfilUsuario(props) {
       </Modal>
 
       {/* MODAL DIVISA */}
-      <Modal
-        transparent
-        visible={currencyModalVisible}
-        animationType="fade"
-        onRequestClose={() => setCurrencyModalVisible(false)}
-      >
+      <Modal transparent visible={currencyModalVisible} animationType="fade" onRequestClose={() => setCurrencyModalVisible(false)}>
         <Pressable style={styles.modalOverlay} onPress={() => setCurrencyModalVisible(false)}>
           <View style={styles.modalContent}>
             {CURRENCIES.map((cur) => (
@@ -395,10 +337,10 @@ export default function PerfilUsuario(props) {
                   saveSettings({ currency: cur });
                 }}
               >
-                <Text style={[styles.modalText, cur === currency && { color: COLORS.primary }]}>
+                <Text style={[styles.modalText, cur === currency && { color: C.primary }]}>
                   {cur}
                 </Text>
-                {cur === currency && <Icon name="check" size={20} color={COLORS.primary} />}
+                {cur === currency && <Icon name="check" size={20} color={C.primary} />}
               </TouchableOpacity>
             ))}
           </View>
@@ -410,17 +352,17 @@ export default function PerfilUsuario(props) {
   );
 }
 
-const Section = ({ title, children }) => (
+const Section = ({ title, children, C, styles }) => (
   <View style={styles.section}>
-    <Text style={common.sectionTitle || styles.sectionTitle}>{title}</Text>
-    <View style={common.card || styles.cardBox}>{children}</View>
+    <Text style={styles.sectionTitle}>{title}</Text>
+    <View style={styles.cardBox}>{children}</View>
   </View>
 );
 
-const Item = ({ icon, label, subLabel, rightText, children, onPress }) => (
+const Item = ({ icon, label, subLabel, rightText, children, onPress, C, styles }) => (
   <TouchableOpacity style={styles.item} disabled={!!children} onPress={onPress}>
     <View style={styles.row}>
-      <Icon name={icon} size={22} color={COLORS.textMain || "#fff"} />
+      <Icon name={icon} size={22} color={C.textMain} />
       <View style={{ marginLeft: 12 }}>
         <Text style={styles.itemText}>{label}</Text>
         {subLabel && <Text style={styles.subLabel}>{subLabel}</Text>}
@@ -429,142 +371,158 @@ const Item = ({ icon, label, subLabel, rightText, children, onPress }) => (
     {children || (
       <View style={styles.row}>
         {rightText && <Text style={styles.rightText}>{rightText}</Text>}
-        <Icon name="chevron-right" size={22} color="rgba(255,255,255,0.2)" />
+        <Icon name="chevron-right" size={22} color={C.chevron} />
       </View>
     )}
   </TouchableOpacity>
 );
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: COLORS.bg || "#0d1a12",
-  },
-  row: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
+const makeStyles = (C) =>
+  StyleSheet.create({
+    header: {
+      flexDirection: "row",
+      alignItems: "center",
+      padding: 16,
+    },
+    headerTitle: {
+      flex: 1,
+      textAlign: "center",
+      fontSize: 18,
+      fontWeight: "700",
+    },
 
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    padding: 16,
-  },
-  headerTitle: {
-    flex: 1,
-    textAlign: "center",
-    fontSize: 18,
-    fontWeight: "700",
-    color: COLORS.textMain || "#fff",
-  },
-  profileContainer: { alignItems: "center", paddingVertical: 20 },
-  avatar: {
-    width: 90,
-    height: 90,
-    borderRadius: 45,
-    borderWidth: 2,
-    borderColor: COLORS.primary,
-  },
-  name: {
-    fontSize: 22,
-    fontWeight: "700",
-    marginTop: 10,
-    color: COLORS.textMain || "#fff",
-  },
-  walletRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: COLORS.cardBg,
-    paddingHorizontal: 12,
-    paddingVertical: 5,
-    borderRadius: 20,
-    marginTop: 8,
-  },
-  dot: {
-    width: 7,
-    height: 7,
-    backgroundColor: COLORS.primary,
-    borderRadius: 4,
-    marginRight: 6,
-  },
-  walletText: { color: COLORS.textMain, fontSize: 12 },
-  sectionTitle: {
-    fontSize: 12,
-    color: COLORS.textMuted || "rgba(255,255,255,0.6)",
-    marginBottom: 8,
-    marginLeft: 4,
-    textTransform: "uppercase",
-  },
+    profileContainer: { alignItems: "center", paddingVertical: 20 },
+    avatar: {
+      width: 90,
+      height: 90,
+      borderRadius: 45,
+      borderWidth: 2,
+      borderColor: C.primary,
+    },
+    name: {
+      fontSize: 22,
+      fontWeight: "700",
+      marginTop: 10,
+      color: C.textMain,
+    },
 
-  cardBox: {
-    backgroundColor: COLORS.cardBg || "rgba(255,255,255,0.08)",
-    borderRadius: 20,
-    overflow: "hidden",
-    borderWidth: 1,
-    borderColor: COLORS.border || "rgba(255,255,255,0.15)",
-  },
+    walletRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      backgroundColor: C.pillBg,
+      paddingHorizontal: 12,
+      paddingVertical: 6,
+      borderRadius: 20,
+      marginTop: 8,
+      borderWidth: 1,
+      borderColor: C.border,
+      shadowColor: C.shadow,
+      shadowOpacity: 0.08,
+      shadowRadius: 10,
+      shadowOffset: { width: 0, height: 4 },
+      elevation: 2,
+    },
+    dot: {
+      width: 7,
+      height: 7,
+      backgroundColor: C.primary,
+      borderRadius: 4,
+      marginRight: 6,
+    },
+    walletText: { color: C.textMain, fontSize: 12 },
 
-  item: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    padding: 16,
-    borderBottomWidth: 1,
-    borderColor: "rgba(255,255,255,0.05)",
-  },
-  row: { flexDirection: "row", alignItems: "center" },
-  itemText: { fontSize: 16, color: COLORS.textMain },
-  subLabel: { fontSize: 12, color: COLORS.primary },
-  rightText: { color: COLORS.textMuted, marginRight: 4 },
-  logoutBtn: {
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: COLORS.dangerSoft,
-    margin: 20,
-    padding: 16,
-    borderRadius: 16,
-    gap: 8,
-  },
-  logoutText: { color: COLORS.danger, fontWeight: "600" },
-  version: { textAlign: "center", fontSize: 12, color: COLORS.textMuted },
+    section: { paddingHorizontal: 16, marginTop: 14 },
+    sectionTitle: {
+      fontSize: 12,
+      color: C.textMuted,
+      marginBottom: 8,
+      marginLeft: 4,
+      textTransform: "uppercase",
+      letterSpacing: 0.6,
+      fontWeight: "700",
+    },
 
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: "rgba(0,0,0,0.5)",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  modalContent: {
-    backgroundColor: COLORS.cardBg,
-    borderColor: COLORS.border,
-    borderRadius: 16,
-    paddingVertical: 10,
-    width: 200,
-    borderWidth: 1,
-  },
-  modalItem: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    padding: 14,
-  },
-  modalText: { color: COLORS.textMain, fontSize: 16 },
-  deleteBtn: {
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "rgba(255, 70, 70, 0.12)",
-    marginHorizontal: 20,
-    marginTop: 8,
-    padding: 16,
-    borderRadius: 16,
-    gap: 8,
-    borderWidth: 1,
-    borderColor: "rgba(255, 70, 70, 0.35)",
-  },
-  deleteText: {
-    color: "#ff4444",
-    fontWeight: "700",
-  },
-});
+    cardBox: {
+      backgroundColor: C.cardBg,
+      borderRadius: 20,
+      overflow: "hidden",
+      borderWidth: 1,
+      borderColor: C.border,
+      shadowColor: C.shadow,
+      shadowOpacity: 0.06,
+      shadowRadius: 14,
+      shadowOffset: { width: 0, height: 6 },
+      elevation: 2,
+    },
+
+    row: { flexDirection: "row", alignItems: "center" },
+
+    item: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      padding: 16,
+      borderBottomWidth: 1,
+      borderColor: C.border,
+    },
+    itemText: { fontSize: 16, color: C.textMain, fontWeight: "600" },
+    subLabel: { fontSize: 12, color: C.primary, marginTop: 2, fontWeight: "700" },
+    rightText: { color: C.textMuted, marginRight: 6, fontWeight: "600" },
+
+    logoutBtn: {
+      flexDirection: "row",
+      justifyContent: "center",
+      alignItems: "center",
+      backgroundColor: C.dangerSoft,
+      margin: 20,
+      padding: 16,
+      borderRadius: 16,
+      gap: 8,
+      borderWidth: 1,
+      borderColor: "rgba(255,92,92,0.25)",
+    },
+    logoutText: { color: C.danger, fontWeight: "700" },
+
+    deleteBtn: {
+      flexDirection: "row",
+      justifyContent: "center",
+      alignItems: "center",
+      backgroundColor: "rgba(255, 70, 70, 0.10)",
+      marginHorizontal: 20,
+      marginTop: 8,
+      padding: 16,
+      borderRadius: 16,
+      gap: 8,
+      borderWidth: 1,
+      borderColor: "rgba(255, 70, 70, 0.28)",
+    },
+    deleteText: { color: C.danger, fontWeight: "800" },
+
+    modalOverlay: {
+      flex: 1,
+      backgroundColor: "rgba(0,0,0,0.35)",
+      justifyContent: "center",
+      alignItems: "center",
+      paddingHorizontal: 24,
+    },
+    modalContent: {
+      backgroundColor: C.modalBg,
+      borderColor: C.border,
+      borderRadius: 16,
+      paddingVertical: 10,
+      width: 220,
+      borderWidth: 1,
+      shadowColor: C.shadow,
+      shadowOpacity: 0.10,
+      shadowRadius: 18,
+      shadowOffset: { width: 0, height: 10 },
+      elevation: 4,
+    },
+    modalItem: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      padding: 14,
+    },
+    modalText: { color: C.textMain, fontSize: 16, fontWeight: "600" },
+  });
