@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext, useMemo } from "react";
+import React, { useState, useEffect, useContext, useMemo, useRef, useCallback } from "react";
 import {
   StyleSheet,
   View,
@@ -36,6 +36,17 @@ export default function MenuPrincipal({ navigation }) {
   const [limit, setLimit] = useState(20);
   const [activeFilter, setActiveFilter] = useState("Todos");
 
+  const retryTimeoutRef = useRef(null);
+  const retryCountRef = useRef(0);
+  const mountedRef = useRef(true);
+
+  useEffect(() => {
+    return () => {
+      mountedRef.current = false;
+      if (retryTimeoutRef.current) clearTimeout(retryTimeoutRef.current);
+    };
+  }, []);
+
   const fetchFavorites = async () => {
     if (!user?.userId) return;
     try {
@@ -49,25 +60,57 @@ export default function MenuPrincipal({ navigation }) {
     }
   };
 
-  const fetchMarketData = async () => {
-    const url = `https://api.coingecko.com/api/v3/coins/markets?vs_currency=eur&order=market_cap_desc&per_page=${limit}&page=1&sparkline=true&price_change_percentage=24h`;
+  const fetchMarketData = useCallback(async ({ isRetry = false } = {}) => {
+    const url =
+      `https://api.coingecko.com/api/v3/coins/markets` +
+      `?vs_currency=eur&order=market_cap_desc&per_page=${limit}&page=1&sparkline=true&price_change_percentage=24h`;
+
     const apiKey = "";
+
+    if (!isRetry) retryCountRef.current = 0;
 
     try {
       const data = await getData(url, apiKey);
-      if (data && Array.isArray(data)) {
+
+      const hasValidData = Array.isArray(data) && data.length > 0;
+
+      if (hasValidData) {
+        if (!mountedRef.current) return;
         setCryptos(data);
+        setLoading(false);
+        retryCountRef.current = 0;
+        return;
       }
-      setLoading(false);
+
+      throw new Error("Respuesta vacía o inválida de CoinGecko");
     } catch (error) {
-      console.error("Error en fetchMarketData:", error);
-      setLoading(false);
+      console.error("Error en fetchMarketData:", error?.message || error);
+
+      const MAX_RETRIES = 8;
+      if (retryCountRef.current >= MAX_RETRIES) {
+        if (!mountedRef.current) return;
+        setLoading(false);
+        return;
+      }
+
+      retryCountRef.current += 1;
+
+      const delay = Math.min(700 * Math.pow(1.6, retryCountRef.current - 1), 8000);
+
+      if (retryTimeoutRef.current) clearTimeout(retryTimeoutRef.current);
+
+      retryTimeoutRef.current = setTimeout(() => {
+        if (!mountedRef.current) return;
+        fetchMarketData({ isRetry: true });
+      }, delay);
     }
-  };
+  }, [limit]);
 
   useEffect(() => {
-    fetchMarketData();
-  }, [limit]);
+    setLoading(true);
+    setCryptos([]);
+    fetchMarketData({ isRetry: false });
+  }, [limit, fetchMarketData]);
 
   useEffect(() => {
     fetchFavorites();
