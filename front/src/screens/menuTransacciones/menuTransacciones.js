@@ -10,6 +10,7 @@ import {
   useWindowDimensions,
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
+import { useTranslation } from "react-i18next"; 
 
 import common from "../../styles/common";
 import theme from "../../styles/theme";
@@ -29,6 +30,8 @@ const COLORS = {
 };
 
 export default function MenuTransacciones({ navigation }) {
+  const { t } = useTranslation(); 
+
   const { width } = useWindowDimensions();
 
   let isDesktop = false;
@@ -66,27 +69,27 @@ export default function MenuTransacciones({ navigation }) {
     return [
       {
         id: "deposit",
-        title: "Depositar",
-        subtitle: "Añade EUR a tu wallet",
+        title: t("transactions.quickActions.deposit.title"),
+        subtitle: t("transactions.quickActions.deposit.subtitle"),
         icon: "south-west",
         onPress: () => goToScreen("Depositar"),
       },
       {
         id: "transfer",
-        title: "Transferir",
-        subtitle: "A otra cuenta/IBAN",
+        title: t("transactions.quickActions.transfer.title"),
+        subtitle: t("transactions.quickActions.transfer.subtitle"),
         icon: "compare-arrows",
         onPress: () => goToScreen("Transferencia"),
       },
       {
         id: "withdraw",
-        title: "Retirar",
-        subtitle: "A tu banco",
+        title: t("transactions.quickActions.withdraw.title"),
+        subtitle: t("transactions.quickActions.withdraw.subtitle"),
         icon: "north-east",
         onPress: () => goToScreen("Retirar"),
       },
     ];
-  }, [navigation]);
+  }, [navigation, t]);
 
   const recentRecipients = useMemo(() => {
     return [
@@ -98,11 +101,29 @@ export default function MenuTransacciones({ navigation }) {
 
   const transactions = useMemo(() => {
     return [
-      { id: "t1", type: "Transferencia", to: "Carlos Fernández Bou", amount: -25.5, date: "Hoy" },
-      { id: "t2", type: "Depósito", to: "Wallet EUR", amount: 150, date: "Ayer" },
-      { id: "t3", type: "Retiro", to: "Banco", amount: -60, date: "05/02" },
+      {
+        id: "t1",
+        type: t("transactions.types.transfer"),
+        to: "Carlos Fernández Bou",
+        amount: -25.5,
+        date: t("transactions.dates.today"),
+      },
+      {
+        id: "t2",
+        type: t("transactions.types.deposit"),
+        to: "Wallet EUR",
+        amount: 150,
+        date: t("transactions.dates.yesterday"),
+      },
+      {
+        id: "t3",
+        type: t("transactions.types.withdraw"),
+        to: t("transactions.to.bank"),
+        amount: -60,
+        date: "05/02",
+      },
     ];
-  }, []);
+  }, [t]);
 
   const normalize = (txt) => {
     return String(txt || "").toLowerCase();
@@ -123,9 +144,9 @@ export default function MenuTransacciones({ navigation }) {
   const filteredTransactions = useMemo(() => {
     if (!hasQuery()) return transactions;
     const q = normalize(search);
-    return transactions.filter((t) => {
-      const a = normalize(t.type).includes(q);
-      const b = normalize(t.to).includes(q);
+    return transactions.filter((tx) => {
+      const a = normalize(tx.type).includes(q);
+      const b = normalize(tx.to).includes(q);
       if (a || b) return true;
       return false;
     });
@@ -211,8 +232,8 @@ export default function MenuTransacciones({ navigation }) {
   };
 
   const getTxIconName = (type) => {
-    if (type === "Depósito") return "south-west";
-    if (type === "Retiro") return "north-east";
+    if (type === t("transactions.types.deposit")) return "south-west";
+    if (type === t("transactions.types.withdraw")) return "north-east";
     return "compare-arrows";
   };
 
@@ -299,21 +320,21 @@ export default function MenuTransacciones({ navigation }) {
   };
 
   const renderTransactions = () => {
-    return filteredTransactions.map((t, idx) => {
+    return filteredTransactions.map((tx, idx) => {
       return (
-        <View key={t.id} style={getTxRowStyle(idx)}>
+        <View key={tx.id} style={getTxRowStyle(idx)}>
           <View style={styles.txIcon}>
-            <MaterialIcons name={getTxIconName(t.type)} size={18} color={COLORS.primary} />
+            <MaterialIcons name={getTxIconName(tx.type)} size={18} color={COLORS.primary} />
           </View>
 
           <View style={{ flex: 1 }}>
-            <Text style={styles.txTitle}>{t.type}</Text>
+            <Text style={styles.txTitle}>{tx.type}</Text>
             <Text style={styles.txSubtitle} numberOfLines={1}>
-              {t.to} · {t.date}
+              {tx.to} · {tx.date}
             </Text>
           </View>
 
-          <Text style={getAmountStyle(t.amount)}>{formatEUR(t.amount)}</Text>
+          <Text style={getAmountStyle(tx.amount)}>{formatEUR(tx.amount)}</Text>
         </View>
       );
     });
@@ -326,7 +347,7 @@ export default function MenuTransacciones({ navigation }) {
           <MaterialIcons name="arrow-back" size={22} color="#fff" />
         </TouchableOpacity>
 
-        <Text style={getHeaderTitleStyle()}>Transacciones</Text>
+        <Text style={getHeaderTitleStyle()}>{t("transactions.headerTitle")}</Text>
 
         <TouchableOpacity
           onPress={() => goToScreen("AyudaTransacciones")}
@@ -344,7 +365,7 @@ export default function MenuTransacciones({ navigation }) {
             <TextInput
               value={search}
               onChangeText={setSearch}
-              placeholder="Buscar destinatario o movimiento…"
+              placeholder={t("transactions.searchPlaceholder")}
               placeholderTextColor={COLORS.textMutedSoft}
               style={styles.searchInput}
             />
@@ -353,14 +374,18 @@ export default function MenuTransacciones({ navigation }) {
 
           <View style={getLayoutStyle()}>
             <View style={getLeftColStyle()}>
-              <Text style={common.sectionTitle || styles.sectionTitle}>Acciones rápidas</Text>
+              <Text style={common.sectionTitle || styles.sectionTitle}>
+                {t("transactions.sections.quickActions")}
+              </Text>
 
               <View style={styles.actionsGrid}>{renderQuickActions()}</View>
 
               <View style={styles.sectionRow}>
-                <Text style={common.sectionTitle || styles.sectionTitle}>Últimos destinatarios</Text>
+                <Text style={common.sectionTitle || styles.sectionTitle}>
+                  {t("transactions.sections.recentRecipients")}
+                </Text>
                 <TouchableOpacity onPress={() => goToScreen("Destinatarios")} activeOpacity={0.8}>
-                  <Text style={styles.link}>Ver todos</Text>
+                  <Text style={styles.link}>{t("transactions.viewAll")}</Text>
                 </TouchableOpacity>
               </View>
 
@@ -368,7 +393,7 @@ export default function MenuTransacciones({ navigation }) {
             </View>
 
             <View style={getRightColStyle()}>
-              <Text style={getMovTitleStyle()}>Movimientos recientes</Text>
+              <Text style={getMovTitleStyle()}>{t("transactions.sections.recentMovements")}</Text>
 
               <View style={styles.listCard}>{renderTransactions()}</View>
 
@@ -377,7 +402,7 @@ export default function MenuTransacciones({ navigation }) {
                 activeOpacity={0.9}
                 onPress={() => goToScreen("NuevaTransaccion")}
               >
-                <Text style={styles.primaryBtnText}>Nueva transacción</Text>
+                <Text style={styles.primaryBtnText}>{t("transactions.newTransaction")}</Text>
               </TouchableOpacity>
             </View>
           </View>

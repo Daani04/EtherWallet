@@ -14,6 +14,7 @@ import {
 } from "react-native";
 import CryptoJS from "crypto-js";
 import * as ImagePicker from "expo-image-picker";
+import { useTranslation } from "react-i18next";
 
 const COLORS = {
   primary: "#2bee79",
@@ -137,12 +138,12 @@ export default function EditarPerfil({ navigation, route }) {
   };
 
   const onSave = async () => {
-    if (!userId) {
-      Alert.alert("Error", "No tengo el id del usuario (falta user.id).");
+    if (!user?.id) {
+      Alert.alert(t("common.error"), t("editProfile.errors.missingUserId"));
       return;
     }
     if (!canSave) {
-      Alert.alert("Error", "Rellena nombre, apellidos y una fecha válida (dd/mm/yyyy).");
+      Alert.alert(t("common.error"), t("editProfile.errors.fillAllRequired"));
       return;
     }
 
@@ -180,74 +181,82 @@ export default function EditarPerfil({ navigation, route }) {
       const txt = await res.text();
 
       if (!res.ok) {
-        Alert.alert("Error", txt || "No se pudo actualizar el perfil.");
+        Alert.alert(t("common.error"), data);
         return;
       }
 
-      Alert.alert("Ok", "Perfil actualizado");
+      Alert.alert(t("common.ok"), t("editProfile.success.updated"));
       navigation.goBack();
     } catch (e) {
-      console.log("EDIT PROFILE ERROR", e);
-      Alert.alert("Error", "No se pudo conectar con el servidor");
+      Alert.alert(t("common.error"), t("editProfile.errors.serverConnection"));
     }
   };
 
   return (
     <ScrollView style={{ flex: 1, backgroundColor: COLORS.bg }} contentContainerStyle={{ padding: 16 }}>
-      <Text style={styles.title}>Editar perfil</Text>
+      <Text style={styles.title}>{t("editProfile.title")}</Text>
 
       {/* Avatar + botón seleccionar */}
       <View style={styles.avatarBox}>
-        <Image source={{ uri: userImage }} style={styles.avatar} />
-        <TouchableOpacity style={styles.pickBtn} onPress={pickImage}>
-          <Text style={styles.pickBtnText}>Cambiar foto</Text>
-        </TouchableOpacity>
-        <Text style={styles.help}>Puedes seleccionar una imagen del dispositivo.</Text>
+        <Image
+          source={{ uri: userImage?.startsWith("http") ? userImage : "https://via.placeholder.com/90" }}
+          style={styles.avatar}
+        />
+        <Text style={styles.help}>{t("editProfile.help.imageUrl")}</Text>
       </View>
 
-      <Text style={styles.label}>Nombre</Text>
+      <Text style={styles.label}>{t("editProfile.labels.image")}</Text>
+      <TextInput
+        value={userImage}
+        onChangeText={setUserImage}
+        style={styles.input}
+        placeholder="https://..."
+        placeholderTextColor={COLORS.muted}
+      />
+
+      <Text style={styles.label}>{t("editProfile.labels.firstName")}</Text>
       <TextInput
         value={firstName}
         onChangeText={setFirstName}
         style={styles.input}
-        placeholder="Nombre"
+        placeholder={t("editProfile.placeholders.firstName")}
         placeholderTextColor={COLORS.muted}
       />
 
-      <Text style={styles.label}>Apellidos</Text>
+      <Text style={styles.label}>{t("editProfile.labels.lastName")}</Text>
       <TextInput
         value={lastName}
         onChangeText={setLastName}
         style={styles.input}
-        placeholder="Apellidos"
+        placeholder={t("editProfile.placeholders.lastName")}
         placeholderTextColor={COLORS.muted}
       />
 
-      {/* Fecha como fila (tipo PerfilUsuario / ajustes) */}
-      <Text style={styles.label}>Fecha de nacimiento</Text>
-      <Pressable onPress={openDateModal} style={styles.rowField}>
-        <Text style={styles.rowFieldText}>
-          {birthDate?.trim() ? birthDate : "Seleccionar fecha (dd/mm/yyyy)"}
-        </Text>
-        <Text style={styles.rowChevron}>-›</Text>
-      </Pressable>
+      <Text style={styles.label}>{t("editProfile.labels.birthDate")}</Text>
+      <TextInput
+        value={birthDate}
+        onChangeText={setBirthDate}
+        style={styles.input}
+        placeholder={t("editProfile.placeholders.birthDate")}
+        placeholderTextColor={COLORS.muted}
+      />
 
-      <Text style={styles.label}>Nueva contraseña (opcional)</Text>
+      <Text style={styles.label}>{t("editProfile.labels.newPassword")}</Text>
       <TextInput
         value={password}
         onChangeText={setPassword}
         style={styles.input}
-        placeholder="Deja vacío para no cambiar"
+        placeholder={t("editProfile.placeholders.newPassword")}
         placeholderTextColor={COLORS.muted}
         secureTextEntry
       />
 
       <TouchableOpacity style={[styles.btn, { opacity: canSave ? 1 : 0.5 }]} onPress={onSave} disabled={!canSave}>
-        <Text style={styles.btnText}>Guardar cambios</Text>
+        <Text style={styles.btnText}>{t("editProfile.actions.save")}</Text>
       </TouchableOpacity>
 
       <TouchableOpacity style={styles.btnGhost} onPress={() => navigation.goBack()}>
-        <Text style={styles.btnGhostText}>Cancelar</Text>
+        <Text style={styles.btnGhostText}>{t("common.cancel")}</Text>
       </TouchableOpacity>
 
       {/* MODAL FECHA */}
