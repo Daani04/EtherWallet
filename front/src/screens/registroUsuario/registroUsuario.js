@@ -129,7 +129,7 @@ const RegistroUsuario = (props) => {
 
       const hashedPassword = CryptoJS.SHA256(psw).toString();
 
-      const response = await fetch("http://localhost:8080/API/NewUser", {
+      const response = await fetch("http://35.170.12.68:8080/API/NewUser", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

@@ -26,11 +26,10 @@ const COLORS = {
   danger: "#ff4444",
 };
 
-const API_BASE = "http://10.10.5.213:8080"; 
+const BASE_URL = "http://35.170.12.68:8080";
 
 const pad2 = (n) => String(n).padStart(2, "0");
 
-// valida dd/mm/yyyy básico
 const isValidDateStr = (s) => {
   if (!/^\d{2}\/\d{2}\/\d{4}$/.test(s)) return false;
   const [dd, mm, yyyy] = s.split("/").map((x) => parseInt(x, 10));
@@ -38,45 +37,46 @@ const isValidDateStr = (s) => {
   if (mm < 1 || mm > 12) return false;
   if (dd < 1 || dd > 31) return false;
 
-  // check real date
   const d = new Date(yyyy, mm - 1, dd);
   return d.getFullYear() === yyyy && d.getMonth() === mm - 1 && d.getDate() === dd;
 };
 
 export default function EditarPerfil({ navigation, route }) {
-  const user = route?.params?.user ?? null;
+  const { t } = useTranslation();
 
+  const user = route?.params?.user ?? null;
   const userId = user?.id ?? user?.userId ?? null;
 
-  // precarga con lo que ya trae PerfilUsuario
   const initialImage =
     user?.userImageUrl ||
     user?.userImage ||
     "https://randomuser.me/api/portraits/men/1.jpg";
 
-  const initialBirth =
-    user?.birthDateFormatted ||
-    user?.birthDate ||
-    "";
+  const initialBirth = user?.birthDateFormatted || user?.birthDate || "";
 
   const [firstName, setFirstName] = useState(user?.firstName ?? "");
   const [lastName, setLastName] = useState(user?.lastName ?? "");
-  const [birthDate, setBirthDate] = useState(initialBirth); // "dd/mm/yyyy"
-  const [userImage, setUserImage] = useState(initialImage); // URL o dataURI
+  const [birthDate, setBirthDate] = useState(initialBirth);
+  const [userImage, setUserImage] = useState(initialImage);
   const [password, setPassword] = useState("");
 
-  // modal fecha
   const [dateModalVisible, setDateModalVisible] = useState(false);
   const [dd, setDd] = useState("");
   const [mm, setMm] = useState("");
   const [yyyy, setYyyy] = useState("");
 
   const canSave = useMemo(() => {
-    return firstName.trim() && lastName.trim() && birthDate.trim() && isValidDateStr(birthDate.trim());
+    return (
+      firstName.trim() &&
+      lastName.trim() &&
+      birthDate.trim() &&
+      isValidDateStr(birthDate.trim())
+    );
   }, [firstName, lastName, birthDate]);
 
   const openDateModal = () => {
-    const current = birthDate && /^\d{2}\/\d{2}\/\d{4}$/.test(birthDate) ? birthDate : "";
+    const current =
+      birthDate && /^\d{2}\/\d{2}\/\d{4}$/.test(birthDate) ? birthDate : "";
     if (current) {
       const [d1, m1, y1] = current.split("/");
       setDd(d1);
@@ -91,7 +91,7 @@ export default function EditarPerfil({ navigation, route }) {
   };
 
   const applyDate = () => {
-    const value = `${pad2(dd)}\/${pad2(mm)}\/${yyyy}`.replace("\\", ""); // evita escape visual
+    const value = `${pad2(dd)}/${pad2(mm)}/${yyyy}`;
     if (!isValidDateStr(value)) {
       Alert.alert("Fecha inválida", "Usa un formato válido dd/mm/yyyy.");
       return;
@@ -102,7 +102,6 @@ export default function EditarPerfil({ navigation, route }) {
 
   const pickImage = async () => {
     try {
-      // permisos (en web suele no hacer falta, pero en móvil sí)
       if (Platform.OS !== "web") {
         const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
         if (status !== "granted") {
@@ -123,12 +122,10 @@ export default function EditarPerfil({ navigation, route }) {
       const asset = result.assets?.[0];
       if (!asset) return;
 
-      // Guardamos como data URI (backend guarda String)
       if (asset.base64) {
         const mime = asset.mimeType || "image/jpeg";
         setUserImage(`data:${mime};base64,${asset.base64}`);
       } else if (asset.uri) {
-        // fallback: al menos se ve en preview (en móvil funciona, en web puede variar)
         setUserImage(asset.uri);
       }
     } catch (e) {
@@ -138,7 +135,7 @@ export default function EditarPerfil({ navigation, route }) {
   };
 
   const onSave = async () => {
-    if (!user?.id) {
+    if (!userId) {
       Alert.alert(t("common.error"), t("editProfile.errors.missingUserId"));
       return;
     }
@@ -147,23 +144,15 @@ export default function EditarPerfil({ navigation, route }) {
       return;
     }
 
-    // mandamos todo lo necesario (tu back pisa campos)
     const payload = {
       firstName: firstName.trim(),
       lastName: lastName.trim(),
       dni: user?.dni ?? "",
       email: user?.email ?? "",
       favoriteId: user?.favoriteId ?? "null",
-
-      // ⬇️ lo importante: el back usa birthDateFormatted
       birthDateFormatted: birthDate.trim(),
-      // por compatibilidad si tienes campo birthDate en el modelo:
       birthDate: birthDate.trim(),
-
-      // imagen: si está vacía, el back la mantiene (según tu controller)
       userImage: (userImage ?? "").trim(),
-
-      // contraseña: si no tocas, mantenemos la que ya tenía
       password: user?.password ?? "",
     };
 
@@ -181,7 +170,7 @@ export default function EditarPerfil({ navigation, route }) {
       const txt = await res.text();
 
       if (!res.ok) {
-        Alert.alert(t("common.error"), data);
+        Alert.alert(t("common.error"), txt);
         return;
       }
 
@@ -193,15 +182,17 @@ export default function EditarPerfil({ navigation, route }) {
   };
 
   return (
-    <ScrollView style={{ flex: 1, backgroundColor: COLORS.bg }} contentContainerStyle={{ padding: 16 }}>
+    <ScrollView
+      style={{ flex: 1, backgroundColor: COLORS.bg }}
+      contentContainerStyle={{ padding: 16 }}
+    >
       <Text style={styles.title}>{t("editProfile.title")}</Text>
 
-      {/* Avatar + botón seleccionar */}
       <View style={styles.avatarBox}>
-        <Image
-          source={{ uri: userImage?.startsWith("http") ? userImage : "https://via.placeholder.com/90" }}
-          style={styles.avatar}
-        />
+        <Image source={{ uri: userImage }} style={styles.avatar} />
+        <TouchableOpacity style={styles.pickBtn} onPress={pickImage}>
+          <Text style={styles.pickBtnText}>Cambiar foto</Text>
+        </TouchableOpacity>
         <Text style={styles.help}>{t("editProfile.help.imageUrl")}</Text>
       </View>
 
@@ -251,7 +242,11 @@ export default function EditarPerfil({ navigation, route }) {
         secureTextEntry
       />
 
-      <TouchableOpacity style={[styles.btn, { opacity: canSave ? 1 : 0.5 }]} onPress={onSave} disabled={!canSave}>
+      <TouchableOpacity
+        style={[styles.btn, { opacity: canSave ? 1 : 0.5 }]}
+        onPress={onSave}
+        disabled={!canSave}
+      >
         <Text style={styles.btnText}>{t("editProfile.actions.save")}</Text>
       </TouchableOpacity>
 
@@ -260,7 +255,12 @@ export default function EditarPerfil({ navigation, route }) {
       </TouchableOpacity>
 
       {/* MODAL FECHA */}
-      <Modal transparent visible={dateModalVisible} animationType="fade" onRequestClose={() => setDateModalVisible(false)}>
+      <Modal
+        transparent
+        visible={dateModalVisible}
+        animationType="fade"
+        onRequestClose={() => setDateModalVisible(false)}
+      >
         <Pressable style={styles.modalOverlay} onPress={() => setDateModalVisible(false)}>
           <Pressable style={styles.modalCard} onPress={() => {}}>
             <Text style={styles.modalTitle}>Fecha de nacimiento</Text>
@@ -304,7 +304,10 @@ export default function EditarPerfil({ navigation, route }) {
             </View>
 
             <View style={styles.modalBtns}>
-              <TouchableOpacity style={styles.modalBtnGhost} onPress={() => setDateModalVisible(false)}>
+              <TouchableOpacity
+                style={styles.modalBtnGhost}
+                onPress={() => setDateModalVisible(false)}
+              >
                 <Text style={styles.modalBtnGhostText}>Cancelar</Text>
               </TouchableOpacity>
 
@@ -366,7 +369,14 @@ const styles = StyleSheet.create({
   btnGhostText: { color: COLORS.white, fontWeight: "700" },
 
   avatarBox: { alignItems: "center", marginBottom: 8 },
-  avatar: { width: 90, height: 90, borderRadius: 45, borderWidth: 2, borderColor: COLORS.primary, marginBottom: 10 },
+  avatar: {
+    width: 90,
+    height: 90,
+    borderRadius: 45,
+    borderWidth: 2,
+    borderColor: COLORS.primary,
+    marginBottom: 10,
+  },
   pickBtn: {
     borderWidth: 1,
     borderColor: COLORS.border,
@@ -413,6 +423,12 @@ const styles = StyleSheet.create({
   modalBtns: { flexDirection: "row", justifyContent: "flex-end", gap: 10, marginTop: 14 },
   modalBtn: { backgroundColor: COLORS.primary, paddingVertical: 12, paddingHorizontal: 16, borderRadius: 14 },
   modalBtnText: { color: "#000", fontWeight: "900" },
-  modalBtnGhost: { borderWidth: 1, borderColor: COLORS.border, paddingVertical: 12, paddingHorizontal: 16, borderRadius: 14 },
+  modalBtnGhost: {
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 14,
+  },
   modalBtnGhostText: { color: COLORS.white, fontWeight: "800" },
 });
