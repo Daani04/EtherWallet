@@ -165,13 +165,6 @@ export default function PerfilUsuario(props) {
   return (
     <SafeAreaView style={[common.safe, { backgroundColor: C.bg }]}>
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => props.navigation.goBack()}>
-          <Icon name="arrow-back-ios-new" size={22} color={C.textMain} />
-        </TouchableOpacity>
-
-        <Text style={[common.headerTitle || styles.headerTitle, { color: C.textMain }]}>
-          {t("profile.settingsTitle")}
-        </Text>
 
         <View style={{ width: 24 }} />
       </View>
@@ -182,7 +175,7 @@ export default function PerfilUsuario(props) {
             <Image source={{ uri: resolveAvatarUri() }} style={styles.avatar} />
           </View>
 
-          <Text style={styles.name}>{shownUser?.firstName || "Usuario"}</Text>
+          <Text style={styles.name}>{shownUser?.firstName || "User"}</Text>
 
           <View style={styles.walletRow}>
             <View style={styles.dot} />
