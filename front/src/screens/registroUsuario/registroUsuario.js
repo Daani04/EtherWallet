@@ -14,7 +14,6 @@ import {
   Pressable,
   Alert,
   Image,
-  Modal,
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import CryptoJS from "crypto-js";
@@ -23,7 +22,6 @@ import { ethers } from "ethers";
 import * as SecureStore from "expo-secure-store";
 import * as ImagePicker from "expo-image-picker";
 import { useTranslation } from "react-i18next";
-import i18n from "../../../assets/i18n";
 
 import common from "../../styles/common";
 import theme from "../../styles/theme";
@@ -32,13 +30,6 @@ const COLORS = theme?.colors || theme?.COLORS || theme;
 
 const RegistroUsuario = (props) => {
   const { t } = useTranslation();
-
-  const [langModalVisible, setLangModalVisible] = useState(false);
-  const LANGUAGES = ["ES", "EN", "CA"];
-  const changeLang = (lng) => {
-    i18n.changeLanguage(lng);
-    setLangModalVisible(false);
-  };
 
   const [showPassword, setShowPassword] = useState(false);
   const [acceptedTerms, setAcceptedTerms] = useState(false);
@@ -67,7 +58,10 @@ const RegistroUsuario = (props) => {
 
       const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
       if (status !== "granted") {
-        Alert.alert(t("common.error"), t("register.errors.permissionGallery"));
+        Alert.alert(
+          t("register.alerts.permissionDeniedTitle"),
+          t("register.alerts.permissionDeniedMsg")
+        );
         return;
       }
 
@@ -87,7 +81,7 @@ const RegistroUsuario = (props) => {
       if (asset.base64) setUserImageBase64(asset.base64);
     } catch (e) {
       console.error(e);
-      Alert.alert(t("common.error"), t("register.errors.openGallery"));
+      Alert.alert(t("register.alerts.errorTitle"), t("register.alerts.galleryError"));
     }
   };
 
@@ -109,12 +103,12 @@ const RegistroUsuario = (props) => {
 
   const handleRegister = async () => {
     if (!name || !lastName || !mail || !psw || !dni || !fNac) {
-      Alert.alert(t("common.error"), t("register.errors.completeAll"));
+      Alert.alert(t("register.alerts.errorTitle"), t("register.alerts.fillAllFields"));
       return;
     }
 
     if (!acceptedTerms) {
-      Alert.alert(t("common.error"), t("register.errors.acceptTerms"));
+      Alert.alert(t("register.alerts.errorTitle"), t("register.alerts.acceptTerms"));
       return;
     }
 
@@ -154,14 +148,14 @@ const RegistroUsuario = (props) => {
       const text = await response.text();
 
       if (response.ok) {
-        Alert.alert(t("register.success.title"), t("register.success.registered"));
+        Alert.alert(t("register.alerts.successTitle"), t("register.alerts.registerOk"));
         props.navigation.navigate("InicioSesion");
       } else {
-        Alert.alert(t("common.error"), text || t("register.errors.cannotRegister"));
+        Alert.alert(t("register.alerts.errorTitle"), text || t("register.alerts.registerFail"));
       }
     } catch (error) {
       console.error("REGISTER ERROR:", error);
-      Alert.alert(t("common.error"), t("register.errors.serverConnection"));
+      Alert.alert(t("register.alerts.errorTitle"), t("register.alerts.serverError"));
     }
   };
 
@@ -171,11 +165,20 @@ const RegistroUsuario = (props) => {
 
     setDate(selectedDate);
 
-    const day = String(selectedDate.getDate()).padStart(2, "0");
-    const month = String(selectedDate.getMonth() + 1).padStart(2, "0");
-    const year = selectedDate.getFullYear();
+    const formatDateDMY = (d) => {
+      const day = String(d.getDate()).padStart(2, "0");
+      const month = String(d.getMonth() + 1).padStart(2, "0");
+      const year = d.getFullYear();
+      return `${day}/${month}/${year}`;
+    };
 
-    setFnac(`${day}/${month}/${year}`);
+    const onChange = (event, selectedDate) => {
+      setShow(false);
+      if (!selectedDate) return;
+
+      setDate(selectedDate);
+      setFnac(formatDateDMY(selectedDate));
+    };
   };
 
   return (
@@ -189,28 +192,13 @@ const RegistroUsuario = (props) => {
           <View style={[styles.blob, styles.blobBottomLeft]} />
 
           <View style={styles.container}>
-            {/* ✅ AÑADIDO: botón arriba a la derecha */}
-            <View style={styles.langBtnWrap}>
-              <TouchableOpacity
-                onPress={() => setLangModalVisible(true)}
-                activeOpacity={0.85}
-                style={styles.langBtn}
-              >
-                <MaterialIcons name="language" size={22} color={COLORS.primary} />
-              </TouchableOpacity>
-            </View>
-
             <View style={styles.headLeft}>
               <Text style={styles.title}>{t("register.title")}</Text>
-              <Text style={styles.subtitle}>
-                {t("register.subtitleLine1")}
-                {"\n"}
-                {t("register.subtitleLine2")}
-              </Text>
+              <Text style={styles.subtitle}>{t("register.subtitle")}</Text>
             </View>
 
             <View style={styles.form}>
-              <Text style={styles.label}>{t("register.profilePhotoLabel")}</Text>
+              <Text style={styles.label}>{t("register.labels.profilePhotoOptional")}</Text>
 
               <TouchableOpacity style={styles.avatarRow} activeOpacity={0.85} onPress={pickImage}>
                 <View style={styles.avatarCircle}>
@@ -222,9 +210,9 @@ const RegistroUsuario = (props) => {
                 </View>
 
                 <View style={{ flex: 1 }}>
-                  <Text style={styles.avatarTitle}>{t("register.selectImage")}</Text>
+                  <Text style={styles.avatarTitle}>{t("register.avatar.selectImage")}</Text>
                   <Text style={styles.avatarSub}>
-                    {Platform.OS === "web" ? t("register.fromFiles") : t("register.fromGallery")}
+                    {Platform.OS === "web" ? t("register.avatar.fromFiles") : t("register.avatar.fromGallery")}
                   </Text>
                 </View>
 
@@ -241,7 +229,7 @@ const RegistroUsuario = (props) => {
                 />
               )}
 
-              <Text style={styles.label}>{t("register.labels.firstName")}</Text>
+              <Text style={styles.label}>{t("register.labels.name")}</Text>
               <View style={styles.inputContainer}>
                 <MaterialIcons
                   name="person-outline"
@@ -250,7 +238,7 @@ const RegistroUsuario = (props) => {
                   style={styles.inputIcon}
                 />
                 <TextInput
-                  placeholder={t("register.placeholders.firstName")}
+                  placeholder={t("register.placeholders.name")}
                   placeholderTextColor="rgba(157,185,168,0.55)"
                   style={styles.input}
                   value={name}
@@ -303,7 +291,7 @@ const RegistroUsuario = (props) => {
                   style={styles.inputIcon}
                 />
                 <TextInput
-                  placeholder="••••••••••••"
+                  placeholder={t("register.placeholders.password")}
                   placeholderTextColor="rgba(157,185,168,0.55)"
                   style={styles.input}
                   secureTextEntry={!showPassword}
@@ -382,6 +370,7 @@ const RegistroUsuario = (props) => {
 
                         const [yyyy, mm, dd] = value.split("-");
                         const selectedDate = new Date(Number(yyyy), Number(mm) - 1, Number(dd));
+
                         setDate(selectedDate);
                         setFnac(`${dd}/${mm}/${yyyy}`);
                         setWebDateOpen(false);
@@ -449,15 +438,16 @@ const RegistroUsuario = (props) => {
                 </View>
 
                 <Text style={styles.termsText}>
-                  {t("register.terms.acceptPrefix")}{" "}
+                  {t("register.terms.textPrefix")}{" "}
                   <Text style={styles.termsLink}>{t("register.terms.termsOfService")}</Text>{" "}
                   {t("register.terms.and")}{" "}
-                  <Text style={styles.termsLink}>{t("register.terms.privacyPolicy")}</Text>.
+                  <Text style={styles.termsLink}>{t("register.terms.privacyPolicy")}</Text>
+                  {t("register.terms.textSuffix")}
                 </Text>
               </TouchableOpacity>
 
               <TouchableOpacity style={styles.primaryBtn} activeOpacity={0.85} onPress={handleRegister}>
-                <Text style={styles.primaryBtnText}>{t("register.actions.register")}</Text>
+                <Text style={styles.primaryBtnText}>{t("register.buttons.register")}</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -468,35 +458,6 @@ const RegistroUsuario = (props) => {
               <Text style={styles.footerLink}>{t("register.footer.login")}</Text>
             </Pressable>
           </View>
-
-          {/* ✅ AÑADIDO: modal ES/EN/CA */}
-          <Modal
-            transparent
-            visible={langModalVisible}
-            animationType="fade"
-            onRequestClose={() => setLangModalVisible(false)}
-          >
-            <Pressable
-              style={styles.langOverlay}
-              onPress={() => setLangModalVisible(false)}
-            >
-              <View style={styles.langModal}>
-                {LANGUAGES.map((lng) => (
-                  <TouchableOpacity
-                    key={lng}
-                    style={styles.langItem}
-                    onPress={() => changeLang(lng)}
-                    activeOpacity={0.85}
-                  >
-                    <Text style={styles.langText}>{lng}</Text>
-                    {i18n.language === lng && (
-                      <MaterialIcons name="check" size={20} color={COLORS.primary} />
-                    )}
-                  </TouchableOpacity>
-                ))}
-              </View>
-            </Pressable>
-          </Modal>
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
@@ -515,19 +476,6 @@ const styles = StyleSheet.create({
   blobBottomLeft: { width: 300, height: 300, bottom: -60, left: -120 },
 
   container: { width: "100%", maxWidth: 450, paddingHorizontal: 24 },
-
-  // ✅ AÑADIDO (solo para el botón)
-  langBtnWrap: { alignItems: "flex-end", marginTop: 6 },
-  langBtn: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: COLORS.cardBg || COLORS.inputBg,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-  },
 
   headLeft: { marginTop: 4, marginBottom: 22 },
   title: { fontSize: 32, fontWeight: "800", color: COLORS.textMain || "#fff", marginBottom: 8 },
@@ -631,29 +579,6 @@ const styles = StyleSheet.create({
     overflow: "hidden",
     padding: 6,
   },
-
-  // ✅ AÑADIDO (solo para el modal)
-  langOverlay: {
-    flex: 1,
-    backgroundColor: "rgba(0,0,0,0.5)",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  langModal: {
-    width: 220,
-    borderRadius: 16,
-    paddingVertical: 10,
-    backgroundColor: COLORS.cardBg || "#fff",
-    borderWidth: 1,
-    borderColor: COLORS.border || "rgba(0,0,0,0.15)",
-  },
-  langItem: {
-    padding: 14,
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-  langText: { fontSize: 16, color: COLORS.textMain || "#000" },
 });
 
 export default RegistroUsuario;
