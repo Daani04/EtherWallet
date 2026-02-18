@@ -236,9 +236,6 @@ export default function PerfilUsuario(props) {
               source={{ uri: resolveAvatarUri() }}
               style={styles.avatar}
             />
-            <View style={styles.editBadge}>
-              <Icon name="edit" size={14} color={COLORS.bg || "#000"} />
-            </View>
           </View>
 
           <Text style={styles.name}>{shownUser?.firstName || "Usuario"}</Text>
@@ -262,16 +259,16 @@ export default function PerfilUsuario(props) {
               props.navigation.navigate("EditarPerfil", {
                 user:
                   shownUser ?? {
-                    id: "698f3af76ed4f87933e2018d",
-                    firstName: "Dani",
-                    lastName: "Arastell",
-                    birthDate: "13/01/2002",
-                    userImage: "default-avatar.png",
-                    email: "dani@gmail.com",
-                    dni: "24508735Z",
+                    id: "",
+                    firstName: "",
+                    lastName: "",
+                    birthDate: "",
+                    userImage: "",
+                    email: "",
+                    dni: "",
                     password:
-                      "03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4",
-                    favoriteId: "null",
+                      "",
+                    favoriteId: "",
                   },
               })
             }
@@ -348,10 +345,6 @@ export default function PerfilUsuario(props) {
           <Icon name="delete-forever" size={20} color="#ff4444" />
           <Text style={styles.deleteText}>Eliminar Cuenta</Text>
         </TouchableOpacity>
-
-        <Text style={styles.version}>
-          {t("profile.versionPrefix")} 0.1.0
-        </Text>
       </ScrollView>
 
       {/* MODAL IDIOMA */}
@@ -471,14 +464,6 @@ const styles = StyleSheet.create({
     borderRadius: 45,
     borderWidth: 2,
     borderColor: COLORS.primary,
-  },
-  editBadge: {
-    position: "absolute",
-    bottom: 0,
-    right: 0,
-    backgroundColor: COLORS.primary,
-    padding: 5,
-    borderRadius: 15,
   },
   name: {
     fontSize: 22,
