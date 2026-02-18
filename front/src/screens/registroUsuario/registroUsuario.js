@@ -14,7 +14,7 @@ import {
   Pressable,
   Alert,
   Image,
-  Modal, // ✅ AÑADIDO
+  Modal,
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import CryptoJS from "crypto-js";
@@ -23,7 +23,7 @@ import { ethers } from "ethers";
 import * as SecureStore from "expo-secure-store";
 import * as ImagePicker from "expo-image-picker";
 import { useTranslation } from "react-i18next";
-import i18n from "../../i18n"; // ✅ AÑADIDO (ajusta la ruta si tu i18n está en otro sitio)
+import i18n from "../../../assets/i18n";
 
 import common from "../../styles/common";
 import theme from "../../styles/theme";
@@ -33,7 +33,6 @@ const COLORS = theme?.colors || theme?.COLORS || theme;
 const RegistroUsuario = (props) => {
   const { t } = useTranslation();
 
-  // ✅ AÑADIDO (solo para el selector)
   const [langModalVisible, setLangModalVisible] = useState(false);
   const LANGUAGES = ["ES", "EN", "CA"];
   const changeLang = (lng) => {
