@@ -11,7 +11,8 @@ import {
   KeyboardAvoidingView,
   Platform,
   Alert,
-  Pressable
+  Pressable,
+  Modal,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { MaterialIcons } from "@expo/vector-icons";
@@ -23,8 +24,9 @@ import common from "../../styles/common";
 import theme from "../../styles/theme";
 import Context from "../../context/Context";
 
-const COLORS = theme?.colors || theme?.COLORS || theme;
+import i18n from "../../../assets/i18n";
 
+const COLORS = theme?.colors || theme?.COLORS || theme;
 const { width } = Dimensions.get("window");
 
 const BASE_URL = "http://10.10.5.213:8080";
@@ -39,6 +41,23 @@ const InicioSesion = (props) => {
   const [mail, setMail] = useState("");
   const [psw, setPsw] = useState("");
 
+  const [langModalVisible, setLangModalVisible] = useState(false);
+  const LANGUAGES = ["ES", "EN", "CA"];
+
+  const currentLng = String(i18n.language || "ES")
+    .split("-")[0]
+    .toUpperCase();
+
+  const changeLang = async (lng) => {
+    try {
+      await i18n.changeLanguage(String(lng).toUpperCase());
+    } catch (e) {
+      console.log("CHANGE LANG ERROR", e);
+    } finally {
+      setLangModalVisible(false);
+    }
+  };
+
   useEffect(() => {
     (async () => {
       const compatible = await LocalAuthentication.hasHardwareAsync();
@@ -49,37 +68,40 @@ const InicioSesion = (props) => {
   const handleBiometricAuth = async () => {
     try {
       const hasHardware = await LocalAuthentication.hasHardwareAsync();
-      const supportedTypes =
-        await LocalAuthentication.supportedAuthenticationTypesAsync();
+      const supportedTypes = await LocalAuthentication.supportedAuthenticationTypesAsync();
       const isEnrolled = await LocalAuthentication.isEnrolledAsync();
 
       console.log({ hasHardware, isEnrolled, supportedTypes });
 
       if (!hasHardware) {
-        return Alert.alert(t("common.error"), t("login.errors.noBiometrics"));
+        return Alert.alert(
+          t("login.biometric.noSupportTitle"),
+          t("login.biometric.noSupportMsg")
+        );
       }
 
       if (!isEnrolled) {
-        return Alert.alert(t("common.error"), t("login.errors.noFaceRegistered"));
+        return Alert.alert(
+          t("login.biometric.notEnrolledTitle"),
+          t("login.biometric.notEnrolledMsg")
+        );
       }
 
       const result = await LocalAuthentication.authenticateAsync({
-        promptMessage: t("login.faceId.prompt"),
-        fallbackLabel: t("login.faceId.fallback"),
+        promptMessage: t("login.biometric.promptMessage"),
+        fallbackLabel: t("login.biometric.fallbackLabel"),
       });
 
       if (result.success) {
-        Alert.alert(t("login.success.title"), t("login.success.welcome"));
+        Alert.alert(t("login.biometric.successTitle"), t("login.biometric.successMsg"));
       } else {
         Alert.alert(
-          t("login.faceId.notAuthenticatedTitle"),
-          result.error
-            ? `${t("login.faceId.reason")}: ${result.error}`
-            : t("login.faceId.cancelled")
+          t("login.biometric.notAuthTitle"),
+          result.error ? `Motivo: ${result.error}` : t("login.biometric.cancelled")
         );
       }
     } catch (error) {
-      Alert.alert(t("login.errors.criticalTitle"), error.message);
+      Alert.alert(t("login.biometric.criticalTitle"), error.message);
     }
   };
 
@@ -88,12 +110,11 @@ const handleLogin = async () => {
     console.log("LOGIN CLICK", { mail, psw });
 
     if (!mail || !psw) {
-      Alert.alert(t("common.error"), t("login.errors.fillAll"));
+      Alert.alert(t("login.alerts.errorTitle"), t("login.alerts.fillAllFields"));
       return;
     }
 
     const hashedPassword = CryptoJS.SHA256(psw).toString();
-    console.log("HASHED", hashedPassword);
 
     try {
       // 1) LOGIN: Validar credenciales
@@ -104,9 +125,14 @@ const handleLogin = async () => {
       });
 
       const text = await response.text();
-      console.log("LOGIN RESP", response.status, text);
+      Alert.alert(
+        response.ok
+          ? t("login.biometric.successTitle")
+          : t("login.alerts.errorTitle"),
+        text
+      );
 
-      Alert.alert(response.ok ? t("login.success.title") : t("common.error"), text);
+      if (!response.ok) return;
 
       if (response.ok) {
         await loginUser({ email: mail });
@@ -120,20 +146,23 @@ const handleLogin = async () => {
       );
 
       const idText = await idRes.text();
-      console.log("ID RESP", idRes.status, idText);
 
       if (!idRes.ok) {
-        Alert.alert("Error", "Login OK, pero no se pudo obtener el ID.");
+        Alert.alert(
+          t("login.alerts.errorTitle"),
+          "Login OK, pero no se pudo obtener el ID."
+        );
         return;
       }
 
       const idData = JSON.parse(idText);
       const fetchedId = idData?.id;
 
-      console.log("FETCHED USER ID:", fetchedId);
-
       if (!fetchedId) {
-        Alert.alert("Error", "Login OK, pero la respuesta no trae un ID válido.");
+        Alert.alert(
+          t("login.alerts.errorTitle"),
+          "Login OK, pero la respuesta no trae un ID válido."
+        );
         return;
       }
 
@@ -158,7 +187,10 @@ const handleLogin = async () => {
       props.navigation.navigate("HomeNav");
     } catch (error) {
       console.log("FETCH ERROR", error);
-      Alert.alert(t("common.error"), t("login.errors.connection"));
+      Alert.alert(
+        t("login.alerts.errorTitle"),
+        t("login.alerts.connectionError")
+      );
     }
   };
 
@@ -173,6 +205,16 @@ const handleLogin = async () => {
           <View style={[styles.blob, styles.blobBottomLeft]} />
 
           <View style={styles.container}>
+            <View style={styles.langBtnWrap}>
+              <TouchableOpacity
+                onPress={() => setLangModalVisible(true)}
+                activeOpacity={0.85}
+                style={styles.langBtn}
+              >
+                <MaterialIcons name="language" size={22} color={COLORS.primary || "#2bee79"} />
+              </TouchableOpacity>
+            </View>
+
             <View style={styles.heroWrap}>
               <View style={styles.heroCard}>
                 <ImageBackground source={require("../../../assets/logo.png")} style={styles.heroImg}>
@@ -192,12 +234,7 @@ const handleLogin = async () => {
 
             <View style={styles.form}>
               <View style={styles.inputContainer}>
-                <MaterialIcons
-                  name="mail-outline"
-                  size={20}
-                  color="#9db9a8"
-                  style={styles.inputIcon}
-                />
+                <MaterialIcons name="mail-outline" size={20} color="#9db9a8" style={styles.inputIcon} />
                 <TextInput
                   placeholder={t("login.placeholders.email")}
                   placeholderTextColor={COLORS?.textMuted || "#9db9a8"}
@@ -209,14 +246,9 @@ const handleLogin = async () => {
               </View>
 
               <View style={styles.inputContainer}>
-                <MaterialIcons
-                  name="lock-outline"
-                  size={20}
-                  color="#9db9a8"
-                  style={styles.inputIcon}
-                />
+                <MaterialIcons name="lock-outline" size={20} color="#9db9a8" style={styles.inputIcon} />
                 <TextInput
-                  placeholder="••••••••••••"
+                  placeholder={t("login.placeholders.password")}
                   placeholderTextColor="rgba(157,185,168,0.55)"
                   style={styles.input}
                   secureTextEntry={!showPassword}
@@ -240,12 +272,12 @@ const handleLogin = async () => {
               </TouchableOpacity>
 
               <TouchableOpacity style={styles.primaryBtn} activeOpacity={0.8} onPress={handleLogin}>
-                <Text style={styles.primaryBtnText}>{t("login.actions.signIn")}</Text>
+                <Text style={styles.primaryBtnText}>{t("login.buttons.login")}</Text>
               </TouchableOpacity>
 
               <TouchableOpacity style={styles.secondaryBtn} activeOpacity={0.8} onPress={handleBiometricAuth}>
                 <MaterialIcons name="face" size={24} color="#ffffff" />
-                <Text style={styles.secondaryBtnText}>{t("login.actions.faceId")}</Text>
+                <Text style={styles.secondaryBtnText}>{t("login.buttons.faceId")}</Text>
               </TouchableOpacity>
             </View>
 
@@ -257,6 +289,31 @@ const handleLogin = async () => {
                 </Pressable>
               </Text>
             </View>
+
+            <Modal
+              transparent
+              visible={langModalVisible}
+              animationType="fade"
+              onRequestClose={() => setLangModalVisible(false)}
+            >
+              <Pressable style={styles.langOverlay} onPress={() => setLangModalVisible(false)}>
+                <Pressable style={styles.langModal} onPress={() => { }}>
+                  {LANGUAGES.map((lng) => (
+                    <TouchableOpacity
+                      key={lng}
+                      style={styles.langItem}
+                      onPress={() => changeLang(lng)}
+                      activeOpacity={0.85}
+                    >
+                      <Text style={styles.langText}>{lng}</Text>
+                      {currentLng === lng && (
+                        <MaterialIcons name="check" size={20} color={COLORS.primary || "#2bee79"} />
+                      )}
+                    </TouchableOpacity>
+                  ))}
+                </Pressable>
+              </Pressable>
+            </Modal>
           </View>
         </View>
       </ScrollView>
@@ -274,7 +331,19 @@ const styles = StyleSheet.create({
   blobTopRight: { width: 400, height: 400, top: -100, right: -100 },
   blobBottomLeft: { width: 300, height: 300, bottom: -50, left: -100 },
 
-  container: { width: "100%", maxWidth: 450, paddingHorizontal: 24 },
+  container: { width: "100%", maxWidth: 450, paddingHorizontal: 24, position: "relative" },
+
+  langBtnWrap: { position: "absolute", top: 0, right: 24, zIndex: 50 },
+  langBtn: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: COLORS?.cardBg || "#1c2720",
+    borderWidth: 1,
+    borderColor: COLORS?.border || "#3b5445",
+  },
 
   heroWrap: { marginBottom: 20, alignItems: "center", width: "100%" },
   heroCard: {
@@ -289,6 +358,7 @@ const styles = StyleSheet.create({
     overflow: "hidden",
   },
   heroImg: { flex: 1, width: "100%", height: "100%" },
+  heroGradient: { position: "absolute", left: 0, right: 0, top: 0, bottom: 0 },
 
   head: { marginBottom: 32, alignItems: "center" },
   title: { fontSize: 32, fontWeight: "700", color: COLORS?.textMain || "#fff", marginBottom: 8 },
@@ -343,6 +413,29 @@ const styles = StyleSheet.create({
   footer: { marginTop: 32, alignItems: "center" },
   footerText: { color: COLORS?.textMuted || "rgba(255,255,255,0.6)", fontSize: 14 },
   footerLink: { color: COLORS?.primary || "#2bee79", fontWeight: "700" },
+
+  langOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: 24,
+  },
+  langModal: {
+    width: 220,
+    borderRadius: 16,
+    paddingVertical: 10,
+    backgroundColor: COLORS?.cardBg || "#ffffff",
+    borderWidth: 1,
+    borderColor: COLORS?.border || "rgba(0,0,0,0.15)",
+  },
+  langItem: {
+    padding: 14,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  langText: { fontSize: 16, color: COLORS?.textMain || "#000" },
 });
 
 export default InicioSesion;
