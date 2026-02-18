@@ -15,18 +15,9 @@ import {
 import CryptoJS from "crypto-js";
 import * as ImagePicker from "expo-image-picker";
 import { useTranslation } from "react-i18next";
+import { useSettings } from "../../context/SettingsContext";
 
-const COLORS = {
-  primary: "#2bee79",
-  bg: "#0d1a12",
-  card: "rgba(255, 255, 255, 0.08)",
-  border: "rgba(255, 255, 255, 0.15)",
-  white: "#ffffff",
-  muted: "rgba(255, 255, 255, 0.6)",
-  danger: "#ff4444",
-};
-
-const BASE_URL = "http://35.170.12.68:8080";
+const API_BASE = "http://35.170.12.68:8080";
 
 const pad2 = (n) => String(n).padStart(2, "0");
 
@@ -43,14 +34,13 @@ const isValidDateStr = (s) => {
 
 export default function EditarPerfil({ navigation, route }) {
   const { t } = useTranslation();
+  const { C } = useSettings();
 
   const user = route?.params?.user ?? null;
   const userId = user?.id ?? user?.userId ?? null;
 
   const initialImage =
-    user?.userImageUrl ||
-    user?.userImage ||
-    "https://randomuser.me/api/portraits/men/1.jpg";
+    user?.userImageUrl || user?.userImage || "https://randomuser.me/api/portraits/men/1.jpg";
 
   const initialBirth = user?.birthDateFormatted || user?.birthDate || "";
 
@@ -65,6 +55,8 @@ export default function EditarPerfil({ navigation, route }) {
   const [mm, setMm] = useState("");
   const [yyyy, setYyyy] = useState("");
 
+  const styles = useMemo(() => makeStyles(C), [C]);
+
   const canSave = useMemo(() => {
     return (
       firstName.trim() &&
@@ -75,8 +67,7 @@ export default function EditarPerfil({ navigation, route }) {
   }, [firstName, lastName, birthDate]);
 
   const openDateModal = () => {
-    const current =
-      birthDate && /^\d{2}\/\d{2}\/\d{4}$/.test(birthDate) ? birthDate : "";
+    const current = birthDate && /^\d{2}\/\d{2}\/\d{4}$/.test(birthDate) ? birthDate : "";
     if (current) {
       const [d1, m1, y1] = current.split("/");
       setDd(d1);
@@ -182,15 +173,12 @@ export default function EditarPerfil({ navigation, route }) {
   };
 
   return (
-    <ScrollView
-      style={{ flex: 1, backgroundColor: COLORS.bg }}
-      contentContainerStyle={{ padding: 16 }}
-    >
+    <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
       <Text style={styles.title}>{t("editProfile.title")}</Text>
 
       <View style={styles.avatarBox}>
         <Image source={{ uri: userImage }} style={styles.avatar} />
-        <TouchableOpacity style={styles.pickBtn} onPress={pickImage}>
+        <TouchableOpacity style={styles.pickBtn} onPress={pickImage} activeOpacity={0.85}>
           <Text style={styles.pickBtnText}>Cambiar foto</Text>
         </TouchableOpacity>
         <Text style={styles.help}>{t("editProfile.help.imageUrl")}</Text>
@@ -202,7 +190,7 @@ export default function EditarPerfil({ navigation, route }) {
         onChangeText={setUserImage}
         style={styles.input}
         placeholder="https://..."
-        placeholderTextColor={COLORS.muted}
+        placeholderTextColor={C.textMuted}
       />
 
       <Text style={styles.label}>{t("editProfile.labels.firstName")}</Text>
@@ -211,7 +199,7 @@ export default function EditarPerfil({ navigation, route }) {
         onChangeText={setFirstName}
         style={styles.input}
         placeholder={t("editProfile.placeholders.firstName")}
-        placeholderTextColor={COLORS.muted}
+        placeholderTextColor={C.textMuted}
       />
 
       <Text style={styles.label}>{t("editProfile.labels.lastName")}</Text>
@@ -220,16 +208,22 @@ export default function EditarPerfil({ navigation, route }) {
         onChangeText={setLastName}
         style={styles.input}
         placeholder={t("editProfile.placeholders.lastName")}
-        placeholderTextColor={COLORS.muted}
+        placeholderTextColor={C.textMuted}
       />
 
-      <Text style={styles.label}>{t("editProfile.labels.birthDate")}</Text>
+      <View style={styles.rowBetween}>
+        <Text style={styles.label}>{t("editProfile.labels.birthDate")}</Text>
+        <TouchableOpacity onPress={openDateModal} activeOpacity={0.85}>
+          <Text style={styles.link}>Abrir</Text>
+        </TouchableOpacity>
+      </View>
+
       <TextInput
         value={birthDate}
         onChangeText={setBirthDate}
         style={styles.input}
         placeholder={t("editProfile.placeholders.birthDate")}
-        placeholderTextColor={COLORS.muted}
+        placeholderTextColor={C.textMuted}
       />
 
       <Text style={styles.label}>{t("editProfile.labels.newPassword")}</Text>
@@ -238,7 +232,7 @@ export default function EditarPerfil({ navigation, route }) {
         onChangeText={setPassword}
         style={styles.input}
         placeholder={t("editProfile.placeholders.newPassword")}
-        placeholderTextColor={COLORS.muted}
+        placeholderTextColor={C.textMuted}
         secureTextEntry
       />
 
@@ -246,15 +240,15 @@ export default function EditarPerfil({ navigation, route }) {
         style={[styles.btn, { opacity: canSave ? 1 : 0.5 }]}
         onPress={onSave}
         disabled={!canSave}
+        activeOpacity={0.85}
       >
         <Text style={styles.btnText}>{t("editProfile.actions.save")}</Text>
       </TouchableOpacity>
 
-      <TouchableOpacity style={styles.btnGhost} onPress={() => navigation.goBack()}>
+      <TouchableOpacity style={styles.btnGhost} onPress={() => navigation.goBack()} activeOpacity={0.85}>
         <Text style={styles.btnGhostText}>{t("common.cancel")}</Text>
       </TouchableOpacity>
 
-      {/* MODAL FECHA */}
       <Modal
         transparent
         visible={dateModalVisible}
@@ -270,11 +264,11 @@ export default function EditarPerfil({ navigation, route }) {
                 <Text style={styles.modalLabel}>Día</Text>
                 <TextInput
                   value={dd}
-                  onChangeText={(t) => setDd(t.replace(/\D/g, "").slice(0, 2))}
+                  onChangeText={(v) => setDd(v.replace(/\D/g, "").slice(0, 2))}
                   style={styles.dateInput}
                   keyboardType="number-pad"
                   placeholder="dd"
-                  placeholderTextColor={COLORS.muted}
+                  placeholderTextColor={C.textMuted}
                 />
               </View>
 
@@ -282,11 +276,11 @@ export default function EditarPerfil({ navigation, route }) {
                 <Text style={styles.modalLabel}>Mes</Text>
                 <TextInput
                   value={mm}
-                  onChangeText={(t) => setMm(t.replace(/\D/g, "").slice(0, 2))}
+                  onChangeText={(v) => setMm(v.replace(/\D/g, "").slice(0, 2))}
                   style={styles.dateInput}
                   keyboardType="number-pad"
                   placeholder="mm"
-                  placeholderTextColor={COLORS.muted}
+                  placeholderTextColor={C.textMuted}
                 />
               </View>
 
@@ -294,24 +288,21 @@ export default function EditarPerfil({ navigation, route }) {
                 <Text style={styles.modalLabel}>Año</Text>
                 <TextInput
                   value={yyyy}
-                  onChangeText={(t) => setYyyy(t.replace(/\D/g, "").slice(0, 4))}
+                  onChangeText={(v) => setYyyy(v.replace(/\D/g, "").slice(0, 4))}
                   style={styles.dateInput}
                   keyboardType="number-pad"
                   placeholder="yyyy"
-                  placeholderTextColor={COLORS.muted}
+                  placeholderTextColor={C.textMuted}
                 />
               </View>
             </View>
 
             <View style={styles.modalBtns}>
-              <TouchableOpacity
-                style={styles.modalBtnGhost}
-                onPress={() => setDateModalVisible(false)}
-              >
+              <TouchableOpacity style={styles.modalBtnGhost} onPress={() => setDateModalVisible(false)} activeOpacity={0.85}>
                 <Text style={styles.modalBtnGhostText}>Cancelar</Text>
               </TouchableOpacity>
 
-              <TouchableOpacity style={styles.modalBtn} onPress={applyDate}>
+              <TouchableOpacity style={styles.modalBtn} onPress={applyDate} activeOpacity={0.85}>
                 <Text style={styles.modalBtnText}>Aplicar</Text>
               </TouchableOpacity>
             </View>
@@ -322,113 +313,95 @@ export default function EditarPerfil({ navigation, route }) {
   );
 }
 
-const styles = StyleSheet.create({
-  title: { color: COLORS.white, fontSize: 22, fontWeight: "800", marginBottom: 16 },
-  label: { color: COLORS.muted, marginTop: 12, marginBottom: 6, fontSize: 12 },
-  input: {
-    backgroundColor: COLORS.card,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    borderRadius: 14,
-    paddingHorizontal: 12,
-    paddingVertical: 12,
-    color: COLORS.white,
-  },
+const makeStyles = (C) =>
+  StyleSheet.create({
+    screen: { flex: 1, backgroundColor: C.bg },
+    content: { padding: 16 },
 
-  rowField: {
-    backgroundColor: COLORS.card,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    borderRadius: 14,
-    paddingHorizontal: 12,
-    paddingVertical: 14,
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-  rowFieldText: { color: COLORS.white, fontWeight: "700" },
-  rowChevron: { color: COLORS.muted, fontSize: 22, marginLeft: 10 },
+    title: { color: C.textMain, fontSize: 22, fontWeight: "800", marginBottom: 16 },
+    label: { color: C.textMuted, marginTop: 12, marginBottom: 6, fontSize: 12, fontWeight: "700" },
 
-  btn: {
-    backgroundColor: COLORS.primary,
-    padding: 14,
-    borderRadius: 14,
-    marginTop: 18,
-    alignItems: "center",
-  },
-  btnText: { color: "#000", fontWeight: "900" },
+    rowBetween: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
+    link: { color: C.primary, fontWeight: "800" },
 
-  btnGhost: {
-    padding: 14,
-    borderRadius: 14,
-    marginTop: 10,
-    alignItems: "center",
-    borderWidth: 1,
-    borderColor: COLORS.border,
-  },
-  btnGhostText: { color: COLORS.white, fontWeight: "700" },
+    input: {
+      backgroundColor: C.inputBg,
+      borderWidth: 1,
+      borderColor: C.border,
+      borderRadius: 14,
+      paddingHorizontal: 12,
+      paddingVertical: 12,
+      color: C.textMain,
+    },
 
-  avatarBox: { alignItems: "center", marginBottom: 8 },
-  avatar: {
-    width: 90,
-    height: 90,
-    borderRadius: 45,
-    borderWidth: 2,
-    borderColor: COLORS.primary,
-    marginBottom: 10,
-  },
-  pickBtn: {
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    backgroundColor: COLORS.card,
-    paddingVertical: 10,
-    paddingHorizontal: 14,
-    borderRadius: 14,
-  },
-  pickBtnText: { color: COLORS.white, fontWeight: "800" },
-  help: { color: COLORS.muted, fontSize: 12, marginTop: 8, textAlign: "center" },
+    btn: {
+      backgroundColor: C.primary,
+      padding: 14,
+      borderRadius: 14,
+      marginTop: 18,
+      alignItems: "center",
+    },
+    btnText: { color: "#000", fontWeight: "900" },
 
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: "rgba(0,0,0,0.55)",
-    justifyContent: "center",
-    alignItems: "center",
-    padding: 18,
-  },
-  modalCard: {
-    width: "100%",
-    maxWidth: 420,
-    backgroundColor: "#0f2218",
-    borderRadius: 18,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    padding: 16,
-  },
-  modalTitle: { color: COLORS.white, fontWeight: "900", fontSize: 16, marginBottom: 12 },
-  modalLabel: { color: COLORS.muted, fontSize: 12, marginBottom: 6 },
+    btnGhost: {
+      padding: 14,
+      borderRadius: 14,
+      marginTop: 10,
+      alignItems: "center",
+      borderWidth: 1,
+      borderColor: C.border,
+      backgroundColor: C.cardBg,
+    },
+    btnGhostText: { color: C.textMain, fontWeight: "800" },
 
-  dateRow: { flexDirection: "row", gap: 10 },
-  dateCol: { flex: 1 },
-  dateColWide: { flex: 1.4 },
-  dateInput: {
-    backgroundColor: COLORS.card,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    borderRadius: 14,
-    paddingHorizontal: 12,
-    paddingVertical: 12,
-    color: COLORS.white,
-  },
+    avatarBox: { alignItems: "center", marginBottom: 8 },
+    avatar: { width: 90, height: 90, borderRadius: 45, borderWidth: 2, borderColor: C.primary, marginBottom: 10 },
+    pickBtn: {
+      borderWidth: 1,
+      borderColor: C.border,
+      backgroundColor: C.cardBg,
+      paddingVertical: 10,
+      paddingHorizontal: 14,
+      borderRadius: 14,
+    },
+    pickBtnText: { color: C.textMain, fontWeight: "800" },
+    help: { color: C.textMuted, fontSize: 12, marginTop: 8, textAlign: "center" },
 
-  modalBtns: { flexDirection: "row", justifyContent: "flex-end", gap: 10, marginTop: 14 },
-  modalBtn: { backgroundColor: COLORS.primary, paddingVertical: 12, paddingHorizontal: 16, borderRadius: 14 },
-  modalBtnText: { color: "#000", fontWeight: "900" },
-  modalBtnGhost: {
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderRadius: 14,
-  },
-  modalBtnGhostText: { color: COLORS.white, fontWeight: "800" },
-});
+    modalOverlay: {
+      flex: 1,
+      backgroundColor: "rgba(0,0,0,0.45)",
+      justifyContent: "center",
+      alignItems: "center",
+      padding: 18,
+    },
+    modalCard: {
+      width: "100%",
+      maxWidth: 420,
+      backgroundColor: C.modalBg,
+      borderRadius: 18,
+      borderWidth: 1,
+      borderColor: C.border,
+      padding: 16,
+    },
+    modalTitle: { color: C.textMain, fontWeight: "900", fontSize: 16, marginBottom: 12 },
+    modalLabel: { color: C.textMuted, fontSize: 12, marginBottom: 6, fontWeight: "700" },
+
+    dateRow: { flexDirection: "row", gap: 10 },
+    dateCol: { flex: 1 },
+    dateColWide: { flex: 1.4 },
+    dateInput: {
+      backgroundColor: C.inputBg,
+      borderWidth: 1,
+      borderColor: C.border,
+      borderRadius: 14,
+      paddingHorizontal: 12,
+      paddingVertical: 12,
+      color: C.textMain,
+    },
+
+    modalBtns: { flexDirection: "row", justifyContent: "flex-end", gap: 10, marginTop: 14 },
+    modalBtn: { backgroundColor: C.primary, paddingVertical: 12, paddingHorizontal: 16, borderRadius: 14 },
+    modalBtnText: { color: "#000", fontWeight: "900" },
+    modalBtnGhost: { borderWidth: 1, borderColor: C.border, paddingVertical: 12, paddingHorizontal: 16, borderRadius: 14, backgroundColor: C.cardBg },
+    modalBtnGhostText: { color: C.textMain, fontWeight: "800" },
+  });
