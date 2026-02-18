@@ -22,7 +22,7 @@ import { useTranslation } from "react-i18next";
 
 const COLORS = theme?.colors || theme?.COLORS || theme;
 
-const BASE_URL = "http://10.10.5.238:8080";
+const BASE_URL = "http://35.170.12.68:8080";
 
 export default function PerfilUsuario(props) {
   const { t } = useTranslation();

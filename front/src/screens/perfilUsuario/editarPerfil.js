@@ -26,7 +26,7 @@ const COLORS = {
   danger: "#ff4444",
 };
 
-const API_BASE = "http://10.10.5.238:8080";
+const BASE_URL = "http://35.170.12.68:8080";
 
 const pad2 = (n) => String(n).padStart(2, "0");
 
