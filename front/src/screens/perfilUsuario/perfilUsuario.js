@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext, useMemo } from "react";
+import React, { useState, useEffect, useContext, useMemo, useCallback } from "react";
 import {
   View,
   Text,
@@ -20,7 +20,7 @@ import common from "../../styles/common";
 import theme from "../../styles/theme";
 import { useTranslation } from "react-i18next";
 import { useSettings } from "../../context/SettingsContext";
-
+import { useFocusEffect } from "@react-navigation/native";
 
 const BASE_URL = "http://35.170.12.68:8080";
 
@@ -40,28 +40,34 @@ export default function PerfilUsuario(props) {
   const [currencyModalVisible, setCurrencyModalVisible] = useState(false);
   const CURRENCIES = ["USD", "EUR", "GBP", "MXN"];
 
-  useEffect(() => {
-    if (!userId) return;
+  const loadUser = useCallback(async () => {
+  if (!userId) return;
 
-    const loadUser = async () => {
-      try {
-        const res = await fetch(`${BASE_URL}/API/User/${userId}`);
+  try {
+    const res = await fetch(`${BASE_URL}/API/User/${userId}`);
 
-        if (!res.ok) {
-          const txt = await res.text();
-          console.log("GET USER ERROR", res.status, txt);
-          return;
-        }
+    if (!res.ok) {
+      const txt = await res.text();
+      console.log("GET USER ERROR", res.status, txt);
+      return;
+    }
 
-        const data = await res.json();
-        setDbUser(data);
-      } catch (e) {
-        console.log("LOAD USER EXCEPTION", e);
-      }
-    };
+    const data = await res.json();
+    setDbUser(data);
+  } catch (e) {
+    console.log("LOAD USER EXCEPTION", e);
+  }
+}, [userId]);
 
+useEffect(() => {
+  loadUser();
+}, [loadUser]);
+
+useFocusEffect(
+  useCallback(() => {
     loadUser();
-  }, [userId]);
+  }, [loadUser])
+);
 
   useEffect(() => {
     if (!userId) return;
