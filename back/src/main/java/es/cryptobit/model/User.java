@@ -31,12 +31,13 @@ public class User {
     private String userImage;
     private String favoriteId;
     private String walletAddress;
+    private String privateKey;
 
     public User() {}
 
     public User(String firstName, String lastName, String dni, String email,
                 String password, Date birthDate, String userImage,
-                String favoriteId, String walletAddress) {
+                String favoriteId, String walletAddress,  String privateKey) {
 
         this.firstName = firstName;
         this.lastName = lastName;
@@ -47,6 +48,7 @@ public class User {
         this.userImage = userImage;
         this.favoriteId = favoriteId;
         this.walletAddress = walletAddress;
+        this.privateKey = privateKey;
     }
 
     public String getId() { return id; }
@@ -66,6 +68,9 @@ public class User {
 
     public String getPassword() { return password; }
     public void setPassword(String password) { this.password = password; }
+
+    public String getPrivateKey() { return privateKey; }
+    public void setPrivateKey(String privateKey) { this.privateKey = privateKey; }
 
     @JsonProperty("userImage")
     public String getUserImage() {

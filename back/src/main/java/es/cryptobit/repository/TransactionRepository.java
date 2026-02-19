@@ -2,8 +2,9 @@ package es.cryptobit.repository;
 
 import es.cryptobit.model.Transaction;
 import org.springframework.data.mongodb.repository.MongoRepository;
-import org.springframework.stereotype.Repository;
+import java.util.List;
 
-@Repository
-public interface BlockchainRepository extends MongoRepository<Transaction, String> {
+public interface TransactionRepository extends MongoRepository<Transaction, String> {
+    List<Transaction> findBySenderId(String senderId);
+    List<Transaction> findByReceiverId(String receiverId);
 }
