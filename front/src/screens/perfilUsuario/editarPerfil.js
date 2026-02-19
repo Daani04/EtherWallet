@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from "react";
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, Image, Alert, ScrollView } from "react-native";
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, Image, Alert, ScrollView, Platform } from "react-native";
 import CryptoJS from "crypto-js";
 import { useTranslation } from "react-i18next";
 
@@ -76,7 +76,14 @@ export default function EditarPerfil({ navigation, route }) {
   };
 
   return (
-    <ScrollView style={{ flex: 1, backgroundColor: COLORS.bg }} contentContainerStyle={{ padding: 16 }}>
+    <ScrollView
+    style={[
+      { flex: 1, backgroundColor: COLORS.bg },
+      Platform.OS === "web" && { height: "100vh", overflowY: "auto" }
+    ]}
+    contentContainerStyle={{ padding: 16, paddingBottom: 40 }}
+    showsVerticalScrollIndicator={false}
+  >
       <Text style={styles.title}>{t("editProfile.title")}</Text>
 
       <View style={styles.avatarBox}>
@@ -137,7 +144,7 @@ export default function EditarPerfil({ navigation, route }) {
         <Text style={styles.btnText}>{t("editProfile.actions.save")}</Text>
       </TouchableOpacity>
 
-      <TouchableOpacity style={styles.btnGhost} onPress={() => navigation.goBack()}>
+      <TouchableOpacity style={styles.btnGhost} onPress={() => (navigation.canGoBack() ? navigation.goBack() : navigation.navigate("HomeNav"))}>
         <Text style={styles.btnGhostText}>{t("common.cancel")}</Text>
       </TouchableOpacity>
     </ScrollView>

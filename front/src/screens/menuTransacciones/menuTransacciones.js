@@ -10,7 +10,8 @@ import {
   useWindowDimensions,
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
-import { useTranslation } from "react-i18next"; 
+import { useTranslation } from "react-i18next";
+import Nav from "../../components/Nav";
 
 import common from "../../styles/common";
 import theme from "../../styles/theme";
@@ -19,6 +20,9 @@ const BREAKPOINT_MD = 768;
 const BREAKPOINT_LG = 1100;
 
 const THEME = theme?.colors || theme?.COLORS || theme || {};
+const NAV_HEIGHT = 90;
+const isWeb = Platform.OS === "web";
+
 const COLORS = {
   primary: THEME.primary || "#2bee79",
   backgroundDark: THEME.bg || THEME.backgroundDark || "#102217",
@@ -30,7 +34,7 @@ const COLORS = {
 };
 
 export default function MenuTransacciones({ navigation }) {
-  const { t } = useTranslation(); 
+  const { t } = useTranslation();
 
   const { width } = useWindowDimensions();
 
@@ -302,7 +306,7 @@ export default function MenuTransacciones({ navigation }) {
               <Text style={styles.initialsText}>{r.initials}</Text>
             </View>
 
-            <TouchableOpacity onPress={() => {}} activeOpacity={0.7} style={styles.favBtn}>
+            <TouchableOpacity onPress={() => { }} activeOpacity={0.7} style={styles.favBtn}>
               <MaterialIcons
                 name={getFavIconName(r.favorite)}
                 size={18}
@@ -340,76 +344,162 @@ export default function MenuTransacciones({ navigation }) {
     });
   };
 
+  // ✅ RETURN (MenuTransacciones) con scroll web + Nav fijo (solo lo necesario)
   return (
-    <View style={[common.safe, styles.safe]}>
-      <View style={getHeaderStyle()}>
-        <TouchableOpacity onPress={goBack} style={styles.iconBtn} activeOpacity={0.8}>
-          <MaterialIcons name="arrow-back" size={22} color="#fff" />
-        </TouchableOpacity>
+    <View style={[common.safe, styles.safe, isWeb && styles.safeWeb]}>
+      <View style={styles.page}>
+        {isWeb ? (
+          <>
+            <View style={styles.webScroll}>
+              <View style={getHeaderStyle()}>
+                <TouchableOpacity onPress={goBack} style={styles.iconBtn} activeOpacity={0.8}>
+                  <MaterialIcons name="arrow-back" size={22} color="#fff" />
+                </TouchableOpacity>
 
-        <Text style={getHeaderTitleStyle()}>{t("transactions.headerTitle")}</Text>
+                <Text style={getHeaderTitleStyle()}>{t("transactions.headerTitle")}</Text>
 
-        <TouchableOpacity
-          onPress={() => goToScreen("AyudaTransacciones")}
-          style={styles.iconBtn}
-          activeOpacity={0.8}
-        >
-          <MaterialIcons name="help-outline" size={22} color="#fff" />
-        </TouchableOpacity>
-      </View>
-
-      <ScrollView contentContainerStyle={getScrollStyle()} showsVerticalScrollIndicator={false}>
-        <View style={getContainerStyle()}>
-          <View style={getSearchWrapStyle()}>
-            <MaterialIcons name="search" size={20} color={COLORS.textMutedSoft} />
-            <TextInput
-              value={search}
-              onChangeText={setSearch}
-              placeholder={t("transactions.searchPlaceholder")}
-              placeholderTextColor={COLORS.textMutedSoft}
-              style={styles.searchInput}
-            />
-            {renderClearButton()}
-          </View>
-
-          <View style={getLayoutStyle()}>
-            <View style={getLeftColStyle()}>
-              <Text style={common.sectionTitle || styles.sectionTitle}>
-                {t("transactions.sections.quickActions")}
-              </Text>
-
-              <View style={styles.actionsGrid}>{renderQuickActions()}</View>
-
-              <View style={styles.sectionRow}>
-                <Text style={common.sectionTitle || styles.sectionTitle}>
-                  {t("transactions.sections.recentRecipients")}
-                </Text>
-                <TouchableOpacity onPress={() => goToScreen("Destinatarios")} activeOpacity={0.8}>
-                  <Text style={styles.link}>{t("transactions.viewAll")}</Text>
+                <TouchableOpacity
+                  onPress={() => goToScreen("AyudaTransacciones")}
+                  style={styles.iconBtn}
+                  activeOpacity={0.8}
+                >
+                  <MaterialIcons name="help-outline" size={22} color="#fff" />
                 </TouchableOpacity>
               </View>
 
-              <View style={getRecipientsWrapStyle()}>{renderRecipients()}</View>
+              <View style={getScrollStyle()}>
+                <View style={getContainerStyle()}>
+                  <View style={getSearchWrapStyle()}>
+                    <MaterialIcons name="search" size={20} color={COLORS.textMutedSoft} />
+                    <TextInput
+                      value={search}
+                      onChangeText={setSearch}
+                      placeholder={t("transactions.searchPlaceholder")}
+                      placeholderTextColor={COLORS.textMutedSoft}
+                      style={styles.searchInput}
+                    />
+                    {renderClearButton()}
+                  </View>
+
+                  <View style={getLayoutStyle()}>
+                    <View style={getLeftColStyle()}>
+                      <Text style={common.sectionTitle || styles.sectionTitle}>
+                        {t("transactions.sections.quickActions")}
+                      </Text>
+
+                      <View style={styles.actionsGrid}>{renderQuickActions()}</View>
+
+                      <View style={styles.sectionRow}>
+                        <Text style={common.sectionTitle || styles.sectionTitle}>
+                          {t("transactions.sections.recentRecipients")}
+                        </Text>
+                        <TouchableOpacity onPress={() => goToScreen("Destinatarios")} activeOpacity={0.8}>
+                          <Text style={styles.link}>{t("transactions.viewAll")}</Text>
+                        </TouchableOpacity>
+                      </View>
+
+                      <View style={getRecipientsWrapStyle()}>{renderRecipients()}</View>
+                    </View>
+
+                    <View style={getRightColStyle()}>
+                      <Text style={getMovTitleStyle()}>{t("transactions.sections.recentMovements")}</Text>
+
+                      <View style={styles.listCard}>{renderTransactions()}</View>
+
+                      <TouchableOpacity
+                        style={getPrimaryBtnStyle()}
+                        activeOpacity={0.9}
+                        onPress={() => goToScreen("NuevaTransaccion")}
+                      >
+                        <Text style={styles.primaryBtnText}>{t("transactions.newTransaction")}</Text>
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                </View>
+
+                <View style={{ height: 18 }} />
+              </View>
             </View>
 
-            <View style={getRightColStyle()}>
-              <Text style={getMovTitleStyle()}>{t("transactions.sections.recentMovements")}</Text>
+            <View style={[styles.navWrap, styles.navWrapWeb]}>
+              <Nav />
+            </View>
+          </>
+        ) : (
+          <>
+            <View style={getHeaderStyle()}>
+              <TouchableOpacity onPress={goBack} style={styles.iconBtn} activeOpacity={0.8}>
+                <MaterialIcons name="arrow-back" size={22} color="#fff" />
+              </TouchableOpacity>
 
-              <View style={styles.listCard}>{renderTransactions()}</View>
+              <Text style={getHeaderTitleStyle()}>{t("transactions.headerTitle")}</Text>
 
               <TouchableOpacity
-                style={getPrimaryBtnStyle()}
-                activeOpacity={0.9}
-                onPress={() => goToScreen("NuevaTransaccion")}
+                onPress={() => goToScreen("AyudaTransacciones")}
+                style={styles.iconBtn}
+                activeOpacity={0.8}
               >
-                <Text style={styles.primaryBtnText}>{t("transactions.newTransaction")}</Text>
+                <MaterialIcons name="help-outline" size={22} color="#fff" />
               </TouchableOpacity>
             </View>
-          </View>
-        </View>
 
-        <View style={{ height: 18 }} />
-      </ScrollView>
+            <ScrollView contentContainerStyle={getScrollStyle()} showsVerticalScrollIndicator={false}>
+              <View style={getContainerStyle()}>
+                <View style={getSearchWrapStyle()}>
+                  <MaterialIcons name="search" size={20} color={COLORS.textMutedSoft} />
+                  <TextInput
+                    value={search}
+                    onChangeText={setSearch}
+                    placeholder={t("transactions.searchPlaceholder")}
+                    placeholderTextColor={COLORS.textMutedSoft}
+                    style={styles.searchInput}
+                  />
+                  {renderClearButton()}
+                </View>
+
+                <View style={getLayoutStyle()}>
+                  <View style={getLeftColStyle()}>
+                    <Text style={common.sectionTitle || styles.sectionTitle}>
+                      {t("transactions.sections.quickActions")}
+                    </Text>
+
+                    <View style={styles.actionsGrid}>{renderQuickActions()}</View>
+
+                    <View style={styles.sectionRow}>
+                      <Text style={common.sectionTitle || styles.sectionTitle}>
+                        {t("transactions.sections.recentRecipients")}
+                      </Text>
+                      <TouchableOpacity onPress={() => goToScreen("Destinatarios")} activeOpacity={0.8}>
+                        <Text style={styles.link}>{t("transactions.viewAll")}</Text>
+                      </TouchableOpacity>
+                    </View>
+
+                    <View style={getRecipientsWrapStyle()}>{renderRecipients()}</View>
+                  </View>
+
+                  <View style={getRightColStyle()}>
+                    <Text style={getMovTitleStyle()}>{t("transactions.sections.recentMovements")}</Text>
+
+                    <View style={styles.listCard}>{renderTransactions()}</View>
+
+                    <TouchableOpacity
+                      style={getPrimaryBtnStyle()}
+                      activeOpacity={0.9}
+                      onPress={() => goToScreen("NuevaTransaccion")}
+                    >
+                      <Text style={styles.primaryBtnText}>{t("transactions.newTransaction")}</Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              </View>
+
+              <View style={{ height: 18 }} />
+            </ScrollView>
+
+            <Nav />
+          </>
+        )}
+      </View>
     </View>
   );
 }
@@ -574,4 +664,31 @@ const styles = StyleSheet.create({
   },
   primaryBtnDesktop: { height: 60, borderRadius: 30 },
   primaryBtnText: { color: COLORS.backgroundDark, fontSize: 16, fontWeight: "900", letterSpacing: 0.4 },
+  safeWeb: {
+    height: "100vh",
+    overflow: "hidden",
+  },
+  page: {
+    flex: 1,
+    position: "relative",
+  },
+  webScroll: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: NAV_HEIGHT,
+    overflowY: "auto",
+    overflowX: "hidden",
+  },
+  navWrap: {
+    left: 0,
+    right: 0,
+    bottom: 0,
+    height: NAV_HEIGHT,
+    zIndex: 9999,
+  },
+  navWrapWeb: {
+    position: "fixed",
+  },
 });

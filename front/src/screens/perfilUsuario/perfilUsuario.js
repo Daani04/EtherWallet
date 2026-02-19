@@ -14,10 +14,11 @@ import {
   Platform
 } from "react-native";
 import Icon from "react-native-vector-icons/MaterialIcons";
-import Nav from "../../components/Nav";
 import Context from "../../context/Context";
 import common from "../../styles/common";
 import theme from "../../styles/theme";
+import Nav from "../../components/Nav";
+
 import { useTranslation } from "react-i18next";
 
 const COLORS = theme?.colors || theme?.COLORS || theme;
@@ -27,11 +28,12 @@ const BASE_URL = "http://10.10.6.221:8080";
 export default function PerfilUsuario(props) {
   const { t } = useTranslation();
 
-  const { userId } = useContext(Context);
-  const { logoutUser } = useContext(Context);
+  const { userId, setUserId, logoutUser } = useContext(Context);
 
   const [faceId, setFaceId] = useState(true);
   const [isDarkMode, setIsDarkMode] = useState(true);
+  const [dbUser, setDbUser] = useState(null);
+
 
   const [language, setLanguage] = useState("EN");
   const [languageModalVisible, setLanguageModalVisible] = useState(false);
@@ -120,7 +122,7 @@ export default function PerfilUsuario(props) {
     }
   };
 
-  const shownUser = dbUser ?? user;
+  const shownUser = dbUser ?? {};
 
   const handleDeleteAccount = async () => {
     console.log("[DELETE] Click eliminar. userId:", userId);
@@ -184,8 +186,8 @@ export default function PerfilUsuario(props) {
   return (
     <SafeAreaView style={common.safe}>
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => props.navigation.goBack()}>
-          <Icon name="arrow-back-ios-new" size={22} color={COLORS.textMain} />
+        <TouchableOpacity onPress={() => (props.navigation.canGoBack() ? props.navigation.goBack() : props.navigation.navigate("HomeNav"))}>
+          <Icon name="arrow-back-ios-new" size={22} color={COLORS.textMain || "#fff"} />
         </TouchableOpacity>
 
         <Text style={common.headerTitle || styles.headerTitle}>
@@ -195,7 +197,15 @@ export default function PerfilUsuario(props) {
         <View style={{ width: 24 }} />
       </View>
 
-      <ScrollView contentContainerStyle={{ paddingBottom: 120 }}>
+      <ScrollView
+        style={[
+          { flex: 1 },
+          Platform.OS === "web" && { height: "100vh", overflowY: "auto" }
+        ]}
+        contentContainerStyle={{ paddingBottom: 120 }}
+        showsVerticalScrollIndicator={false}
+      >
+
         <View style={styles.profileContainer}>
           <View>
             <Image
@@ -382,7 +392,6 @@ export default function PerfilUsuario(props) {
           </View>
         </Pressable>
       </Modal>
-
       <Nav />
     </SafeAreaView>
   );

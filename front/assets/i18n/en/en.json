@@ -3,6 +3,11 @@
     "Question": "Don't have an account?",
     "Register": "Sign up"
   },
+  "common": {
+    "cancel": "Cancel",
+    "ok": "OK",
+    "error": "Error"
+  },
   "news": {
     "headerTitle": "Geopolitics & Markets",
     "loading": "Analyzing the market...",
@@ -14,11 +19,11 @@
   },
   "transactions": {
     "headerTitle": "Transactions",
-    "searchPlaceholder": "Search recipient or transaction…",
+    "searchPlaceholder": "Search recipient or movement…",
     "sections": {
       "quickActions": "Quick actions",
       "recentRecipients": "Recent recipients",
-      "recentMovements": "Recent activity"
+      "recentMovements": "Recent movements"
     },
     "viewAll": "View all",
     "newTransaction": "New transaction",
@@ -38,7 +43,7 @@
     },
     "types": {
       "deposit": "Deposit",
-      "withdraw": "Withdrawal",
+      "withdraw": "Withdraw",
       "transfer": "Transfer"
     },
     "dates": {
@@ -51,7 +56,10 @@
   },
   "editProfile": {
     "title": "Edit profile",
-    "helpImageUrl": "Paste an image URL (for now)",
+    "helpImageUrl": "Paste an image URL ",
+    "help": {
+      "imageUrl": "Paste an image URL "
+    },
     "labels": {
       "image": "Image (userImage)",
       "firstName": "First name (firstName)",
@@ -64,19 +72,31 @@
       "firstName": "First name",
       "lastName": "Last name",
       "birthDate": "dd/mm/yyyy",
-      "passwordOptional": "Leave empty to keep current"
+      "passwordOptional": "Leave empty to keep current",
+      "newPassword": "Leave empty to keep current"
     },
     "buttons": {
       "save": "Save changes",
       "cancel": "Cancel"
     },
+    "actions": {
+      "save": "Save changes"
+    },
     "alerts": {
       "errorTitle": "Error",
-      "okTitle": "Ok",
+      "okTitle": "OK",
       "missingId": "I don't have the user id (missing user.id).",
       "fillFields": "Fill firstName, lastName, birthDate and userImage.",
       "updated": "Profile updated",
       "serverError": "Could not connect to the server"
+    },
+    "errors": {
+      "missingUserId": "I don't have the user id (missing user.id).",
+      "fillAllRequired": "Fill firstName, lastName, birthDate and userImage.",
+      "serverConnection": "Could not connect to the server"
+    },
+    "success": {
+      "updated": "Profile updated"
     }
   },
   "register": {
@@ -89,7 +109,7 @@
       "email": "Email",
       "password": "Password",
       "dni": "ID / NIE",
-      "birthDate": "Date of birth"
+      "birthDate": "Birth date"
     },
     "avatar": {
       "selectImage": "Select image",
@@ -102,7 +122,7 @@
       "email": "e.g. user@email.com",
       "password": "••••••••••••",
       "dni": "12345678X",
-      "birthDate": "Select date of birth"
+      "birthDate": "Select birth date"
     },
     "terms": {
       "textPrefix": "I accept the",
@@ -141,7 +161,7 @@
     "forgotPassword": "Forgot your password?",
     "buttons": {
       "login": "Log in",
-      "faceId": "Use Face ID"
+      "faceId": "Log in with Face ID"
     },
     "biometric": {
       "noSupportTitle": "Error",

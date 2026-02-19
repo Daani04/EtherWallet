@@ -3,6 +3,11 @@
     "Question": "¿No tienes una cuenta?",
     "Register": "Regístrate"
   },
+  "common": {
+    "cancel": "Cancelar",
+    "ok": "Ok",
+    "error": "Error"
+  },
   "news": {
     "headerTitle": "Geopolítica & Mercados",
     "loading": "Analizando el mercado...",
@@ -51,7 +56,10 @@
   },
   "editProfile": {
     "title": "Editar perfil",
-    "helpImageUrl": "Pega una URL de imagen (por ahora)",
+    "helpImageUrl": "Pega una URL de imagen ",
+    "help": {
+      "imageUrl": "Pega una URL de imagen "
+    },
     "labels": {
       "image": "Imagen (userImage)",
       "firstName": "Nombre (firstName)",
@@ -64,11 +72,15 @@
       "firstName": "Nombre",
       "lastName": "Apellidos",
       "birthDate": "dd/mm/yyyy",
-      "passwordOptional": "Deja vacío para no cambiar"
+      "passwordOptional": "Deja vacío para no cambiar",
+      "newPassword": "Deja vacío para no cambiar"
     },
     "buttons": {
       "save": "Guardar cambios",
       "cancel": "Cancelar"
+    },
+    "actions": {
+      "save": "Guardar cambios"
     },
     "alerts": {
       "errorTitle": "Error",
@@ -77,6 +89,14 @@
       "fillFields": "Rellena firstName, lastName, birthDate y userImage.",
       "updated": "Perfil actualizado",
       "serverError": "No se pudo conectar con el servidor"
+    },
+    "errors": {
+      "missingUserId": "No tengo el id del usuario (falta user.id).",
+      "fillAllRequired": "Rellena firstName, lastName, birthDate y userImage.",
+      "serverConnection": "No se pudo conectar con el servidor"
+    },
+    "success": {
+      "updated": "Perfil actualizado"
     }
   },
   "register": {

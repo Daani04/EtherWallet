@@ -8,6 +8,7 @@ import {
   TouchableOpacity,
   SafeAreaView,
   Dimensions,
+  Platform
 } from "react-native";
 import {
   Search,
@@ -27,6 +28,8 @@ import theme from "../../styles/theme";
 const { width } = Dimensions.get("window");
 
 const COLORS = theme?.colors || theme?.COLORS || theme;
+const NAV_HEIGHT = 90;
+const isWeb = Platform.OS === "web";
 
 export default function MenuPrincipal({ navigation }) {
   const [search, setSearch] = useState("");
@@ -35,130 +38,264 @@ export default function MenuPrincipal({ navigation }) {
   
 
   return (
-    <SafeAreaView style={common.safe}>
-      <View style={common.container}>
-        <ScrollView showsVerticalScrollIndicator={false}>
-          <View style={styles.mainTitleContainer}>
-            <Text style={styles.mainTitle}>Mercados</Text>
+  <SafeAreaView style={[common.safe, isWeb && styles.safeWeb]}>
+    <View style={styles.page}>
+      {isWeb ? (
+        <>
+          <View style={styles.webScroll}>
+            <View style={common.container}>
+              <ScrollView showsVerticalScrollIndicator={false}>
+                <View style={styles.mainTitleContainer}>
+                  <Text style={styles.mainTitle}>Mercados</Text>
+                </View>
+
+                <View style={styles.searchContainer}>
+                  <View style={styles.searchBox}>
+                    <Search size={20} color={COLORS.textMuted} style={styles.searchIcon} />
+                    <TextInput
+                      value={search}
+                      onChangeText={setSearch}
+                      placeholder="Buscar moneda (ej. Bitcoin)"
+                      placeholderTextColor={COLORS.textMuted}
+                      style={styles.input}
+                    />
+                    {search !== "" && (
+                      <TouchableOpacity onPress={() => setSearch("")}>
+                        <X size={18} color={COLORS.textMuted} />
+                      </TouchableOpacity>
+                    )}
+                  </View>
+                </View>
+
+                {/* "Todos", "Favoritos", "Ganadores", "Perdedores" => De momento no se utiliza */}
+                <ScrollView
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  contentContainerStyle={styles.chipsScroll}
+                >
+                  {["Todos", "Favoritos", "Ganadores", "Perdedores"].map((label, i) => (
+                    <TouchableOpacity key={label} style={[styles.chip, i === 0 && styles.chipActive]}>
+                      <Text style={[styles.chipText, i === 0 && styles.chipTextActive]}>{label}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
+
+                <View style={styles.sectionHeader}>
+                  <Text style={styles.sectionTitle}>Tendencias</Text>
+                  <TouchableOpacity style={styles.seeMore}>
+                    <Text style={styles.seeMoreText}>Ver más</Text>
+                    <ArrowRight size={14} color={COLORS.primary} />
+                  </TouchableOpacity>
+                </View>
+
+                <ScrollView
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  snapToInterval={width * 0.75}
+                  decelerationRate="fast"
+                  contentContainerStyle={styles.trendingScroll}
+                >
+                  <TrendingCard
+                    name="Bitcoin"
+                    symbol="BTC"
+                    price="43,205.12"
+                    change="2.4"
+                    isPositive
+                    icon={Bitcoin}
+                    color="#f59e0b"
+                    path="M0 30 Q 20 35, 40 20 T 80 15 T 150 5"
+                  />
+                  <TrendingCard
+                    name="Ethereum"
+                    symbol="ETH"
+                    price="2,240.55"
+                    change="0.5"
+                    isPositive={false}
+                    icon={Coins}
+                    color="#627EEA"
+                    path="M0 10 Q 20 5, 40 15 T 80 20 T 150 35"
+                  />
+                </ScrollView>
+
+                <View style={styles.marketSection}>
+                  <Text style={styles.sectionTitle}>Criptomonedas</Text>
+                  <View style={styles.marketList}>
+                    <MarketItem
+                      name="Bitcoin"
+                      symbol="BTC"
+                      price="43,205.12"
+                      change="2.45"
+                      isPositive
+                      icon={Bitcoin}
+                      color="#f59e0b"
+                    />
+                    <MarketItem
+                      name="Ethereum"
+                      symbol="ETH"
+                      price="2,240.55"
+                      change="0.51"
+                      isPositive={false}
+                      icon={Coins}
+                      color="#627EEA"
+                    />
+                    <MarketItem
+                      name="Solana"
+                      symbol="SOL"
+                      price="95.42"
+                      change="12.1"
+                      isPositive
+                      icon={Infinity}
+                      color="#a855f7"
+                    />
+                    <MarketItem
+                      name="BNB"
+                      symbol="BNB"
+                      price="312.50"
+                      change="0.85"
+                      isPositive
+                      icon={Coins}
+                      color="#f3ba2f"
+                    />
+                  </View>
+                </View>
+
+                <View style={{ height: 120 }} />
+              </ScrollView>
+            </View>
           </View>
 
-          <View style={styles.searchContainer}>
-            <View style={styles.searchBox}>
-              <Search size={20} color={COLORS.textMuted} style={styles.searchIcon} />
-              <TextInput
-                value={search}
-                onChangeText={setSearch}
-                placeholder="Buscar moneda (ej. Bitcoin)"
-                placeholderTextColor={COLORS.textMuted}
-                style={styles.input}
-              />
-              {search !== "" && (
-                <TouchableOpacity onPress={() => setSearch("")}>
-                  <X size={18} color={COLORS.textMuted} />
+          <View style={[styles.navWrap, styles.navWrapWeb]}>
+            <Nav />
+          </View>
+        </>
+      ) : (
+        <>
+          <View style={common.container}>
+            <ScrollView showsVerticalScrollIndicator={false}>
+              <View style={styles.mainTitleContainer}>
+                <Text style={styles.mainTitle}>Mercados</Text>
+              </View>
+
+              <View style={styles.searchContainer}>
+                <View style={styles.searchBox}>
+                  <Search size={20} color={COLORS.textMuted} style={styles.searchIcon} />
+                  <TextInput
+                    value={search}
+                    onChangeText={setSearch}
+                    placeholder="Buscar moneda (ej. Bitcoin)"
+                    placeholderTextColor={COLORS.textMuted}
+                    style={styles.input}
+                  />
+                  {search !== "" && (
+                    <TouchableOpacity onPress={() => setSearch("")}>
+                      <X size={18} color={COLORS.textMuted} />
+                    </TouchableOpacity>
+                  )}
+                </View>
+              </View>
+
+              {/* "Todos", "Favoritos", "Ganadores", "Perdedores" => De momento no se utiliza */}
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.chipsScroll}
+              >
+                {["Todos", "Favoritos", "Ganadores", "Perdedores"].map((label, i) => (
+                  <TouchableOpacity key={label} style={[styles.chip, i === 0 && styles.chipActive]}>
+                    <Text style={[styles.chipText, i === 0 && styles.chipTextActive]}>{label}</Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+
+              <View style={styles.sectionHeader}>
+                <Text style={styles.sectionTitle}>Tendencias</Text>
+                <TouchableOpacity style={styles.seeMore}>
+                  <Text style={styles.seeMoreText}>Ver más</Text>
+                  <ArrowRight size={14} color={COLORS.primary} />
                 </TouchableOpacity>
-              )}
-            </View>
+              </View>
+
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                snapToInterval={width * 0.75}
+                decelerationRate="fast"
+                contentContainerStyle={styles.trendingScroll}
+              >
+                <TrendingCard
+                  name="Bitcoin"
+                  symbol="BTC"
+                  price="43,205.12"
+                  change="2.4"
+                  isPositive
+                  icon={Bitcoin}
+                  color="#f59e0b"
+                  path="M0 30 Q 20 35, 40 20 T 80 15 T 150 5"
+                />
+                <TrendingCard
+                  name="Ethereum"
+                  symbol="ETH"
+                  price="2,240.55"
+                  change="0.5"
+                  isPositive={false}
+                  icon={Coins}
+                  color="#627EEA"
+                  path="M0 10 Q 20 5, 40 15 T 80 20 T 150 35"
+                />
+              </ScrollView>
+
+              <View style={styles.marketSection}>
+                <Text style={styles.sectionTitle}>Criptomonedas</Text>
+                <View style={styles.marketList}>
+                  <MarketItem
+                    name="Bitcoin"
+                    symbol="BTC"
+                    price="43,205.12"
+                    change="2.45"
+                    isPositive
+                    icon={Bitcoin}
+                    color="#f59e0b"
+                  />
+                  <MarketItem
+                    name="Ethereum"
+                    symbol="ETH"
+                    price="2,240.55"
+                    change="0.51"
+                    isPositive={false}
+                    icon={Coins}
+                    color="#627EEA"
+                  />
+                  <MarketItem
+                    name="Solana"
+                    symbol="SOL"
+                    price="95.42"
+                    change="12.1"
+                    isPositive
+                    icon={Infinity}
+                    color="#a855f7"
+                  />
+                  <MarketItem
+                    name="BNB"
+                    symbol="BNB"
+                    price="312.50"
+                    change="0.85"
+                    isPositive
+                    icon={Coins}
+                    color="#f3ba2f"
+                  />
+                </View>
+              </View>
+
+              <View style={{ height: 120 }} />
+            </ScrollView>
           </View>
 
-          {/* "Todos", "Favoritos", "Ganadores", "Perdedores" => De momento no se utiliza */}
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.chipsScroll}
-          >
-            {["Todos", "Favoritos", "Ganadores", "Perdedores"].map((label, i) => (
-              <TouchableOpacity key={label} style={[styles.chip, i === 0 && styles.chipActive]}>
-                <Text style={[styles.chipText, i === 0 && styles.chipTextActive]}>{label}</Text>
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
-
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Tendencias</Text>
-            <TouchableOpacity style={styles.seeMore}>
-              <Text style={styles.seeMoreText}>Ver más</Text>
-              <ArrowRight size={14} color={COLORS.primary} />
-            </TouchableOpacity>
-          </View>
-
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            snapToInterval={width * 0.75}
-            decelerationRate="fast"
-            contentContainerStyle={styles.trendingScroll}
-          >
-            <TrendingCard
-              name="Bitcoin"
-              symbol="BTC"
-              price="43,205.12"
-              change="2.4"
-              isPositive
-              icon={Bitcoin}
-              color="#f59e0b"
-              path="M0 30 Q 20 35, 40 20 T 80 15 T 150 5"
-            />
-            <TrendingCard
-              name="Ethereum"
-              symbol="ETH"
-              price="2,240.55"
-              change="0.5"
-              isPositive={false}
-              icon={Coins}
-              color="#627EEA"
-              path="M0 10 Q 20 5, 40 15 T 80 20 T 150 35"
-            />
-          </ScrollView>
-
-          <View style={styles.marketSection}>
-            <Text style={styles.sectionTitle}>Criptomonedas</Text>
-            <View style={styles.marketList}>
-              <MarketItem
-                name="Bitcoin"
-                symbol="BTC"
-                price="43,205.12"
-                change="2.45"
-                isPositive
-                icon={Bitcoin}
-                color="#f59e0b"
-              />
-              <MarketItem
-                name="Ethereum"
-                symbol="ETH"
-                price="2,240.55"
-                change="0.51"
-                isPositive={false}
-                icon={Coins}
-                color="#627EEA"
-              />
-              <MarketItem
-                name="Solana"
-                symbol="SOL"
-                price="95.42"
-                change="12.1"
-                isPositive
-                icon={Infinity}
-                color="#a855f7"
-              />
-              <MarketItem
-                name="BNB"
-                symbol="BNB"
-                price="312.50"
-                change="0.85"
-                isPositive
-                icon={Coins}
-                color="#f3ba2f"
-              />
-            </View>
-          </View>
-
-          <View style={{ height: 120 }} />
-        </ScrollView>
-      </View>
-
-      <Nav />
-    </SafeAreaView>
-  );
+          <Nav />
+        </>
+      )}
+    </View>
+  </SafeAreaView>
+);
 }
 
 // Tendencias
@@ -221,7 +358,6 @@ const MarketItem = ({ name, symbol, price, change, isPositive, icon: Icon, color
 );
 
 const styles = StyleSheet.create({
-  // ✅ ahora el fondo/espaciado base lo da common.safe + common.container
 
   mainTitleContainer: {
     paddingHorizontal: 24,
@@ -372,4 +508,35 @@ const styles = StyleSheet.create({
   marketValues: { alignItems: "flex-end" },
   marketPrice: { color: COLORS.textMain, fontSize: 16, fontWeight: "bold" },
   marketChange: { fontSize: 14, fontWeight: "600" },
+  safeWeb: {
+  height: "100vh",
+  overflow: "hidden",
+},
+
+page: {
+  flex: 1,
+  position: "relative",
+},
+
+webScroll: {
+  position: "absolute",
+  top: 0,
+  left: 0,
+  right: 0,
+  bottom: NAV_HEIGHT,   
+  overflowY: "auto",    
+  overflowX: "hidden",
+},
+
+navWrap: {
+  left: 0,
+  right: 0,
+  bottom: 0,
+  height: NAV_HEIGHT,
+  zIndex: 9999,
+},
+
+navWrapWeb: {
+  position: "fixed",
+},
 });
