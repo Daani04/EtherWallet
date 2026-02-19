@@ -16,7 +16,7 @@ C:\Users\carlo\OneDrive\Documentos\DAM\CryptoBit\back\src\main\java\es\cryptobit
 C:\Users\carlo\OneDrive\Documentos\DAM\CryptoBit\back\src\main\java\es\cryptobit\Main.java
 C:\Users\carlo\OneDrive\Documentos\DAM\CryptoBit\back\src\main\java\es\cryptobit\service\BlockchainService.java
 C:\Users\carlo\OneDrive\Documentos\DAM\CryptoBit\back\src\main\java\es\cryptobit\model\Transaction.java
+C:\Users\carlo\OneDrive\Documentos\DAM\CryptoBit\back\src\main\java\es\cryptobit\repository\TransactionRepository.java
 C:\Users\carlo\OneDrive\Documentos\DAM\CryptoBit\back\src\main\java\es\cryptobit\repository\BlockchainRecordRepository.java
 C:\Users\carlo\OneDrive\Documentos\DAM\CryptoBit\back\src\main\java\es\cryptobit\repository\WalletRepository.java
 C:\Users\carlo\OneDrive\Documentos\DAM\CryptoBit\back\src\main\java\es\cryptobit\controller\BlockchainController.java
-C:\Users\carlo\OneDrive\Documentos\DAM\CryptoBit\back\src\main\java\es\cryptobit\repository\BlockchainRepository.java

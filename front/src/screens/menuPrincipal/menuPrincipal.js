@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext, useMemo, useRef, useCallback } from "react";
+import React, { useState, useEffect, useContext, useRef, useMemo, useCallback } from "react";
 import {
   StyleSheet,
   View,
@@ -19,8 +19,8 @@ import Svg, { Path } from "react-native-svg";
 import Nav from "../../components/Nav";
 import common from "../../styles/common";
 import Context from "../../context/Context";
-import getData from "../../services/services";
 import { useSettings } from "../../context/SettingsContext";
+import getData from "../../services/services";
 import theme from "../../styles/theme";
 
 const { width } = Dimensions.get("window");
@@ -28,13 +28,14 @@ const COLORS = theme?.colors || theme?.COLORS || theme;
 
 const NAV_HEIGHT = 90;
 const isWeb = Platform.OS === "web";
+
+// ✅ unificado (como estabas usando en local en el resto de pantallas)
 const BASE_URL = "http://10.10.6.84:8080";
 
 export default function MenuPrincipal({ navigation }) {
+  const { user } = useContext(Context);
   const { C } = useSettings();
   const styles = useMemo(() => makeStyles(C), [C]);
-
-  const { user } = useContext(Context);
 
   const [search, setSearch] = useState("");
   const [cryptos, setCryptos] = useState([]);
@@ -43,18 +44,9 @@ export default function MenuPrincipal({ navigation }) {
   const [limit, setLimit] = useState(20);
   const [activeFilter, setActiveFilter] = useState("Todos");
 
-  const retryTimeoutRef = useRef(null);
-  const retryCountRef = useRef(0);
-  const mountedRef = useRef(true);
+  const isFetching = useRef(false);
 
-  useEffect(() => {
-    return () => {
-      mountedRef.current = false;
-      if (retryTimeoutRef.current) clearTimeout(retryTimeoutRef.current);
-    };
-  }, []);
-
-  const fetchFavorites = async () => {
+  const fetchFavorites = useCallback(async () => {
     if (!user?.userId) return;
     try {
       const response = await fetch(`${BASE_URL}/API/SeeFavorites/${user.userId}`);
@@ -63,68 +55,46 @@ export default function MenuPrincipal({ navigation }) {
         setFavoritesIds(Array.isArray(data) ? data.map((f) => f.crypto) : []);
       }
     } catch (error) {
-      console.error("Error cargando favoritos:", error);
+      console.error(error);
     }
-  };
+  }, [user]);
 
   const fetchMarketData = useCallback(
-    async ({ isRetry = false } = {}) => {
+    async (currentLimit) => {
+      if (isFetching.current) return;
+      isFetching.current = true;
+
+      if (cryptos.length === 0) setLoading(true);
+
       const url =
         `https://api.coingecko.com/api/v3/coins/markets` +
-        `?vs_currency=eur&order=market_cap_desc&per_page=${limit}&page=1&sparkline=true&price_change_percentage=24h`;
-
-      const apiKey = "";
-
-      if (!isRetry) retryCountRef.current = 0;
+        `?vs_currency=eur&order=market_cap_desc&per_page=${currentLimit}&page=1&sparkline=true&price_change_percentage=24h`;
 
       try {
-        const data = await getData(url, apiKey);
-
-        const hasValidData = Array.isArray(data) && data.length > 0;
-
-        if (hasValidData) {
-          if (!mountedRef.current) return;
-          setCryptos(data);
-          setLoading(false);
-          retryCountRef.current = 0;
-          return;
-        }
-
-        throw new Error("Respuesta vacía o inválida de CoinGecko");
+        const data = await getData(url, "");
+        if (Array.isArray(data)) setCryptos(data);
       } catch (error) {
-        console.error("Error en fetchMarketData:", error?.message || error);
-
-        const MAX_RETRIES = 8;
-        if (retryCountRef.current >= MAX_RETRIES) {
-          if (!mountedRef.current) return;
-          setLoading(false);
-          return;
-        }
-
-        retryCountRef.current += 1;
-
-        const delay = Math.min(700 * Math.pow(1.6, retryCountRef.current - 1), 8000);
-
-        if (retryTimeoutRef.current) clearTimeout(retryTimeoutRef.current);
-
-        retryTimeoutRef.current = setTimeout(() => {
-          if (!mountedRef.current) return;
-          fetchMarketData({ isRetry: true });
-        }, delay);
+        console.error(error);
+      } finally {
+        setLoading(false);
+        isFetching.current = false;
       }
     },
-    [limit]
+    [cryptos.length]
   );
 
   useEffect(() => {
-    setLoading(true);
-    setCryptos([]);
-    fetchMarketData({ isRetry: false });
-  }, [limit, fetchMarketData]);
+    fetchFavorites();
+  }, [fetchFavorites]);
 
   useEffect(() => {
-    fetchFavorites();
-  }, [user]);
+    fetchMarketData(limit);
+  }, [limit, fetchMarketData]);
+
+  const handleLoadMore = () => {
+    if (loading) return;
+    setLimit((prev) => prev + 10);
+  };
 
   const toggleFavorite = async (crypto) => {
     const isFav = favoritesIds.includes(crypto.id);
@@ -163,6 +133,7 @@ export default function MenuPrincipal({ navigation }) {
     const min = Math.min(...prices);
     const max = Math.max(...prices);
     const range = max - min || 1;
+
     const widthSVG = 150;
     const heightSVG = 40;
 
@@ -175,19 +146,18 @@ export default function MenuPrincipal({ navigation }) {
       .join(" ");
   };
 
-  const getFilteredAndSortedCryptos = () => {
+  const filteredCryptos = useMemo(() => {
     let result = Array.isArray(cryptos) ? [...cryptos] : [];
 
-    if (search) {
+    if (search && search.trim()) {
       const s = search.toLowerCase();
       result = result.filter(
         (c) => c.name?.toLowerCase().includes(s) || c.symbol?.toLowerCase().includes(s)
       );
     }
 
-    if (activeFilter === "Favoritos") {
-      result = result.filter((c) => favoritesIds.includes(c.id));
-    } else if (activeFilter === "Ganadores") {
+    if (activeFilter === "Favoritos") result = result.filter((c) => favoritesIds.includes(c.id));
+    else if (activeFilter === "Ganadores") {
       result = result
         .filter((c) => c.price_change_percentage_24h > 0)
         .sort((a, b) => b.price_change_percentage_24h - a.price_change_percentage_24h);
@@ -198,9 +168,7 @@ export default function MenuPrincipal({ navigation }) {
     }
 
     return result;
-  };
-
-  const filteredCryptos = getFilteredAndSortedCryptos();
+  }, [cryptos, search, activeFilter, favoritesIds]);
 
   const Content = () => (
     <View style={[common.container, { backgroundColor: C.bg }]}>
@@ -227,11 +195,7 @@ export default function MenuPrincipal({ navigation }) {
           </View>
         </View>
 
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.chipsScroll}
-        >
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chipsScroll}>
           {["Todos", "Favoritos", "Ganadores", "Perdedores"].map((label) => (
             <TouchableOpacity
               key={label}
@@ -292,18 +256,31 @@ export default function MenuPrincipal({ navigation }) {
                 />
               ))
             ) : (
-              <Text style={styles.emptyText}>No hay datos disponibles para este filtro</Text>
+              <View style={{ paddingVertical: 40 }}>
+                {loading ? (
+                  <ActivityIndicator color={C.primary} />
+                ) : (
+                  <Text style={styles.emptyText}>No hay datos disponibles para este filtro</Text>
+                )}
+              </View>
             )}
           </View>
 
           {activeFilter === "Todos" && filteredCryptos.length > 0 && (
             <TouchableOpacity
-              style={styles.seeMoreBottom}
-              onPress={() => setLimit(limit + 10)}
+              style={[styles.seeMoreBottom, loading && { opacity: 0.5 }]}
+              onPress={handleLoadMore}
+              disabled={loading}
               activeOpacity={0.85}
             >
-              <Text style={styles.seeMoreText}>Cargar más monedas</Text>
-              <ArrowRight size={16} color={C.primary} />
+              {loading ? (
+                <ActivityIndicator size="small" color={C.primary} />
+              ) : (
+                <>
+                  <Text style={styles.seeMoreText}>Cargar más monedas</Text>
+                  <ArrowRight size={16} color={C.primary} />
+                </>
+              )}
             </TouchableOpacity>
           )}
         </View>
@@ -338,7 +315,7 @@ export default function MenuPrincipal({ navigation }) {
 }
 
 const TrendingCard = ({ item, path, C, styles }) => {
-  const isPositive = item.price_change_percentage_24h >= 0;
+  const isPositive = (item.price_change_percentage_24h ?? 0) >= 0;
 
   return (
     <View style={styles.trendingCard}>
@@ -363,9 +340,7 @@ const TrendingCard = ({ item, path, C, styles }) => {
         </View>
       </View>
 
-      <Text style={styles.cardPrice}>
-        {Number(item.current_price || 0).toLocaleString()} €
-      </Text>
+      <Text style={styles.cardPrice}>{Number(item.current_price || 0).toLocaleString()} €</Text>
 
       <View style={styles.chartMini}>
         <Svg height="40" width="100%">
@@ -377,7 +352,7 @@ const TrendingCard = ({ item, path, C, styles }) => {
 };
 
 const MarketItem = ({ item, isFav, onFavPress, C, styles }) => {
-  const isPositive = item.price_change_percentage_24h >= 0;
+  const isPositive = (item.price_change_percentage_24h ?? 0) >= 0;
 
   return (
     <View style={styles.marketItem}>
@@ -392,6 +367,7 @@ const MarketItem = ({ item, isFav, onFavPress, C, styles }) => {
       <View style={styles.marketRight}>
         <Text style={styles.marketPrice}>{Number(item.current_price || 0).toLocaleString()} €</Text>
         <Text style={[styles.marketChange, { color: isPositive ? C.primary : C.danger }]}>
+          {isPositive ? "+" : ""}
           {Number(item.price_change_percentage_24h || 0).toFixed(2)}%
         </Text>
       </View>
@@ -409,7 +385,7 @@ const MarketItem = ({ item, isFav, onFavPress, C, styles }) => {
 
 const makeStyles = (C) =>
   StyleSheet.create({
-    // ✅ WEB scroll + Nav fijo (como tu versión)
+    // ✅ WEB scroll + Nav fijo
     safeWeb: {
       height: "100vh",
       overflow: "hidden",
@@ -451,7 +427,7 @@ const makeStyles = (C) =>
       paddingHorizontal: 14,
       height: 54,
       shadowColor: C.shadow,
-      shadowOpacity: C.isDark ? 0.05 : 0.10,
+      shadowOpacity: C.isDark ? 0.05 : 0.1,
       shadowRadius: 14,
       shadowOffset: { width: 0, height: 8 },
       elevation: 2,
