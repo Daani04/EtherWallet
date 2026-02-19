@@ -3,6 +3,11 @@
     "Question": "No tens un compte?",
     "Register": "Registra't"
   },
+  "common": {
+    "cancel": "Cancel·lar",
+    "ok": "D'acord",
+    "error": "Error"
+  },
   "news": {
     "headerTitle": "Geopolítica i Mercats",
     "loading": "Analitzant el mercat...",
@@ -14,7 +19,7 @@
   },
   "transactions": {
     "headerTitle": "Transaccions",
-    "searchPlaceholder": "Cerca destinatari o moviment…",
+    "searchPlaceholder": "Buscar destinatari o moviment…",
     "sections": {
       "quickActions": "Accions ràpides",
       "recentRecipients": "Últims destinataris",
@@ -24,7 +29,7 @@
     "newTransaction": "Nova transacció",
     "quickActions": {
       "deposit": {
-        "title": "Ingressar",
+        "title": "Depositar",
         "subtitle": "Afig EUR al teu wallet"
       },
       "transfer": {
@@ -37,7 +42,7 @@
       }
     },
     "types": {
-      "deposit": "Ingrés",
+      "deposit": "Dipòsit",
       "withdraw": "Retirada",
       "transfer": "Transferència"
     },
@@ -51,7 +56,10 @@
   },
   "editProfile": {
     "title": "Editar perfil",
-    "helpImageUrl": "Apega una URL d'imatge (per ara)",
+    "helpImageUrl": "Pega una URL d'imatge ",
+    "help": {
+      "imageUrl": "Pega una URL d'imatge "
+    },
     "labels": {
       "image": "Imatge (userImage)",
       "firstName": "Nom (firstName)",
@@ -63,20 +71,32 @@
       "imageUrl": "https://...",
       "firstName": "Nom",
       "lastName": "Cognoms",
-      "birthDate": "dd/mm/yyyy",
-      "passwordOptional": "Deixa-ho buit per a no canviar"
+      "birthDate": "dd/mm/aaaa",
+      "passwordOptional": "Deixa-ho buit per a no canviar",
+      "newPassword": "Deixa-ho buit per a no canviar"
     },
     "buttons": {
       "save": "Guardar canvis",
       "cancel": "Cancel·lar"
     },
+    "actions": {
+      "save": "Guardar canvis"
+    },
     "alerts": {
       "errorTitle": "Error",
-      "okTitle": "Ok",
+      "okTitle": "D'acord",
       "missingId": "No tinc l'id de l'usuari (falta user.id).",
       "fillFields": "Ompli firstName, lastName, birthDate i userImage.",
       "updated": "Perfil actualitzat",
       "serverError": "No s'ha pogut connectar amb el servidor"
+    },
+    "errors": {
+      "missingUserId": "No tinc l'id de l'usuari (falta user.id).",
+      "fillAllRequired": "Ompli firstName, lastName, birthDate i userImage.",
+      "serverConnection": "No s'ha pogut connectar amb el servidor"
+    },
+    "success": {
+      "updated": "Perfil actualitzat"
     }
   },
   "register": {
@@ -94,7 +114,7 @@
     "avatar": {
       "selectImage": "Seleccionar imatge",
       "fromFiles": "Des d'arxius",
-      "fromGallery": "Des de galeria"
+      "fromGallery": "Des de la galeria"
     },
     "placeholders": {
       "name": "El teu nom",
@@ -106,7 +126,7 @@
     },
     "terms": {
       "textPrefix": "Accepte els",
-      "termsOfService": "Termes del Servei",
+      "termsOfService": "Termes de Servei",
       "and": "i la",
       "privacyPolicy": "Política de Privacitat",
       "textSuffix": "."
@@ -133,7 +153,7 @@
   },
   "login": {
     "title": "Benvingut/da",
-    "subtitle": "Accedix a la teua cartera segura",
+    "subtitle": "Accedeix a la teua cartera segura",
     "placeholders": {
       "email": "Correu electrònic",
       "password": "••••••••••••"
@@ -147,7 +167,7 @@
       "noSupportTitle": "Error",
       "noSupportMsg": "Este dispositiu no suporta biometria.",
       "notEnrolledTitle": "Error",
-      "notEnrolledMsg": "No tens un rostre registrat en este iPhone.",
+      "notEnrolledMsg": "No tens cap rostre registrat en este iPhone.",
       "promptMessage": "Autentica't amb Face ID",
       "fallbackLabel": "Introduir codi",
       "successTitle": "Èxit",

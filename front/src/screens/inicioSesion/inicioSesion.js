@@ -12,6 +12,7 @@ import {
   Platform,
   Alert,
   Pressable,
+  SafeAreaView,
   Modal,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
@@ -23,11 +24,11 @@ import CryptoJS from "crypto-js";
 import common from "../../styles/common";
 import theme from "../../styles/theme";
 import Context from "../../context/Context";
-
 import i18n from "../../../assets/i18n";
 
 const COLORS = theme?.colors || theme?.COLORS || theme;
 const { width } = Dimensions.get("window");
+const isWeb = Platform.OS === "web";
 
 const BASE_URL = "http://35.170.12.68:8080";
 
@@ -105,8 +106,7 @@ const InicioSesion = (props) => {
     }
   };
 
-
-const handleLogin = async () => {
+  const handleLogin = async () => {
     console.log("LOGIN CLICK", { mail, psw });
 
     if (!mail || !psw) {
@@ -125,19 +125,13 @@ const handleLogin = async () => {
       });
 
       const text = await response.text();
+
       Alert.alert(
-        response.ok
-          ? t("login.biometric.successTitle")
-          : t("login.alerts.errorTitle"),
+        response.ok ? t("login.biometric.successTitle") : t("login.alerts.errorTitle"),
         text
       );
 
       if (!response.ok) return;
-
-      if (response.ok) {
-        await loginUser({ email: mail });
-        props.navigation.navigate("HomeNav");
-      }
 
       // 2) Obtener ID por email
       const idRes = await fetch(
@@ -148,10 +142,7 @@ const handleLogin = async () => {
       const idText = await idRes.text();
 
       if (!idRes.ok) {
-        Alert.alert(
-          t("login.alerts.errorTitle"),
-          "Login OK, pero no se pudo obtener el ID."
-        );
+        Alert.alert(t("login.alerts.errorTitle"), "Login OK, pero no se pudo obtener el ID.");
         return;
       }
 
@@ -166,10 +157,8 @@ const handleLogin = async () => {
         return;
       }
 
-      // 3) NUEVO: Obtener datos completos del usuario (walletAddress, firstName, etc.)
-      const userRes = await fetch(`${BASE_URL}/API/User/${fetchedId}`, {
-        method: "GET"
-      });
+      // 3) Obtener datos completos del usuario (walletAddress, firstName, etc.)
+      const userRes = await fetch(`${BASE_URL}/API/User/${fetchedId}`, { method: "GET" });
 
       if (!userRes.ok) {
         Alert.alert("Error", "Login OK, pero no se pudieron recuperar los datos del perfil.");
@@ -179,7 +168,7 @@ const handleLogin = async () => {
       const fullUserData = await userRes.json();
       console.log("DATOS COMPLETOS RECUPERADOS:", fullUserData);
 
-      // 4) GUARDAR EN CONTEXT (con todos los datos para la Billetera)
+      // 4) Guardar en Context
       setUserId(fetchedId);
       await loginUser({ ...fullUserData, userId: fetchedId });
 
@@ -187,143 +176,190 @@ const handleLogin = async () => {
       props.navigation.navigate("HomeNav");
     } catch (error) {
       console.log("FETCH ERROR", error);
-      Alert.alert(
-        t("login.alerts.errorTitle"),
-        t("login.alerts.connectionError")
-      );
+      Alert.alert(t("login.alerts.errorTitle"), t("login.alerts.connectionError"));
     }
   };
 
-  return (
-    <KeyboardAvoidingView
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
-      style={common.safe || styles.safe}
+  const LangModal = () => (
+    <Modal
+      transparent
+      visible={langModalVisible}
+      animationType="fade"
+      onRequestClose={() => setLangModalVisible(false)}
     >
-      <ScrollView contentContainerStyle={common.container || styles.scrollContainer} bounces={false}>
-        <View style={styles.root}>
-          <View style={[styles.blob, styles.blobTopRight]} />
-          <View style={[styles.blob, styles.blobBottomLeft]} />
-
-          <View style={styles.container}>
-            <View style={styles.langBtnWrap}>
-              <TouchableOpacity
-                onPress={() => setLangModalVisible(true)}
-                activeOpacity={0.85}
-                style={styles.langBtn}
-              >
-                <MaterialIcons name="language" size={22} color={COLORS.primary || "#2bee79"} />
-              </TouchableOpacity>
-            </View>
-
-            <View style={styles.heroWrap}>
-              <View style={styles.heroCard}>
-                <ImageBackground source={require("../../../assets/logo.png")} style={styles.heroImg}>
-                  <LinearGradient
-                    colors={["transparent", "rgba(16,34,23,0.8)", COLORS?.backgroundDark || "#102217"]}
-                    locations={[0.0, 0.7, 1.0]}
-                    style={styles.heroGradient}
-                  />
-                </ImageBackground>
-              </View>
-            </View>
-
-            <View style={styles.head}>
-              <Text style={styles.title}>{t("login.title")}</Text>
-              <Text style={styles.subtitle}>{t("login.subtitle")}</Text>
-            </View>
-
-            <View style={styles.form}>
-              <View style={styles.inputContainer}>
-                <MaterialIcons name="mail-outline" size={20} color="#9db9a8" style={styles.inputIcon} />
-                <TextInput
-                  placeholder={t("login.placeholders.email")}
-                  placeholderTextColor={COLORS?.textMuted || "#9db9a8"}
-                  style={styles.input}
-                  autoCapitalize="none"
-                  keyboardType="email-address"
-                  onChangeText={(userMail) => setMail(userMail)}
-                />
-              </View>
-
-              <View style={styles.inputContainer}>
-                <MaterialIcons name="lock-outline" size={20} color="#9db9a8" style={styles.inputIcon} />
-                <TextInput
-                  placeholder={t("login.placeholders.password")}
-                  placeholderTextColor="rgba(157,185,168,0.55)"
-                  style={styles.input}
-                  secureTextEntry={!showPassword}
-                  onChangeText={(userPsw) => setPsw(userPsw)}
-                />
-                <TouchableOpacity
-                  style={styles.eyeIcon}
-                  activeOpacity={0.7}
-                  onPress={() => setShowPassword((v) => !v)}
-                >
-                  <MaterialIcons
-                    name={showPassword ? "visibility" : "visibility-off"}
-                    size={20}
-                    color={COLORS?.textMuted || "rgba(255,255,255,0.6)"}
-                  />
-                </TouchableOpacity>
-              </View>
-
-              <TouchableOpacity style={styles.forgotPassRow}>
-                <Text style={styles.forgotPassText}>{t("login.forgotPassword")}</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity style={styles.primaryBtn} activeOpacity={0.8} onPress={handleLogin}>
-                <Text style={styles.primaryBtnText}>{t("login.buttons.login")}</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity style={styles.secondaryBtn} activeOpacity={0.8} onPress={handleBiometricAuth}>
-                <MaterialIcons name="face" size={24} color="#ffffff" />
-                <Text style={styles.secondaryBtnText}>{t("login.buttons.faceId")}</Text>
-              </TouchableOpacity>
-            </View>
-
-            <View style={styles.footer}>
-              <Text style={styles.footerText}>
-                {t("NoAccount.Question")}{" "}
-                <Pressable onPress={() => props.navigation.navigate("RegistroUsuario")}>
-                  <Text style={styles.footerLink}>{t("NoAccount.Register")}</Text>
-                </Pressable>
-              </Text>
-            </View>
-
-            <Modal
-              transparent
-              visible={langModalVisible}
-              animationType="fade"
-              onRequestClose={() => setLangModalVisible(false)}
+      <Pressable style={styles.langOverlay} onPress={() => setLangModalVisible(false)}>
+        <Pressable style={styles.langModal} onPress={() => {}}>
+          {LANGUAGES.map((lng) => (
+            <TouchableOpacity
+              key={lng}
+              style={styles.langItem}
+              onPress={() => changeLang(lng)}
+              activeOpacity={0.85}
             >
-              <Pressable style={styles.langOverlay} onPress={() => setLangModalVisible(false)}>
-                <Pressable style={styles.langModal} onPress={() => { }}>
-                  {LANGUAGES.map((lng) => (
-                    <TouchableOpacity
-                      key={lng}
-                      style={styles.langItem}
-                      onPress={() => changeLang(lng)}
-                      activeOpacity={0.85}
-                    >
-                      <Text style={styles.langText}>{lng}</Text>
-                      {currentLng === lng && (
-                        <MaterialIcons name="check" size={20} color={COLORS.primary || "#2bee79"} />
-                      )}
-                    </TouchableOpacity>
-                  ))}
-                </Pressable>
-              </Pressable>
-            </Modal>
+              <Text style={styles.langText}>{lng}</Text>
+              {currentLng === lng && (
+                <MaterialIcons name="check" size={20} color={COLORS.primary || "#2bee79"} />
+              )}
+            </TouchableOpacity>
+          ))}
+        </Pressable>
+      </Pressable>
+    </Modal>
+  );
+
+  const Content = () => (
+    <View style={[styles.root, isWeb && styles.rootWeb]}>
+      <View style={[styles.blob, styles.blobTopRight]} />
+      <View style={[styles.blob, styles.blobBottomLeft]} />
+
+      <View style={[styles.container, isWeb && styles.containerWeb]}>
+        <View style={styles.langBtnWrap}>
+          <TouchableOpacity
+            onPress={() => setLangModalVisible(true)}
+            activeOpacity={0.85}
+            style={styles.langBtn}
+          >
+            <MaterialIcons name="language" size={22} color={COLORS.primary || "#2bee79"} />
+          </TouchableOpacity>
+        </View>
+
+        <View style={styles.heroWrap}>
+          <View style={styles.heroCard}>
+            <ImageBackground source={require("../../../assets/logo.png")} style={styles.heroImg}>
+              <LinearGradient
+                colors={["transparent", "rgba(16,34,23,0.8)", COLORS?.backgroundDark || "#102217"]}
+                locations={[0.0, 0.7, 1.0]}
+                style={styles.heroGradient}
+              />
+            </ImageBackground>
           </View>
         </View>
-      </ScrollView>
-    </KeyboardAvoidingView>
+
+        <View style={styles.head}>
+          <Text style={styles.title}>{t("login.title")}</Text>
+          <Text style={styles.subtitle}>{t("login.subtitle")}</Text>
+        </View>
+
+        <View style={styles.form}>
+          <View style={styles.inputContainer}>
+            <MaterialIcons name="mail-outline" size={20} color="#9db9a8" style={styles.inputIcon} />
+            <TextInput
+              placeholder={t("login.placeholders.email")}
+              placeholderTextColor={COLORS?.textMuted || "#9db9a8"}
+              style={styles.input}
+              autoCapitalize="none"
+              keyboardType="email-address"
+              onChangeText={(userMail) => setMail(userMail)}
+              value={mail}
+            />
+          </View>
+
+          <View style={styles.inputContainer}>
+            <MaterialIcons name="lock-outline" size={20} color="#9db9a8" style={styles.inputIcon} />
+            <TextInput
+              placeholder={t("login.placeholders.password")}
+              placeholderTextColor="rgba(157,185,168,0.55)"
+              style={styles.input}
+              secureTextEntry={!showPassword}
+              onChangeText={(userPsw) => setPsw(userPsw)}
+              value={psw}
+            />
+            <TouchableOpacity
+              style={styles.eyeIcon}
+              activeOpacity={0.7}
+              onPress={() => setShowPassword((v) => !v)}
+            >
+              <MaterialIcons
+                name={showPassword ? "visibility" : "visibility-off"}
+                size={20}
+                color={COLORS?.textMuted || "rgba(255,255,255,0.6)"}
+              />
+            </TouchableOpacity>
+          </View>
+
+          <TouchableOpacity style={styles.forgotPassRow}>
+            <Text style={styles.forgotPassText}>{t("login.forgotPassword")}</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.primaryBtn} activeOpacity={0.8} onPress={handleLogin}>
+            <Text style={styles.primaryBtnText}>{t("login.buttons.login")}</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.secondaryBtn} activeOpacity={0.8} onPress={handleBiometricAuth}>
+            <MaterialIcons name="face" size={24} color="#ffffff" />
+            <Text style={styles.secondaryBtnText}>{t("login.buttons.faceId")}</Text>
+          </TouchableOpacity>
+        </View>
+
+        <View style={styles.footer}>
+          <Text style={styles.footerText}>
+            {t("NoAccount.Question")}{" "}
+            <Pressable onPress={() => props.navigation.navigate("RegistroUsuario")}>
+              <Text style={styles.footerLink}>{t("NoAccount.Register")}</Text>
+            </Pressable>
+          </Text>
+        </View>
+
+        <LangModal />
+      </View>
+    </View>
+  );
+
+  return (
+    <SafeAreaView style={[common.safe || styles.safe, isWeb && styles.safeWeb]}>
+      <View style={styles.page}>
+        {isWeb ? (
+          <View style={styles.webScroll}>
+            <Content />
+          </View>
+        ) : (
+          <KeyboardAvoidingView
+            behavior={Platform.OS === "ios" ? "padding" : "height"}
+            style={common.safe || styles.safe}
+          >
+            <ScrollView
+              contentContainerStyle={common.container || styles.scrollContainer}
+              bounces={false}
+            >
+              <Content />
+            </ScrollView>
+          </KeyboardAvoidingView>
+        )}
+      </View>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: COLORS?.backgroundDark || "#102217" },
   scrollContainer: { flexGrow: 1 },
+
+  // ✅ WEB scroll como tú querías
+  safeWeb: {
+    height: "100vh",
+    overflow: "hidden",
+  },
+  page: {
+    flex: 1,
+    position: "relative",
+  },
+  webScroll: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    overflowY: "auto",
+    overflowX: "hidden",
+  },
+  rootWeb: {
+    justifyContent: "flex-start",
+    paddingVertical: 20,
+  },
+  containerWeb: {
+    transform: [{ scale: 0.9 }],
+    alignSelf: "center",
+  },
 
   root: { flex: 1, alignItems: "center", justifyContent: "center", paddingVertical: 40 },
 

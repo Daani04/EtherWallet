@@ -45,6 +45,7 @@ const isValidDateStr = (s) => {
 export default function EditarPerfil({ navigation, route }) {
   const { t } = useTranslation();
   const { C } = useSettings();
+  const styles = useMemo(() => makeStyles(C), [C]);
 
   const user = route?.params?.user ?? null;
   const userId = user?.id ?? user?.userId ?? null;
@@ -60,12 +61,11 @@ export default function EditarPerfil({ navigation, route }) {
   const [userImage, setUserImage] = useState(initialImage);
   const [password, setPassword] = useState("");
 
+  // Modal fecha (compañero)
   const [dateModalVisible, setDateModalVisible] = useState(false);
   const [dd, setDd] = useState("");
   const [mm, setMm] = useState("");
   const [yyyy, setYyyy] = useState("");
-
-  const styles = useMemo(() => makeStyles(C), [C]);
 
   const canSave = useMemo(() => {
     return (
@@ -182,8 +182,16 @@ export default function EditarPerfil({ navigation, route }) {
     }
   };
 
+  // ✅ Web scroll fix (tu parte) + estilos del compañero (C)
+  const webScrollFix =
+    Platform.OS === "web" ? { height: "100vh", overflowY: "auto" } : null;
+
   return (
-    <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
+    <ScrollView
+      style={[styles.screen, webScrollFix]}
+      contentContainerStyle={styles.content}
+      showsVerticalScrollIndicator={false}
+    >
       <Text style={styles.title}>{t("editProfile.title")}</Text>
 
       <View style={styles.avatarBox}>
@@ -255,10 +263,17 @@ export default function EditarPerfil({ navigation, route }) {
         <Text style={styles.btnText}>{t("editProfile.actions.save")}</Text>
       </TouchableOpacity>
 
-      <TouchableOpacity style={styles.btnGhost} onPress={() => navigation.goBack()} activeOpacity={0.85}>
+      <TouchableOpacity
+        style={styles.btnGhost}
+        onPress={() =>
+          navigation?.canGoBack?.() ? navigation.goBack() : navigation.navigate("HomeNav")
+        }
+        activeOpacity={0.85}
+      >
         <Text style={styles.btnGhostText}>{t("common.cancel")}</Text>
       </TouchableOpacity>
 
+      {/* MODAL FECHA (compañero) */}
       <Modal
         transparent
         visible={dateModalVisible}
@@ -308,7 +323,11 @@ export default function EditarPerfil({ navigation, route }) {
             </View>
 
             <View style={styles.modalBtns}>
-              <TouchableOpacity style={styles.modalBtnGhost} onPress={() => setDateModalVisible(false)} activeOpacity={0.85}>
+              <TouchableOpacity
+                style={styles.modalBtnGhost}
+                onPress={() => setDateModalVisible(false)}
+                activeOpacity={0.85}
+              >
                 <Text style={styles.modalBtnGhostText}>Cancelar</Text>
               </TouchableOpacity>
 
@@ -319,6 +338,8 @@ export default function EditarPerfil({ navigation, route }) {
           </Pressable>
         </Pressable>
       </Modal>
+
+      <View style={{ height: 40 }} />
     </ScrollView>
   );
 }
@@ -326,7 +347,7 @@ export default function EditarPerfil({ navigation, route }) {
 const makeStyles = (C) =>
   StyleSheet.create({
     screen: { flex: 1, backgroundColor: C.bg },
-    content: { padding: 16 },
+    content: { padding: 16, paddingBottom: 40 },
 
     title: { color: C.textMain, fontSize: 22, fontWeight: "800", marginBottom: 16 },
     label: { color: C.textMuted, marginTop: 12, marginBottom: 6, fontSize: 12, fontWeight: "700" },
@@ -365,7 +386,14 @@ const makeStyles = (C) =>
     btnGhostText: { color: C.textMain, fontWeight: "800" },
 
     avatarBox: { alignItems: "center", marginBottom: 8 },
-    avatar: { width: 90, height: 90, borderRadius: 45, borderWidth: 2, borderColor: C.primary, marginBottom: 10 },
+    avatar: {
+      width: 90,
+      height: 90,
+      borderRadius: 45,
+      borderWidth: 2,
+      borderColor: C.primary,
+      marginBottom: 10,
+    },
     pickBtn: {
       borderWidth: 1,
       borderColor: C.border,
@@ -412,6 +440,13 @@ const makeStyles = (C) =>
     modalBtns: { flexDirection: "row", justifyContent: "flex-end", gap: 10, marginTop: 14 },
     modalBtn: { backgroundColor: C.primary, paddingVertical: 12, paddingHorizontal: 16, borderRadius: 14 },
     modalBtnText: { color: "#000", fontWeight: "900" },
-    modalBtnGhost: { borderWidth: 1, borderColor: C.border, paddingVertical: 12, paddingHorizontal: 16, borderRadius: 14, backgroundColor: C.cardBg },
+    modalBtnGhost: {
+      borderWidth: 1,
+      borderColor: C.border,
+      paddingVertical: 12,
+      paddingHorizontal: 16,
+      borderRadius: 14,
+      backgroundColor: C.cardBg,
+    },
     modalBtnGhostText: { color: C.textMain, fontWeight: "800" },
   });

@@ -14,25 +14,38 @@ import {
   Platform,
 } from "react-native";
 import Icon from "react-native-vector-icons/MaterialIcons";
-import Nav from "../../components/Nav";
-import Context from "../../context/Context";
-import common from "../../styles/common";
-import theme from "../../styles/theme";
 import { useTranslation } from "react-i18next";
 import { useSettings } from "../../context/SettingsContext";
 import { useFocusEffect } from "@react-navigation/native";
+
+import Context from "../../context/Context";
+import common from "../../styles/common";
+import Nav from "../../components/Nav";
 
 const BASE_URL = "http://35.170.12.68:8080";
 
 export default function PerfilUsuario(props) {
   const { t } = useTranslation();
-  const { C, isDarkMode, setIsDarkMode, faceId, setFaceId, language, setLanguage, currency, setCurrency, saveSettings } = useSettings();
+
+  // ✅ SOLO una fuente de settings (nada de useState duplicado)
+  const {
+    C,
+    isDarkMode,
+    setIsDarkMode,
+    faceId,
+    setFaceId,
+    language,
+    setLanguage,
+    currency,
+    setCurrency,
+    saveSettings,
+  } = useSettings();
 
   const { userId, setUserId, logoutUser, user: userFromContext } = useContext(Context);
-  const user = userFromContext ?? props.route?.params?.user ?? null;
+  const userFromRoute = props?.route?.params?.user ?? null;
+  const user = userFromContext ?? userFromRoute ?? null;
 
   const [dbUser, setDbUser] = useState(null);
-
 
   const [languageModalVisible, setLanguageModalVisible] = useState(false);
   const LANGUAGES = ["ES", "EN", "CA"];
@@ -41,38 +54,39 @@ export default function PerfilUsuario(props) {
   const CURRENCIES = ["USD", "EUR", "GBP", "MXN"];
 
   const loadUser = useCallback(async () => {
-  if (!userId) return;
+    if (!userId) return;
 
-  try {
-    const res = await fetch(`${BASE_URL}/API/User/${userId}`);
+    try {
+      const res = await fetch(`${BASE_URL}/API/User/${userId}`);
 
-    if (!res.ok) {
-      const txt = await res.text();
-      console.log("GET USER ERROR", res.status, txt);
-      return;
+      if (!res.ok) {
+        const txt = await res.text();
+        console.log("GET USER ERROR", res.status, txt);
+        return;
+      }
+
+      const data = await res.json();
+      setDbUser(data);
+    } catch (e) {
+      console.log("LOAD USER EXCEPTION", e);
     }
+  }, [userId]);
 
-    const data = await res.json();
-    setDbUser(data);
-  } catch (e) {
-    console.log("LOAD USER EXCEPTION", e);
-  }
-}, [userId]);
-
-useEffect(() => {
-  loadUser();
-}, [loadUser]);
-
-useFocusEffect(
-  useCallback(() => {
+  useEffect(() => {
     loadUser();
-  }, [loadUser])
-);
+  }, [loadUser]);
 
+  useFocusEffect(
+    useCallback(() => {
+      loadUser();
+    }, [loadUser])
+  );
+
+  // Cargar settings desde API y volcarlos al SettingsContext
   useEffect(() => {
     if (!userId) return;
 
-    const loadSettings = async () => {
+    const loadSettingsFromApi = async () => {
       try {
         const res = await fetch(`${BASE_URL}/API/Settings/${userId}`);
 
@@ -93,10 +107,33 @@ useFocusEffect(
       }
     };
 
-    loadSettings();
-  }, [userId]);
+    loadSettingsFromApi();
+  }, [userId, setIsDarkMode, setFaceId, setLanguage, setCurrency]);
 
-  const shownUser = dbUser ?? user;
+  const shownUser = dbUser ?? user ?? {};
+
+  const resolveAvatarUri = () => {
+    const raw = shownUser?.userImageUrl || shownUser?.userImage || "";
+    if (!raw) return "https://randomuser.me/api/portraits/men/1.jpg";
+
+    const s = String(raw).trim();
+
+    if (
+      s.startsWith("http://") ||
+      s.startsWith("https://") ||
+      s.startsWith("data:image/") ||
+      s.startsWith("file://") ||
+      s.startsWith("content://")
+    ) {
+      return s;
+    }
+
+    if (s.includes("base64,")) {
+      return s.startsWith("data:") ? s : `data:image/jpeg;${s}`;
+    }
+
+    return `data:image/jpeg;base64,${s}`;
+  };
 
   const handleDeleteAccount = async () => {
     if (!userId) return;
@@ -127,7 +164,9 @@ useFocusEffect(
     };
 
     if (Platform.OS === "web") {
-      const ok = window.confirm("Esta acción es irreversible. ¿Seguro que quieres eliminar tu cuenta?");
+      const ok = window.confirm(
+        "Esta acción es irreversible. ¿Seguro que quieres eliminar tu cuenta?"
+      );
       if (ok) await doDelete();
       return;
     }
@@ -142,57 +181,53 @@ useFocusEffect(
     );
   };
 
-  const resolveAvatarUri = () => {
-    const raw = shownUser?.userImageUrl || shownUser?.userImage || "";
-    if (!raw) return "https://randomuser.me/api/portraits/men/1.jpg";
-
-    const s = String(raw).trim();
-
-    if (
-      s.startsWith("http://") ||
-      s.startsWith("https://") ||
-      s.startsWith("data:image/") ||
-      s.startsWith("file://") ||
-      s.startsWith("content://")
-    ) {
-      return s;
-    }
-
-    if (s.includes("base64,")) {
-      return s.startsWith("data:") ? s : `data:image/jpeg;${s}`;
-    }
-
-    return `data:image/jpeg;base64,${s}`;
-  };
-
-
   const styles = useMemo(() => makeStyles(C), [C]);
+
+  // ✅ tu fix de scroll en web (sin liarla con Nav)
+  const webScrollFix =
+    Platform.OS === "web" ? { height: "100vh", overflowY: "auto" } : null;
 
   return (
     <SafeAreaView style={[common.safe, { backgroundColor: C.bg }]}>
       <View style={styles.header}>
-
+        {/* si quieres back, descomenta */}
+        {/*
+        <TouchableOpacity
+          onPress={() =>
+            props.navigation.canGoBack()
+              ? props.navigation.goBack()
+              : props.navigation.navigate("HomeNav")
+          }
+          activeOpacity={0.85}
+        >
+          <Icon name="arrow-back-ios-new" size={22} color={C.textMain || "#fff"} />
+        </TouchableOpacity>
+        */}
         <View style={{ width: 24 }} />
       </View>
 
-      <ScrollView contentContainerStyle={{ paddingBottom: 120 }} style={{ backgroundColor: C.bg }}>
+      <ScrollView
+        style={[{ backgroundColor: C.bg }, webScrollFix]}
+        contentContainerStyle={{ paddingBottom: 120 }}
+        showsVerticalScrollIndicator={false}
+      >
         <View style={styles.profileContainer}>
-          <View>
-            <Image source={{ uri: resolveAvatarUri() }} style={styles.avatar} />
-          </View>
+          <Image source={{ uri: resolveAvatarUri() }} style={styles.avatar} />
 
           <Text style={styles.name}>{shownUser?.firstName || "User"}</Text>
 
           <View style={styles.walletRow}>
             <View style={styles.dot} />
             <Text style={styles.walletText}>
-              {shownUser?.walletAddress ? shownUser.walletAddress.substring(0, 6) + "..." : "Sin dirección"}
+              {shownUser?.walletAddress
+                ? shownUser.walletAddress.substring(0, 6) + "..."
+                : "Sin dirección"}
             </Text>
             <Icon name="content-copy" size={14} color={C.textMuted} />
           </View>
         </View>
 
-        <Section title={t("profile.sections.account")} C={C} styles={styles}>
+        <Section title={t("profile.sections.account")} styles={styles}>
           <Item
             icon="person"
             label={t("profile.items.editProfile")}
@@ -218,7 +253,7 @@ useFocusEffect(
 
           <Item icon="dark-mode" label={t("profile.items.lightDark")} C={C} styles={styles}>
             <Switch
-              value={isDarkMode}
+              value={!!isDarkMode}
               onValueChange={(val) => {
                 setIsDarkMode(val);
                 saveSettings({ theme: val });
@@ -229,10 +264,10 @@ useFocusEffect(
           </Item>
         </Section>
 
-        <Section title={t("profile.sections.security")} C={C} styles={styles}>
+        <Section title={t("profile.sections.security")} styles={styles}>
           <Item icon="face" label={t("profile.items.faceId")} C={C} styles={styles}>
             <Switch
-              value={faceId}
+              value={!!faceId}
               onValueChange={(val) => {
                 setFaceId(val);
                 saveSettings({ faceId: val });
@@ -259,7 +294,7 @@ useFocusEffect(
           />
         </Section>
 
-        <Section title={t("profile.sections.preferences")} C={C} styles={styles}>
+        <Section title={t("profile.sections.preferences")} styles={styles}>
           <Item icon="notifications" label={t("profile.items.notifications")} C={C} styles={styles} />
 
           <Item
@@ -287,19 +322,25 @@ useFocusEffect(
             await logoutUser();
             props.navigation.replace("InicioSesion");
           }}
+          activeOpacity={0.85}
         >
           <Icon name="logout" size={20} color={C.danger} />
           <Text style={styles.logoutText}>{t("profile.items.logout")}</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.deleteBtn} onPress={handleDeleteAccount}>
+        <TouchableOpacity style={styles.deleteBtn} onPress={handleDeleteAccount} activeOpacity={0.85}>
           <Icon name="delete-forever" size={20} color={C.danger} />
           <Text style={styles.deleteText}>Eliminar Cuenta</Text>
         </TouchableOpacity>
       </ScrollView>
 
       {/* MODAL IDIOMA */}
-      <Modal transparent visible={languageModalVisible} animationType="fade" onRequestClose={() => setLanguageModalVisible(false)}>
+      <Modal
+        transparent
+        visible={languageModalVisible}
+        animationType="fade"
+        onRequestClose={() => setLanguageModalVisible(false)}
+      >
         <Pressable style={styles.modalOverlay} onPress={() => setLanguageModalVisible(false)}>
           <View style={styles.modalContent}>
             {LANGUAGES.map((lang) => (
@@ -311,6 +352,7 @@ useFocusEffect(
                   setLanguageModalVisible(false);
                   saveSettings({ language: lang });
                 }}
+                activeOpacity={0.85}
               >
                 <Text style={[styles.modalText, lang === language && { color: C.primary }]}>
                   {lang}
@@ -323,7 +365,12 @@ useFocusEffect(
       </Modal>
 
       {/* MODAL DIVISA */}
-      <Modal transparent visible={currencyModalVisible} animationType="fade" onRequestClose={() => setCurrencyModalVisible(false)}>
+      <Modal
+        transparent
+        visible={currencyModalVisible}
+        animationType="fade"
+        onRequestClose={() => setCurrencyModalVisible(false)}
+      >
         <Pressable style={styles.modalOverlay} onPress={() => setCurrencyModalVisible(false)}>
           <View style={styles.modalContent}>
             {CURRENCIES.map((cur) => (
@@ -335,6 +382,7 @@ useFocusEffect(
                   setCurrencyModalVisible(false);
                   saveSettings({ currency: cur });
                 }}
+                activeOpacity={0.85}
               >
                 <Text style={[styles.modalText, cur === currency && { color: C.primary }]}>
                   {cur}
@@ -351,7 +399,7 @@ useFocusEffect(
   );
 }
 
-const Section = ({ title, children, C, styles }) => (
+const Section = ({ title, children, styles }) => (
   <View style={styles.section}>
     <Text style={styles.sectionTitle}>{title}</Text>
     <View style={styles.cardBox}>{children}</View>
@@ -359,7 +407,7 @@ const Section = ({ title, children, C, styles }) => (
 );
 
 const Item = ({ icon, label, subLabel, rightText, children, onPress, C, styles }) => (
-  <TouchableOpacity style={styles.item} disabled={!!children} onPress={onPress}>
+  <TouchableOpacity style={styles.item} disabled={!!children} onPress={onPress} activeOpacity={0.85}>
     <View style={styles.row}>
       <Icon name={icon} size={22} color={C.textMain} />
       <View style={{ marginLeft: 12 }}>
@@ -369,7 +417,7 @@ const Item = ({ icon, label, subLabel, rightText, children, onPress, C, styles }
     </View>
     {children || (
       <View style={styles.row}>
-        {rightText && <Text style={styles.rightText}>{rightText}</Text>}
+        {rightText ? <Text style={styles.rightText}>{rightText}</Text> : null}
         <Icon name="chevron-right" size={22} color={C.chevron} />
       </View>
     )}
@@ -382,12 +430,7 @@ const makeStyles = (C) =>
       flexDirection: "row",
       alignItems: "center",
       padding: 16,
-    },
-    headerTitle: {
-      flex: 1,
-      textAlign: "center",
-      fontSize: 18,
-      fontWeight: "700",
+      backgroundColor: C.bg,
     },
 
     profileContainer: { alignItems: "center", paddingVertical: 20 },
@@ -463,6 +506,7 @@ const makeStyles = (C) =>
       padding: 16,
       borderBottomWidth: 1,
       borderColor: C.border,
+      backgroundColor: C.cardBg,
     },
     itemText: { fontSize: 16, color: C.textMain, fontWeight: "600" },
     subLabel: { fontSize: 12, color: C.primary, marginTop: 2, fontWeight: "700" },

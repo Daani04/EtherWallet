@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext, useRef, useMemo } from "react";
+import React, { useState, useEffect, useContext, useRef, useMemo, useCallback } from "react";
 import {
   StyleSheet,
   View,
@@ -8,10 +8,10 @@ import {
   TouchableOpacity,
   SafeAreaView,
   Dimensions,
+  Platform,
   ActivityIndicator,
   Image,
   Alert,
-  Platform
 } from "react-native";
 import { Search, ArrowRight, X, Star } from "lucide-react-native";
 import Svg, { Path } from "react-native-svg";
@@ -20,10 +20,12 @@ import Nav from "../../components/Nav";
 import common from "../../styles/common";
 import Context from '../../context/Context';
 import { useSettings } from "../../context/SettingsContext"; 
+import getData from "../../services/services";
 
 const { width } = Dimensions.get("window");
 const BASE_URL = "http://35.170.12.68:8080";
 const CMC_API_KEY = "82ecd83d0cd541108839042bd32f3a55";
+const isWeb = Platform.OS === 'web';
 
 const CURRENCY_SYMBOLS = {
   EUR: "€",
@@ -39,9 +41,9 @@ export default function MenuPrincipal({ navigation }) {
 
   const [search, setSearch] = useState("");
   const [cryptos, setCryptos] = useState([]);
-  const [favoritesIds, setFavoritesIds] = useState([]); 
+  const [favoritesIds, setFavoritesIds] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [limit, setLimit] = useState(20); 
+  const [limit, setLimit] = useState(20);
   const [activeFilter, setActiveFilter] = useState("Todos");
   const [userCurrency, setUserCurrency] = useState("EUR");
 
@@ -62,23 +64,22 @@ export default function MenuPrincipal({ navigation }) {
     }
   };
 
-  const fetchFavorites = async () => {
+  const fetchFavorites = useCallback(async () => {
     if (!user?.userId) return;
     try {
       const response = await fetch(`${BASE_URL}/API/SeeFavorites/${user.userId}`);
       if (response.ok) {
         const data = await response.json();
-        setFavoritesIds(Array.isArray(data) ? data.map(f => f.crypto) : []);
+        setFavoritesIds(Array.isArray(data) ? data.map((f) => f.crypto) : []);
       }
     } catch (error) {
       console.error(error);
     }
-  };
+  }, [user]);
 
   const fetchMarketData = async (currentLimit, currency) => {
     if (isFetching.current) return;
     isFetching.current = true;
-    
     if (cryptos.length === 0) setLoading(true);
 
     const vsCurrency = currency.toUpperCase();
@@ -105,8 +106,6 @@ export default function MenuPrincipal({ navigation }) {
           price_change_percentage_24h: coin.quote[vsCurrency].percent_change_24h,
         }));
         setCryptos(formattedData);
-      } else {
-        console.error("Error CMC:", json.status?.error_message);
       }
     } catch (error) {
       console.error("Network Error CMC:", error);
@@ -122,7 +121,7 @@ export default function MenuPrincipal({ navigation }) {
       fetchFavorites();
     };
     init();
-  }, [user]);
+  }, [user, fetchFavorites]);
 
   useEffect(() => {
     fetchMarketData(limit, userCurrency);
@@ -137,6 +136,10 @@ export default function MenuPrincipal({ navigation }) {
   };
 
   const toggleFavorite = async (crypto) => {
+    if (!user?.userId) {
+      Alert.alert("Error", "No hay usuario logueado.");
+      return;
+    }
     const isFav = favoritesIds.includes(crypto.id);
     if (!isFav) {
       try {
@@ -145,135 +148,182 @@ export default function MenuPrincipal({ navigation }) {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ clientId: user.userId, crypto: crypto.id }),
         });
-        if (res.ok) setFavoritesIds(prev => [...prev, crypto.id]);
-      } catch (error) { Alert.alert("Error", "Error al guardar"); }
+        if (res.ok) setFavoritesIds((prev) => [...prev, crypto.id]);
+      } catch (error) {
+        Alert.alert("Error", "Error al guardar");
+      }
     } else {
       try {
-        const res = await fetch(`${BASE_URL}/API/RemoveFavorite?clientId=${user.userId}&crypto=${crypto.id}`, { method: "DELETE" });
-        if (res.ok) setFavoritesIds(prev => prev.filter(id => id !== crypto.id));
-      } catch (error) { Alert.alert("Error", "Error al eliminar"); }
+        const res = await fetch(
+          `${BASE_URL}/API/RemoveFavorite?clientId=${user.userId}&crypto=${crypto.id}`,
+          { method: "DELETE" }
+        );
+        if (res.ok) setFavoritesIds((prev) => prev.filter((id) => id !== crypto.id));
+      } catch (error) {
+        Alert.alert("Error", "Error al eliminar");
+      }
     }
   };
 
   const filteredCryptos = useMemo(() => {
-    let result = (Array.isArray(cryptos) ? [...cryptos] : []);
-    if (search) {
-      result = result.filter(c => 
-        c.name?.toLowerCase().includes(search.toLowerCase()) || 
-        c.symbol?.toLowerCase().includes(search.toLowerCase())
+    let result = Array.isArray(cryptos) ? [...cryptos] : [];
+    if (search && search.trim()) {
+      const s = search.toLowerCase();
+      result = result.filter(
+        (c) => c.name?.toLowerCase().includes(s) || c.symbol?.toLowerCase().includes(s)
       );
     }
-    if (activeFilter === "Favoritos") result = result.filter(c => favoritesIds.includes(c.id));
+    if (activeFilter === "Favoritos") result = result.filter((c) => favoritesIds.includes(c.id));
     else if (activeFilter === "Ganadores") {
-      result = result.filter(c => c.price_change_percentage_24h > 0).sort((a, b) => b.price_change_percentage_24h - a.price_change_percentage_24h);
-    } 
-    else if (activeFilter === "Perdedores") {
-      result = result.filter(c => c.price_change_percentage_24h < 0).sort((a, b) => a.price_change_percentage_24h - b.price_change_percentage_24h);
+      result = result
+        .filter((c) => c.price_change_percentage_24h > 0)
+        .sort((a, b) => b.price_change_percentage_24h - a.price_change_percentage_24h);
+    } else if (activeFilter === "Perdedores") {
+      result = result
+        .filter((c) => c.price_change_percentage_24h < 0)
+        .sort((a, b) => a.price_change_percentage_24h - b.price_change_percentage_24h);
     }
     return result;
   }, [cryptos, search, activeFilter, favoritesIds]);
 
-  return (
-    <SafeAreaView style={[common.safe, { backgroundColor: C.bg }]}>
-      <View style={[common.container, { backgroundColor: C.bg }]}>
-        <ScrollView showsVerticalScrollIndicator={false}>
-          <View style={styles.mainTitleContainer}>
-            <Text style={styles.mainTitle}>Mercados</Text>
-          </View>
-          <View style={styles.searchContainer}>
-            <View style={styles.searchBox}>
-              <Search size={20} color={C.textMuted} style={styles.searchIcon} />
-              <TextInput
-                value={search}
-                onChangeText={setSearch}
-                placeholder="Buscar moneda..."
-                placeholderTextColor={C.textMuted}
-                style={styles.input}
-              />
-              {search !== "" && (
-                <TouchableOpacity onPress={() => setSearch("")}><X size={18} color={C.textMuted} /></TouchableOpacity>
-              )}
-            </View>
-          </View>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chipsScroll}>
-            {["Todos", "Favoritos", "Ganadores", "Perdedores"].map((label) => (
-              <TouchableOpacity 
-                key={label} 
-                onPress={() => setActiveFilter(label)}
-                style={[styles.chip, activeFilter === label && styles.chipActive]}
-              >
-                <Text style={[styles.chipText, activeFilter === label && styles.chipTextActive]}>{label}</Text>
+  const Content = () => (
+    <View style={[common.container, { backgroundColor: C.bg }]}>
+      <ScrollView showsVerticalScrollIndicator={false} style={{ backgroundColor: C.bg }}>
+        <View style={styles.mainTitleContainer}>
+          <Text style={styles.mainTitle}>Mercados</Text>
+        </View>
+
+        <View style={styles.searchContainer}>
+          <View style={styles.searchBox}>
+            <Search size={20} color={C.textMuted} style={styles.searchIcon} />
+            <TextInput
+              value={search}
+              onChangeText={setSearch}
+              placeholder="Buscar moneda..."
+              placeholderTextColor={C.textMuted}
+              style={styles.input}
+            />
+            {search !== "" && (
+              <TouchableOpacity onPress={() => setSearch("")} activeOpacity={0.85}>
+                <X size={18} color={C.textMuted} />
               </TouchableOpacity>
-            ))}
-          </ScrollView>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Tendencias</Text>
-          </View>
-          {loading && cryptos.length === 0 ? (
-            <ActivityIndicator color={C.primary} style={{ marginTop: 30 }} />
-          ) : (
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} snapToInterval={width * 0.75} decelerationRate="fast" contentContainerStyle={styles.trendingScroll}>
-              {cryptos.slice(0, 5).map((item) => (
-                <TrendingCard 
-                    key={item.id} 
-                    item={item} 
-                    C={C} 
-                    styles={styles} 
-                    currencySymbol={CURRENCY_SYMBOLS[userCurrency] || userCurrency}
-                />
-              ))}
-            </ScrollView>
-          )}
-          <View style={styles.marketSection}>
-            <View style={styles.sectionHeaderList}>
-                <Text style={styles.sectionTitle}>
-                    {activeFilter === "Todos" ? "Criptomonedas" : `Top ${activeFilter}`}
-                </Text>
-            </View>
-            <View style={styles.marketList}>
-              {filteredCryptos.length > 0 ? (
-                filteredCryptos.map((item) => (
-                  <MarketItem 
-                    key={item.id} 
-                    item={item} 
-                    isFav={favoritesIds.includes(item.id)} 
-                    onFavPress={() => toggleFavorite(item)} 
-                    C={C} 
-                    styles={styles} 
-                    currencySymbol={CURRENCY_SYMBOLS[userCurrency] || userCurrency}
-                  />
-                ))
-              ) : (
-                <View style={{ paddingVertical: 40 }}>
-                  {loading ? (
-                    <ActivityIndicator color={C.primary} />
-                  ) : (
-                    <Text style={styles.emptyText}>No hay datos disponibles para este filtro</Text>
-                  )}
-                </View>
-              )}
-            </View>
-            {activeFilter === "Todos" && filteredCryptos.length > 0 && (
-                <TouchableOpacity 
-                  style={[styles.seeMoreBottom, loading && { opacity: 0.5 }]} 
-                  onPress={handleLoadMore}
-                  disabled={loading}
-                >
-                    {loading ? (
-                      <ActivityIndicator size="small" color={C.primary} />
-                    ) : (
-                      <>
-                        <Text style={styles.seeMoreText}>Cargar más monedas</Text>
-                        <ArrowRight size={16} color={C.primary} />
-                      </>
-                    )}
-                </TouchableOpacity>
             )}
           </View>
-          <View style={{ height: 120 }} />
+        </View>
+
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chipsScroll}>
+          {["Todos", "Favoritos", "Ganadores", "Perdedores"].map((label) => (
+            <TouchableOpacity
+              key={label}
+              onPress={() => setActiveFilter(label)}
+              style={[styles.chip, activeFilter === label && styles.chipActive]}
+              activeOpacity={0.85}
+            >
+              <Text style={[styles.chipText, activeFilter === label && styles.chipTextActive]}>
+                {label}
+              </Text>
+            </TouchableOpacity>
+          ))}
         </ScrollView>
+
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>Tendencias</Text>
+        </View>
+
+        {loading && cryptos.length === 0 ? (
+          <ActivityIndicator color={C.primary} style={{ marginTop: 30 }} />
+        ) : (
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            snapToInterval={width * 0.75}
+            decelerationRate="fast"
+            contentContainerStyle={styles.trendingScroll}
+          >
+            {cryptos.slice(0, 5).map((item) => (
+              <TrendingCard
+                key={item.id}
+                item={item}
+                C={C}
+                styles={styles}
+                currencySymbol={CURRENCY_SYMBOLS[userCurrency] || userCurrency}
+              />
+            ))}
+          </ScrollView>
+        )}
+
+        <View style={styles.marketSection}>
+          <View style={styles.sectionHeaderList}>
+            <Text style={styles.sectionTitle}>
+              {activeFilter === "Todos" ? "Criptomonedas" : `Top ${activeFilter}`}
+            </Text>
+          </View>
+
+          <View style={styles.marketList}>
+            {filteredCryptos.length > 0 ? (
+              filteredCryptos.map((item) => (
+                <MarketItem
+                  key={item.id}
+                  item={item}
+                  isFav={favoritesIds.includes(item.id)}
+                  onFavPress={() => toggleFavorite(item)}
+                  C={C}
+                  styles={styles}
+                  currencySymbol={CURRENCY_SYMBOLS[userCurrency] || userCurrency}
+                />
+              ))
+            ) : (
+              <View style={{ paddingVertical: 40 }}>
+                {loading ? (
+                  <ActivityIndicator color={C.primary} />
+                ) : (
+                  <Text style={styles.emptyText}>No hay datos disponibles para este filtro</Text>
+                )}
+              </View>
+            )}
+          </View>
+
+          {activeFilter === "Todos" && filteredCryptos.length > 0 && (
+            <TouchableOpacity
+              style={[styles.seeMoreBottom, loading && { opacity: 0.5 }]}
+              onPress={handleLoadMore}
+              disabled={loading}
+              activeOpacity={0.85}
+            >
+              {loading ? (
+                <ActivityIndicator size="small" color={C.primary} />
+              ) : (
+                <>
+                  <Text style={styles.seeMoreText}>Cargar más monedas</Text>
+                  <ArrowRight size={16} color={C.primary} />
+                </>
+              )}
+            </TouchableOpacity>
+          )}
+        </View>
+
+        <View style={{ height: 120 }} />
+      </ScrollView>
+    </View>
+  );
+
+  return (
+    <SafeAreaView style={[common.safe, { backgroundColor: C.bg }]}>
+      <View style={{ flex: 1 }}>
+        {isWeb ? (
+          <View style={{ flex: 1, flexDirection: 'row' }}>
+            <View style={{ flex: 1 }}>
+              <Content />
+            </View>
+            <Nav />
+          </View>
+        ) : (
+          <>
+            <Content />
+            <Nav />
+          </>
+        )}
       </View>
-      <Nav />
     </SafeAreaView>
   );
 }
@@ -287,12 +337,12 @@ const TrendingCard = ({ item, C, styles, currencySymbol }) => {
           <Image source={{ uri: item.image }} style={styles.coinLogo} />
           <View>
             <Text style={styles.coinName}>{item.name}</Text>
-            <Text style={styles.coinSymbol}>{item.symbol.toUpperCase()}</Text>
+            <Text style={styles.coinSymbol}>{String(item.symbol || "").toUpperCase()}</Text>
           </View>
         </View>
         <View style={[styles.badge, { backgroundColor: isPositive ? "rgba(43,238,121,0.15)" : "rgba(255,92,92,0.15)" }]}>
           <Text style={[styles.badgeText, { color: isPositive ? C.primary : C.danger }]}>
-            {isPositive ? "↑" : "↓"} {item.price_change_percentage_24h?.toFixed(2)}%
+            {isPositive ? "↑" : "↓"} {Number(item.price_change_percentage_24h || 0).toFixed(2)}%
           </Text>
         </View>
       </View>
@@ -311,7 +361,7 @@ const MarketItem = ({ item, isFav, onFavPress, C, styles, currencySymbol }) => {
         <Image source={{ uri: item.image }} style={styles.marketIcon} />
         <View>
           <Text style={styles.marketName}>{item.name}</Text>
-          <Text style={styles.marketSymbol}>{item.symbol.toUpperCase()}</Text>
+          <Text style={styles.marketSymbol}>{String(item.symbol || "").toUpperCase()}</Text>
         </View>
       </View>
       <View style={styles.rightAction}>

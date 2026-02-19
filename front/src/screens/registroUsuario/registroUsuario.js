@@ -27,6 +27,10 @@ import common from "../../styles/common";
 import theme from "../../styles/theme";
 
 const COLORS = theme?.colors || theme?.COLORS || theme;
+const isWeb = Platform.OS === "web";
+
+// ✅ usa la misma base que el resto de tu app
+const API_BASE = "http://10.10.6.84:8080";
 
 const RegistroUsuario = (props) => {
   const { t } = useTranslation();
@@ -35,7 +39,8 @@ const RegistroUsuario = (props) => {
   const [acceptedTerms, setAcceptedTerms] = useState(false);
 
   const [date, setDate] = useState(new Date());
-  const [show, setShow] = useState(false);
+  const [showIOSPicker, setShowIOSPicker] = useState(false);
+  const [webDateOpen, setWebDateOpen] = useState(false);
 
   const [mail, setMail] = useState("");
   const [psw, setPsw] = useState("");
@@ -43,7 +48,6 @@ const RegistroUsuario = (props) => {
   const [lastName, setLastName] = useState("");
   const [dni, setDni] = useState("");
   const [fNac, setFnac] = useState("");
-  const [webDateOpen, setWebDateOpen] = useState(false);
 
   const [userImageBase64, setUserImageBase64] = useState("");
   const [userImagePreview, setUserImagePreview] = useState("");
@@ -118,6 +122,20 @@ const RegistroUsuario = (props) => {
     e.target.value = "";
   };
 
+  const setBirthDateFromDate = (selectedDate) => {
+    const day = String(selectedDate.getDate()).padStart(2, "0");
+    const month = String(selectedDate.getMonth() + 1).padStart(2, "0");
+    const year = selectedDate.getFullYear();
+    setFnac(`${day}/${month}/${year}`);
+  };
+
+  const onChangeNative = (event, selectedDate) => {
+    setShowIOSPicker(false);
+    if (!selectedDate) return;
+    setDate(selectedDate);
+    setBirthDateFromDate(selectedDate);
+  };
+
   const handleRegister = async () => {
     if (!name || !lastName || !mail || !psw || !dni || !fNac) {
       Alert.alert(t("register.alerts.errorTitle"), t("register.alerts.fillAllFields"));
@@ -128,11 +146,6 @@ const RegistroUsuario = (props) => {
       Alert.alert(t("register.alerts.errorTitle"), t("register.alerts.acceptTerms"));
       return;
     }
-
-    if (!isAdult(fNac)) {
-    Alert.alert(t("register.alerts.errorTitle"), "Debes tener 18 años o más para registrarte.");
-    return;
-  }
 
     try {
       const wallet = ethers.Wallet.createRandom();
@@ -151,7 +164,7 @@ const RegistroUsuario = (props) => {
 
       const hashedPassword = CryptoJS.SHA256(psw).toString();
 
-      const response = await fetch("http://35.170.12.68:8080/API/NewUser", {
+      const response = await fetch(`${API_BASE}/API/NewUser`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -164,7 +177,6 @@ const RegistroUsuario = (props) => {
           userImage: userImageBase64 ? userImageBase64 : "default-avatar.png",
           favoriteId: "null",
           walletAddress: publicAddress,
-          privateKey: privateKey,
         }),
       });
 
@@ -182,34 +194,39 @@ const RegistroUsuario = (props) => {
     }
   };
 
-  // --- FUNCIÓN ONCHANGE CORREGIDA ---
-  const onChange = (event, selectedDate) => {
-    // En Android se cierra solo al seleccionar
-    if (Platform.OS === 'android') {
-      setShow(false);
+  const openDatePicker = () => {
+    if (Platform.OS === "web") {
+      setWebDateOpen(true);
+      return;
     }
 
-    if (selectedDate) {
-      setDate(selectedDate);
-      
-      const day = String(selectedDate.getDate()).padStart(2, "0");
-      const month = String(selectedDate.getMonth() + 1).padStart(2, "0");
-      const year = selectedDate.getFullYear();
-      const formatted = `${day}/${month}/${year}`;
-      
-      setFnac(formatted);
-    } else if (Platform.OS === 'ios') {
-      // Si cancela en iOS cerramos
-      setShow(false);
+    if (Platform.OS === "android") {
+      DateTimePickerAndroid.open({
+        value: date,
+        mode: "date",
+        display: "calendar",
+        maximumDate: new Date(),
+        onChange: onChangeNative,
+      });
+      return;
     }
+
+    // iOS
+    setShowIOSPicker(true);
   };
 
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === "ios" ? "padding" : "height"}
-      style={common.safe || styles.safe}
+      style={[common.safe, styles.safe, isWeb && styles.safeWeb]}
     >
-      <ScrollView contentContainerStyle={common.container || styles.scrollContainer} bounces={false}>
+      <ScrollView
+        style={[styles.scroll, isWeb && styles.webScroll]}
+        contentContainerStyle={styles.scrollContainer}
+        bounces={false}
+        showsVerticalScrollIndicator={!isWeb}
+        keyboardShouldPersistTaps="handled"
+      >
         <View style={styles.root}>
           <View style={[styles.blob, styles.blobTopRight]} />
           <View style={[styles.blob, styles.blobBottomLeft]} />
@@ -235,14 +252,14 @@ const RegistroUsuario = (props) => {
                 <View style={{ flex: 1 }}>
                   <Text style={styles.avatarTitle}>{t("register.avatar.selectImage")}</Text>
                   <Text style={styles.avatarSub}>
-                    {Platform.OS === "web" ? t("register.avatar.fromFiles") : t("register.avatar.fromGallery")}
+                    {isWeb ? t("register.avatar.fromFiles") : t("register.avatar.fromGallery")}
                   </Text>
                 </View>
 
                 <MaterialIcons name="chevron-right" size={26} color={COLORS.textMuted} />
               </TouchableOpacity>
 
-              {Platform.OS === "web" && (
+              {isWeb && (
                 <input
                   ref={webFileInputRef}
                   type="file"
@@ -254,12 +271,7 @@ const RegistroUsuario = (props) => {
 
               <Text style={styles.label}>{t("register.labels.name")}</Text>
               <View style={styles.inputContainer}>
-                <MaterialIcons
-                  name="person-outline"
-                  size={20}
-                  color={COLORS.textMuted}
-                  style={styles.inputIcon}
-                />
+                <MaterialIcons name="person-outline" size={20} color={COLORS.textMuted} style={styles.inputIcon} />
                 <TextInput
                   placeholder={t("register.placeholders.name")}
                   placeholderTextColor="rgba(157,185,168,0.55)"
@@ -271,12 +283,7 @@ const RegistroUsuario = (props) => {
 
               <Text style={styles.label}>{t("register.labels.lastName")}</Text>
               <View style={styles.inputContainer}>
-                <MaterialIcons
-                  name="person-outline"
-                  size={20}
-                  color={COLORS.textMuted}
-                  style={styles.inputIcon}
-                />
+                <MaterialIcons name="person-outline" size={20} color={COLORS.textMuted} style={styles.inputIcon} />
                 <TextInput
                   placeholder={t("register.placeholders.lastName")}
                   placeholderTextColor="rgba(157,185,168,0.55)"
@@ -288,12 +295,7 @@ const RegistroUsuario = (props) => {
 
               <Text style={styles.label}>{t("register.labels.email")}</Text>
               <View style={styles.inputContainer}>
-                <MaterialIcons
-                  name="mail-outline"
-                  size={20}
-                  color={COLORS.textMuted}
-                  style={styles.inputIcon}
-                />
+                <MaterialIcons name="mail-outline" size={20} color={COLORS.textMuted} style={styles.inputIcon} />
                 <TextInput
                   placeholder={t("register.placeholders.email")}
                   placeholderTextColor="rgba(157,185,168,0.55)"
@@ -307,12 +309,7 @@ const RegistroUsuario = (props) => {
 
               <Text style={styles.label}>{t("register.labels.password")}</Text>
               <View style={styles.inputContainer}>
-                <MaterialIcons
-                  name="lock-outline"
-                  size={20}
-                  color={COLORS.textMuted}
-                  style={styles.inputIcon}
-                />
+                <MaterialIcons name="lock-outline" size={20} color={COLORS.textMuted} style={styles.inputIcon} />
                 <TextInput
                   placeholder={t("register.placeholders.password")}
                   placeholderTextColor="rgba(157,185,168,0.55)"
@@ -322,7 +319,7 @@ const RegistroUsuario = (props) => {
                   onChangeText={setPsw}
                   autoCapitalize="none"
                 />
-                <TouchableOpacity style={styles.eyeIcon} onPress={() => setShowPassword(!showPassword)}>
+                <TouchableOpacity style={styles.eyeIcon} onPress={() => setShowPassword((v) => !v)} activeOpacity={0.85}>
                   <MaterialIcons
                     name={showPassword ? "visibility" : "visibility-off"}
                     size={20}
@@ -333,12 +330,7 @@ const RegistroUsuario = (props) => {
 
               <Text style={styles.label}>{t("register.labels.dni")}</Text>
               <View style={styles.inputContainer}>
-                <MaterialIcons
-                  name="fingerprint"
-                  size={20}
-                  color={COLORS.textMuted}
-                  style={styles.inputIcon}
-                />
+                <MaterialIcons name="fingerprint" size={20} color={COLORS.textMuted} style={styles.inputIcon} />
                 <TextInput
                   placeholder={t("register.placeholders.dni")}
                   placeholderTextColor="rgba(157,185,168,0.55)"
@@ -351,80 +343,10 @@ const RegistroUsuario = (props) => {
 
               <Text style={styles.label}>{t("register.labels.birthDate")}</Text>
 
-              {Platform.OS === "web" ? (
-                <View style={{ position: "relative" }}>
-                  <TouchableOpacity
-                    style={styles.inputContainer}
-                    activeOpacity={0.7}
-                    onPress={() => setWebDateOpen(true)}
-                  >
-                    <MaterialIcons
-                      name="calendar-today"
-                      size={20}
-                      color={COLORS.textMuted}
-                      style={styles.inputIcon}
-                    />
-                    <Text
-                      style={[
-                        styles.input,
-                        !fNac && { color: "rgba(157,185,168,0.55)" },
-                        { lineHeight: 56 },
-                      ]}
-                    >
-                      {fNac ? fNac : t("register.placeholders.birthDate")}
-                    </Text>
-                  </TouchableOpacity>
-
-                  {webDateOpen && (
-                    <input
-                      type="date"
-                      autoFocus
-                      max={new Date().toISOString().split("T")[0]}
-                      style={{
-                        position: "absolute",
-                        left: 0,
-                        top: 60,
-                        zIndex: 9999,
-                      }}
-                      onBlur={() => setWebDateOpen(false)}
-                      onChange={(e) => {
-                        const value = e.target.value;
-                        if (!value) return;
-
-                        const [yyyy, mm, dd] = value.split("-");
-                        const selectedDate = new Date(Number(yyyy), Number(mm) - 1, Number(dd));
-
-                        setDate(selectedDate);
-                        setFnac(`${dd}/${mm}/${yyyy}`);
-                        setWebDateOpen(false);
-                      }}
-                    />
-                  )}
-                </View>
-              ) : (
-                <TouchableOpacity
-                  style={styles.inputContainer}
-                  onPress={() => {
-                    if (Platform.OS === "android") {
-                      DateTimePickerAndroid.open({
-                        value: date,
-                        mode: "date",
-                        display: "calendar",
-                        maximumDate: new Date(),
-                        onChange,
-                      });
-                    } else {
-                      setShow(true);
-                    }
-                  }}
-                  activeOpacity={0.7}
-                >
-                  <MaterialIcons
-                    name="calendar-today"
-                    size={20}
-                    color={COLORS.textMuted}
-                    style={styles.inputIcon}
-                  />
+              {/* ✅ un único bloque para fecha (web / android / ios) */}
+              <View style={{ position: "relative" }}>
+                <TouchableOpacity style={styles.inputContainer} onPress={openDatePicker} activeOpacity={0.7}>
+                  <MaterialIcons name="calendar-today" size={20} color={COLORS.textMuted} style={styles.inputIcon} />
                   <Text
                     style={[
                       styles.input,
@@ -435,33 +357,49 @@ const RegistroUsuario = (props) => {
                     {fNac ? fNac : t("register.placeholders.birthDate")}
                   </Text>
                 </TouchableOpacity>
-              )}
 
-              {/* BLOQUE DE IOS ACTUALIZADO */}
-              {show && Platform.OS === "ios" && (
-                <View style={styles.iosPickerContainer}>
-                  <View style={styles.iosPickerHeader}>
-                    <TouchableOpacity onPress={() => setShow(false)}>
-                      <Text style={styles.doneText}>Listo</Text>
-                    </TouchableOpacity>
-                  </View>
-                  <View style={styles.iosPickerWrap}>
-                    <DateTimePicker
-                      value={date}
-                      mode="date"
-                      display="inline"
-                      onChange={onChange}
-                      maximumDate={new Date()}
-                      themeVariant="dark"
-                    />
-                  </View>
+                {isWeb && webDateOpen && (
+                  <input
+                    type="date"
+                    autoFocus
+                    max={new Date().toISOString().split("T")[0]}
+                    style={{
+                      position: "absolute",
+                      left: 0,
+                      top: 60,
+                      zIndex: 9999,
+                    }}
+                    onBlur={() => setWebDateOpen(false)}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      if (!value) return;
+
+                      const [yyyy, mm, dd] = value.split("-");
+                      const selectedDate = new Date(Number(yyyy), Number(mm) - 1, Number(dd));
+                      setDate(selectedDate);
+                      setFnac(`${dd}/${mm}/${yyyy}`);
+                      setWebDateOpen(false);
+                    }}
+                  />
+                )}
+              </View>
+
+              {!isWeb && showIOSPicker && Platform.OS === "ios" && (
+                <View style={styles.iosPickerWrap}>
+                  <DateTimePicker
+                    value={date}
+                    mode="date"
+                    display="inline"
+                    onChange={onChangeNative}
+                    maximumDate={new Date()}
+                  />
                 </View>
               )}
 
               <TouchableOpacity
                 style={styles.termsRow}
                 activeOpacity={0.8}
-                onPress={() => setAcceptedTerms(!acceptedTerms)}
+                onPress={() => setAcceptedTerms((v) => !v)}
               >
                 <View style={[styles.checkbox, acceptedTerms && styles.checkboxChecked]}>
                   {acceptedTerms && (
@@ -482,13 +420,13 @@ const RegistroUsuario = (props) => {
                 <Text style={styles.primaryBtnText}>{t("register.buttons.register")}</Text>
               </TouchableOpacity>
             </View>
-          </View>
 
-          <View style={styles.footer}>
-            <Text style={styles.footerText}>{t("register.footer.haveAccount")} </Text>
-            <Pressable onPress={() => props.navigation.navigate("InicioSesion")}>
-              <Text style={styles.footerLink}>{t("register.footer.login")}</Text>
-            </Pressable>
+            <View style={styles.footer}>
+              <Text style={styles.footerText}>{t("register.footer.haveAccount")} </Text>
+              <Pressable onPress={() => props.navigation.navigate("InicioSesion")}>
+                <Text style={styles.footerLink}>{t("register.footer.login")}</Text>
+              </Pressable>
+            </View>
           </View>
         </View>
       </ScrollView>
@@ -498,42 +436,124 @@ const RegistroUsuario = (props) => {
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: COLORS.bg || COLORS.backgroundDark },
-  scrollContainer: { flexGrow: 1 },
-  root: { flex: 1, alignItems: "center", justifyContent: "center", paddingVertical: 32 },
+
+  // ✅ web: bloquea el body, pero el ScrollView hace scroll
+  safeWeb: { height: "100vh", overflow: "hidden" },
+  webScroll: { height: "100%", overflowY: "auto", overflowX: "hidden" },
+
+  scroll: { flex: 1 },
+  scrollContainer: { flexGrow: 1, paddingBottom: 40 },
+
+  root: { alignItems: "center" },
+
   blob: { position: "absolute", backgroundColor: "rgba(43,238,121,0.08)", borderRadius: 999 },
   blobTopRight: { width: 400, height: 400, top: -110, right: -120 },
   blobBottomLeft: { width: 300, height: 300, bottom: -60, left: -120 },
+
   container: { width: "100%", maxWidth: 450, paddingHorizontal: 24 },
+
   headLeft: { marginTop: 4, marginBottom: 22 },
   title: { fontSize: 32, fontWeight: "800", color: COLORS.textMain || "#fff", marginBottom: 8 },
   subtitle: { fontSize: 16, color: COLORS.textMuted, lineHeight: 22 },
+
   form: { width: "100%", gap: 12 },
-  label: { color: COLORS.textMain || "#fff", fontSize: 14, fontWeight: "600", marginLeft: 4, marginTop: 6, marginBottom: -2 },
-  inputContainer: { flexDirection: "row", alignItems: "center", backgroundColor: COLORS.cardBg || COLORS.inputBg, borderRadius: 16, borderWidth: 1, borderColor: COLORS.border, height: 56, paddingHorizontal: 16 },
+
+  label: {
+    color: COLORS.textMain || "#fff",
+    fontSize: 14,
+    fontWeight: "600",
+    marginLeft: 4,
+    marginTop: 6,
+    marginBottom: -2,
+  },
+
+  inputContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: COLORS.cardBg || COLORS.inputBg,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    height: 56,
+    paddingHorizontal: 16,
+  },
   inputIcon: { marginRight: 12 },
   input: { flex: 1, color: COLORS.textMain || "#fff", fontSize: 16 },
   eyeIcon: { padding: 4 },
-  avatarRow: { flexDirection: "row", alignItems: "center", gap: 12, backgroundColor: COLORS.cardBg || COLORS.inputBg, borderRadius: 16, borderWidth: 1, borderColor: COLORS.border, paddingHorizontal: 16, paddingVertical: 12 },
-  avatarCircle: { width: 52, height: 52, borderRadius: 26, borderWidth: 1, borderColor: COLORS.border, backgroundColor: "rgba(255,255,255,0.04)", alignItems: "center", justifyContent: "center", overflow: "hidden" },
+
+  avatarRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    backgroundColor: COLORS.cardBg || COLORS.inputBg,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+  },
+  avatarCircle: {
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    backgroundColor: "rgba(255,255,255,0.04)",
+    alignItems: "center",
+    justifyContent: "center",
+    overflow: "hidden",
+  },
   avatarImg: { width: 52, height: 52 },
   avatarTitle: { color: COLORS.textMain || "#fff", fontWeight: "800" },
   avatarSub: { color: COLORS.textMuted, marginTop: 2, fontSize: 12 },
+
   termsRow: { flexDirection: "row", alignItems: "flex-start", gap: 12, marginTop: 32 },
-  checkbox: { width: 20, height: 20, borderRadius: 6, borderWidth: 1, borderColor: COLORS.border, backgroundColor: COLORS.cardBg || COLORS.inputBg, alignItems: "center", justifyContent: "center", marginTop: 2 },
+  checkbox: {
+    width: 20,
+    height: 20,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    backgroundColor: COLORS.cardBg || COLORS.inputBg,
+    alignItems: "center",
+    justifyContent: "center",
+    marginTop: 2,
+  },
   checkboxChecked: { backgroundColor: COLORS.primary, borderColor: COLORS.primary },
   termsText: { flex: 1, color: COLORS.textMuted, fontSize: 14, lineHeight: 20 },
   termsLink: { color: COLORS.primary, fontWeight: "700" },
-  primaryBtn: { backgroundColor: COLORS.primary, height: 56, borderRadius: 28, alignItems: "center", justifyContent: "center", marginTop: 14, shadowColor: COLORS.primary, shadowOpacity: 0.35, shadowRadius: 12, shadowOffset: { width: 0, height: 4 }, elevation: 6 },
-  primaryBtnText: { color: COLORS.bg || COLORS.backgroundDark, fontSize: 16, fontWeight: "900", letterSpacing: 0.5 },
+
+  primaryBtn: {
+    backgroundColor: COLORS.primary,
+    height: 56,
+    borderRadius: 28,
+    alignItems: "center",
+    justifyContent: "center",
+    marginTop: 14,
+    shadowColor: COLORS.primary,
+    shadowOpacity: 0.35,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 6,
+  },
+  primaryBtnText: {
+    color: COLORS.bg || COLORS.backgroundDark,
+    fontSize: 16,
+    fontWeight: "900",
+    letterSpacing: 0.5,
+  },
+
   footer: { marginTop: 24, alignItems: "center" },
   footerText: { color: COLORS.textMuted, fontSize: 14 },
   footerLink: { color: COLORS.primary, fontWeight: "800" },
-  
-  // ESTILOS NUEVOS PARA EL PICKER DE IOS
-  iosPickerContainer: { backgroundColor: COLORS.cardBg || '#1c2720', borderRadius: 16, marginTop: 8, borderWidth: 1, borderColor: COLORS.border, overflow: "hidden" },
-  iosPickerHeader: { flexDirection: 'row', justifyContent: 'flex-end', padding: 12, borderBottomWidth: 1, borderBottomColor: COLORS.border, backgroundColor: 'rgba(255,255,255,0.05)' },
-  doneText: { color: COLORS.primary, fontWeight: 'bold', fontSize: 16 },
-  iosPickerWrap: { padding: 10 }
+
+  iosPickerWrap: {
+    backgroundColor: COLORS.textMain || "#fff",
+    borderRadius: 16,
+    marginTop: 8,
+    overflow: "hidden",
+    padding: 6,
+  },
 });
 
 export default RegistroUsuario;
