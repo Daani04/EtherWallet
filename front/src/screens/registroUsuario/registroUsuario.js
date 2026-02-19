@@ -27,9 +27,10 @@ import common from "../../styles/common";
 import theme from "../../styles/theme";
 
 const COLORS = theme?.colors || theme?.COLORS || theme;
-const NAV_HEIGHT = 90;
 const isWeb = Platform.OS === "web";
 
+// ✅ usa la misma base que el resto de tu app
+const API_BASE = "http://10.10.6.84:8080";
 
 const RegistroUsuario = (props) => {
   const { t } = useTranslation();
@@ -38,7 +39,8 @@ const RegistroUsuario = (props) => {
   const [acceptedTerms, setAcceptedTerms] = useState(false);
 
   const [date, setDate] = useState(new Date());
-  const [show, setShow] = useState(false);
+  const [showIOSPicker, setShowIOSPicker] = useState(false);
+  const [webDateOpen, setWebDateOpen] = useState(false);
 
   const [mail, setMail] = useState("");
   const [psw, setPsw] = useState("");
@@ -46,7 +48,6 @@ const RegistroUsuario = (props) => {
   const [lastName, setLastName] = useState("");
   const [dni, setDni] = useState("");
   const [fNac, setFnac] = useState("");
-  const [webDateOpen, setWebDateOpen] = useState(false);
 
   const [userImageBase64, setUserImageBase64] = useState("");
   const [userImagePreview, setUserImagePreview] = useState("");
@@ -104,6 +105,20 @@ const RegistroUsuario = (props) => {
     e.target.value = "";
   };
 
+  const setBirthDateFromDate = (selectedDate) => {
+    const day = String(selectedDate.getDate()).padStart(2, "0");
+    const month = String(selectedDate.getMonth() + 1).padStart(2, "0");
+    const year = selectedDate.getFullYear();
+    setFnac(`${day}/${month}/${year}`);
+  };
+
+  const onChangeNative = (event, selectedDate) => {
+    setShowIOSPicker(false);
+    if (!selectedDate) return;
+    setDate(selectedDate);
+    setBirthDateFromDate(selectedDate);
+  };
+
   const handleRegister = async () => {
     if (!name || !lastName || !mail || !psw || !dni || !fNac) {
       Alert.alert(t("register.alerts.errorTitle"), t("register.alerts.fillAllFields"));
@@ -132,7 +147,7 @@ const RegistroUsuario = (props) => {
 
       const hashedPassword = CryptoJS.SHA256(psw).toString();
 
-      const response = await fetch("http://localhost:8080/API/NewUser", {
+      const response = await fetch(`${API_BASE}/API/NewUser`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -162,17 +177,25 @@ const RegistroUsuario = (props) => {
     }
   };
 
-  const onChange = (event, selectedDate) => {
-    setShow(false);
-    if (!selectedDate) return;
+  const openDatePicker = () => {
+    if (Platform.OS === "web") {
+      setWebDateOpen(true);
+      return;
+    }
 
-    setDate(selectedDate);
+    if (Platform.OS === "android") {
+      DateTimePickerAndroid.open({
+        value: date,
+        mode: "date",
+        display: "calendar",
+        maximumDate: new Date(),
+        onChange: onChangeNative,
+      });
+      return;
+    }
 
-    const day = String(selectedDate.getDate()).padStart(2, "0");
-    const month = String(selectedDate.getMonth() + 1).padStart(2, "0");
-    const year = selectedDate.getFullYear();
-
-    setFnac(`${day}/${month}/${year}`);
+    // iOS
+    setShowIOSPicker(true);
   };
 
   return (
@@ -180,272 +203,205 @@ const RegistroUsuario = (props) => {
       behavior={Platform.OS === "ios" ? "padding" : "height"}
       style={[common.safe, styles.safe, isWeb && styles.safeWeb]}
     >
-      {isWeb ? (
-        <View style={styles.webScroll}>
-          <View style={styles.root}>
-            <View style={[styles.blob, styles.blobTopRight]} />
-            <View style={[styles.blob, styles.blobBottomLeft]} />
+      <ScrollView
+        style={[styles.scroll, isWeb && styles.webScroll]}
+        contentContainerStyle={styles.scrollContainer}
+        bounces={false}
+        showsVerticalScrollIndicator={!isWeb}
+        keyboardShouldPersistTaps="handled"
+      >
+        <View style={styles.root}>
+          <View style={[styles.blob, styles.blobTopRight]} />
+          <View style={[styles.blob, styles.blobBottomLeft]} />
 
-            <View style={styles.container}>
-              <View style={styles.headLeft}>
-                <Text style={styles.title}>{t("register.title")}</Text>
-                <Text style={styles.subtitle}>{t("register.subtitle")}</Text>
+          <View style={styles.container}>
+            <View style={styles.headLeft}>
+              <Text style={styles.title}>{t("register.title")}</Text>
+              <Text style={styles.subtitle}>{t("register.subtitle")}</Text>
+            </View>
+
+            <View style={styles.form}>
+              <Text style={styles.label}>{t("register.labels.profilePhotoOptional")}</Text>
+
+              <TouchableOpacity style={styles.avatarRow} activeOpacity={0.85} onPress={pickImage}>
+                <View style={styles.avatarCircle}>
+                  {userImagePreview ? (
+                    <Image source={{ uri: userImagePreview }} style={styles.avatarImg} />
+                  ) : (
+                    <MaterialIcons name="person" size={28} color={COLORS.textMuted} />
+                  )}
+                </View>
+
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.avatarTitle}>{t("register.avatar.selectImage")}</Text>
+                  <Text style={styles.avatarSub}>
+                    {isWeb ? t("register.avatar.fromFiles") : t("register.avatar.fromGallery")}
+                  </Text>
+                </View>
+
+                <MaterialIcons name="chevron-right" size={26} color={COLORS.textMuted} />
+              </TouchableOpacity>
+
+              {isWeb && (
+                <input
+                  ref={webFileInputRef}
+                  type="file"
+                  accept="image/*"
+                  style={{ display: "none" }}
+                  onChange={onWebFileChange}
+                />
+              )}
+
+              <Text style={styles.label}>{t("register.labels.name")}</Text>
+              <View style={styles.inputContainer}>
+                <MaterialIcons name="person-outline" size={20} color={COLORS.textMuted} style={styles.inputIcon} />
+                <TextInput
+                  placeholder={t("register.placeholders.name")}
+                  placeholderTextColor="rgba(157,185,168,0.55)"
+                  style={styles.input}
+                  value={name}
+                  onChangeText={setName}
+                />
               </View>
 
-              <View style={styles.form}>
-                <Text style={styles.label}>{t("register.labels.profilePhotoOptional")}</Text>
+              <Text style={styles.label}>{t("register.labels.lastName")}</Text>
+              <View style={styles.inputContainer}>
+                <MaterialIcons name="person-outline" size={20} color={COLORS.textMuted} style={styles.inputIcon} />
+                <TextInput
+                  placeholder={t("register.placeholders.lastName")}
+                  placeholderTextColor="rgba(157,185,168,0.55)"
+                  style={styles.input}
+                  value={lastName}
+                  onChangeText={setLastName}
+                />
+              </View>
 
-                <TouchableOpacity style={styles.avatarRow} activeOpacity={0.85} onPress={pickImage}>
-                  <View style={styles.avatarCircle}>
-                    {userImagePreview ? (
-                      <Image source={{ uri: userImagePreview }} style={styles.avatarImg} />
-                    ) : (
-                      <MaterialIcons name="person" size={28} color={COLORS.textMuted} />
-                    )}
-                  </View>
+              <Text style={styles.label}>{t("register.labels.email")}</Text>
+              <View style={styles.inputContainer}>
+                <MaterialIcons name="mail-outline" size={20} color={COLORS.textMuted} style={styles.inputIcon} />
+                <TextInput
+                  placeholder={t("register.placeholders.email")}
+                  placeholderTextColor="rgba(157,185,168,0.55)"
+                  style={styles.input}
+                  autoCapitalize="none"
+                  keyboardType="email-address"
+                  value={mail}
+                  onChangeText={setMail}
+                />
+              </View>
 
-                  <View style={{ flex: 1 }}>
-                    <Text style={styles.avatarTitle}>{t("register.avatar.selectImage")}</Text>
-                    <Text style={styles.avatarSub}>
-                      {Platform.OS === "web"
-                        ? t("register.avatar.fromFiles")
-                        : t("register.avatar.fromGallery")}
-                    </Text>
-                  </View>
-
-                  <MaterialIcons name="chevron-right" size={26} color={COLORS.textMuted} />
+              <Text style={styles.label}>{t("register.labels.password")}</Text>
+              <View style={styles.inputContainer}>
+                <MaterialIcons name="lock-outline" size={20} color={COLORS.textMuted} style={styles.inputIcon} />
+                <TextInput
+                  placeholder={t("register.placeholders.password")}
+                  placeholderTextColor="rgba(157,185,168,0.55)"
+                  style={styles.input}
+                  secureTextEntry={!showPassword}
+                  value={psw}
+                  onChangeText={setPsw}
+                  autoCapitalize="none"
+                />
+                <TouchableOpacity style={styles.eyeIcon} onPress={() => setShowPassword((v) => !v)} activeOpacity={0.85}>
+                  <MaterialIcons
+                    name={showPassword ? "visibility" : "visibility-off"}
+                    size={20}
+                    color={COLORS.textMuted}
+                  />
                 </TouchableOpacity>
+              </View>
 
-                {Platform.OS === "web" && (
-                  <input
-                    ref={webFileInputRef}
-                    type="file"
-                    accept="image/*"
-                    style={{ display: "none" }}
-                    onChange={onWebFileChange}
-                  />
-                )}
+              <Text style={styles.label}>{t("register.labels.dni")}</Text>
+              <View style={styles.inputContainer}>
+                <MaterialIcons name="fingerprint" size={20} color={COLORS.textMuted} style={styles.inputIcon} />
+                <TextInput
+                  placeholder={t("register.placeholders.dni")}
+                  placeholderTextColor="rgba(157,185,168,0.55)"
+                  style={styles.input}
+                  autoCapitalize="characters"
+                  value={dni}
+                  onChangeText={setDni}
+                />
+              </View>
 
-                <Text style={styles.label}>{t("register.labels.name")}</Text>
-                <View style={styles.inputContainer}>
-                  <MaterialIcons
-                    name="person-outline"
-                    size={20}
-                    color={COLORS.textMuted}
-                    style={styles.inputIcon}
-                  />
-                  <TextInput
-                    placeholder={t("register.placeholders.name")}
-                    placeholderTextColor="rgba(157,185,168,0.55)"
-                    style={styles.input}
-                    value={name}
-                    onChangeText={setName}
-                  />
-                </View>
+              <Text style={styles.label}>{t("register.labels.birthDate")}</Text>
 
-                <Text style={styles.label}>{t("register.labels.lastName")}</Text>
-                <View style={styles.inputContainer}>
-                  <MaterialIcons
-                    name="person-outline"
-                    size={20}
-                    color={COLORS.textMuted}
-                    style={styles.inputIcon}
-                  />
-                  <TextInput
-                    placeholder={t("register.placeholders.lastName")}
-                    placeholderTextColor="rgba(157,185,168,0.55)"
-                    style={styles.input}
-                    value={lastName}
-                    onChangeText={setLastName}
-                  />
-                </View>
-
-                <Text style={styles.label}>{t("register.labels.email")}</Text>
-                <View style={styles.inputContainer}>
-                  <MaterialIcons
-                    name="mail-outline"
-                    size={20}
-                    color={COLORS.textMuted}
-                    style={styles.inputIcon}
-                  />
-                  <TextInput
-                    placeholder={t("register.placeholders.email")}
-                    placeholderTextColor="rgba(157,185,168,0.55)"
-                    style={styles.input}
-                    autoCapitalize="none"
-                    keyboardType="email-address"
-                    value={mail}
-                    onChangeText={setMail}
-                  />
-                </View>
-
-                <Text style={styles.label}>{t("register.labels.password")}</Text>
-                <View style={styles.inputContainer}>
-                  <MaterialIcons
-                    name="lock-outline"
-                    size={20}
-                    color={COLORS.textMuted}
-                    style={styles.inputIcon}
-                  />
-                  <TextInput
-                    placeholder={t("register.placeholders.password")}
-                    placeholderTextColor="rgba(157,185,168,0.55)"
-                    style={styles.input}
-                    secureTextEntry={!showPassword}
-                    value={psw}
-                    onChangeText={setPsw}
-                    autoCapitalize="none"
-                  />
-                  <TouchableOpacity style={styles.eyeIcon} onPress={() => setShowPassword(!showPassword)}>
-                    <MaterialIcons
-                      name={showPassword ? "visibility" : "visibility-off"}
-                      size={20}
-                      color={COLORS.textMuted}
-                    />
-                  </TouchableOpacity>
-                </View>
-
-                <Text style={styles.label}>{t("register.labels.dni")}</Text>
-                <View style={styles.inputContainer}>
-                  <MaterialIcons
-                    name="fingerprint"
-                    size={20}
-                    color={COLORS.textMuted}
-                    style={styles.inputIcon}
-                  />
-                  <TextInput
-                    placeholder={t("register.placeholders.dni")}
-                    placeholderTextColor="rgba(157,185,168,0.55)"
-                    style={styles.input}
-                    autoCapitalize="characters"
-                    value={dni}
-                    onChangeText={setDni}
-                  />
-                </View>
-
-                <Text style={styles.label}>{t("register.labels.birthDate")}</Text>
-
-                {Platform.OS === "web" ? (
-                  <View style={{ position: "relative" }}>
-                    <TouchableOpacity
-                      style={styles.inputContainer}
-                      activeOpacity={0.7}
-                      onPress={() => setWebDateOpen(true)}
-                    >
-                      <MaterialIcons
-                        name="calendar-today"
-                        size={20}
-                        color={COLORS.textMuted}
-                        style={styles.inputIcon}
-                      />
-                      <Text
-                        style={[
-                          styles.input,
-                          !fNac && { color: "rgba(157,185,168,0.55)" },
-                          { lineHeight: 56 },
-                        ]}
-                      >
-                        {fNac ? fNac : t("register.placeholders.birthDate")}
-                      </Text>
-                    </TouchableOpacity>
-
-                    {webDateOpen && (
-                      <input
-                        type="date"
-                        autoFocus
-                        max={new Date().toISOString().split("T")[0]}
-                        style={{
-                          position: "absolute",
-                          left: 0,
-                          top: 60,
-                          zIndex: 9999,
-                        }}
-                        onBlur={() => setWebDateOpen(false)}
-                        onChange={(e) => {
-                          const value = e.target.value;
-                          if (!value) return;
-
-                          const [yyyy, mm, dd] = value.split("-");
-                          const selectedDate = new Date(Number(yyyy), Number(mm) - 1, Number(dd));
-                          setDate(selectedDate);
-                          setFnac(`${dd}/${mm}/${yyyy}`);
-                          setWebDateOpen(false);
-                        }}
-                      />
-                    )}
-                  </View>
-                ) : (
-                  <TouchableOpacity
-                    style={styles.inputContainer}
-                    onPress={() => {
-                      if (Platform.OS === "android") {
-                        DateTimePickerAndroid.open({
-                          value: date,
-                          mode: "date",
-                          display: "calendar",
-                          maximumDate: new Date(),
-                          onChange,
-                        });
-                      } else {
-                        setShow(true);
-                      }
-                    }}
-                    activeOpacity={0.7}
+              {/* ✅ un único bloque para fecha (web / android / ios) */}
+              <View style={{ position: "relative" }}>
+                <TouchableOpacity style={styles.inputContainer} onPress={openDatePicker} activeOpacity={0.7}>
+                  <MaterialIcons name="calendar-today" size={20} color={COLORS.textMuted} style={styles.inputIcon} />
+                  <Text
+                    style={[
+                      styles.input,
+                      !fNac && { color: "rgba(157,185,168,0.55)" },
+                      { lineHeight: 56 },
+                    ]}
                   >
-                    <MaterialIcons
-                      name="calendar-today"
-                      size={20}
-                      color={COLORS.textMuted}
-                      style={styles.inputIcon}
-                    />
-                    <Text
-                      style={[
-                        styles.input,
-                        !fNac && { color: "rgba(157,185,168,0.55)" },
-                        { lineHeight: 56 },
-                      ]}
-                    >
-                      {fNac ? fNac : t("register.placeholders.birthDate")}
-                    </Text>
-                  </TouchableOpacity>
-                )}
-
-                {show && Platform.OS === "ios" && (
-                  <View style={styles.iosPickerWrap}>
-                    <DateTimePicker
-                      value={date}
-                      mode="date"
-                      display="inline"
-                      onChange={onChange}
-                      maximumDate={new Date()}
-                    />
-                  </View>
-                )}
-
-                <TouchableOpacity
-                  style={styles.termsRow}
-                  activeOpacity={0.8}
-                  onPress={() => setAcceptedTerms(!acceptedTerms)}
-                >
-                  <View style={[styles.checkbox, acceptedTerms && styles.checkboxChecked]}>
-                    {acceptedTerms && (
-                      <MaterialIcons name="check" size={16} color={COLORS.bg || COLORS.backgroundDark} />
-                    )}
-                  </View>
-
-                  <Text style={styles.termsText}>
-                    {t("register.terms.textPrefix")}{" "}
-                    <Text style={styles.termsLink}>{t("register.terms.termsOfService")}</Text>{" "}
-                    {t("register.terms.and")}{" "}
-                    <Text style={styles.termsLink}>{t("register.terms.privacyPolicy")}</Text>
-                    {t("register.terms.textSuffix")}
+                    {fNac ? fNac : t("register.placeholders.birthDate")}
                   </Text>
                 </TouchableOpacity>
 
-                <TouchableOpacity style={styles.primaryBtn} activeOpacity={0.85} onPress={handleRegister}>
-                  <Text style={styles.primaryBtnText}>{t("register.buttons.register")}</Text>
-                </TouchableOpacity>
+                {isWeb && webDateOpen && (
+                  <input
+                    type="date"
+                    autoFocus
+                    max={new Date().toISOString().split("T")[0]}
+                    style={{
+                      position: "absolute",
+                      left: 0,
+                      top: 60,
+                      zIndex: 9999,
+                    }}
+                    onBlur={() => setWebDateOpen(false)}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      if (!value) return;
+
+                      const [yyyy, mm, dd] = value.split("-");
+                      const selectedDate = new Date(Number(yyyy), Number(mm) - 1, Number(dd));
+                      setDate(selectedDate);
+                      setFnac(`${dd}/${mm}/${yyyy}`);
+                      setWebDateOpen(false);
+                    }}
+                  />
+                )}
               </View>
+
+              {!isWeb && showIOSPicker && Platform.OS === "ios" && (
+                <View style={styles.iosPickerWrap}>
+                  <DateTimePicker
+                    value={date}
+                    mode="date"
+                    display="inline"
+                    onChange={onChangeNative}
+                    maximumDate={new Date()}
+                  />
+                </View>
+              )}
+
+              <TouchableOpacity
+                style={styles.termsRow}
+                activeOpacity={0.8}
+                onPress={() => setAcceptedTerms((v) => !v)}
+              >
+                <View style={[styles.checkbox, acceptedTerms && styles.checkboxChecked]}>
+                  {acceptedTerms && (
+                    <MaterialIcons name="check" size={16} color={COLORS.bg || COLORS.backgroundDark} />
+                  )}
+                </View>
+
+                <Text style={styles.termsText}>
+                  {t("register.terms.textPrefix")}{" "}
+                  <Text style={styles.termsLink}>{t("register.terms.termsOfService")}</Text>{" "}
+                  {t("register.terms.and")}{" "}
+                  <Text style={styles.termsLink}>{t("register.terms.privacyPolicy")}</Text>
+                  {t("register.terms.textSuffix")}
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity style={styles.primaryBtn} activeOpacity={0.85} onPress={handleRegister}>
+                <Text style={styles.primaryBtnText}>{t("register.buttons.register")}</Text>
+              </TouchableOpacity>
             </View>
 
             <View style={styles.footer}>
@@ -456,289 +412,7 @@ const RegistroUsuario = (props) => {
             </View>
           </View>
         </View>
-      ) : (
-        <ScrollView
-          style={{ flex: 1 }}
-          contentContainerStyle={styles.scrollContainer}
-          bounces={false}
-          showsVerticalScrollIndicator
-          keyboardShouldPersistTaps="handled"
-        >
-          <View style={styles.root}>
-            <View style={[styles.blob, styles.blobTopRight]} />
-            <View style={[styles.blob, styles.blobBottomLeft]} />
-
-            <View style={styles.container}>
-              <View style={styles.headLeft}>
-                <Text style={styles.title}>{t("register.title")}</Text>
-                <Text style={styles.subtitle}>{t("register.subtitle")}</Text>
-              </View>
-
-              <View style={styles.form}>
-                <Text style={styles.label}>{t("register.labels.profilePhotoOptional")}</Text>
-
-                <TouchableOpacity style={styles.avatarRow} activeOpacity={0.85} onPress={pickImage}>
-                  <View style={styles.avatarCircle}>
-                    {userImagePreview ? (
-                      <Image source={{ uri: userImagePreview }} style={styles.avatarImg} />
-                    ) : (
-                      <MaterialIcons name="person" size={28} color={COLORS.textMuted} />
-                    )}
-                  </View>
-
-                  <View style={{ flex: 1 }}>
-                    <Text style={styles.avatarTitle}>{t("register.avatar.selectImage")}</Text>
-                    <Text style={styles.avatarSub}>
-                      {Platform.OS === "web"
-                        ? t("register.avatar.fromFiles")
-                        : t("register.avatar.fromGallery")}
-                    </Text>
-                  </View>
-
-                  <MaterialIcons name="chevron-right" size={26} color={COLORS.textMuted} />
-                </TouchableOpacity>
-
-                {Platform.OS === "web" && (
-                  <input
-                    ref={webFileInputRef}
-                    type="file"
-                    accept="image/*"
-                    style={{ display: "none" }}
-                    onChange={onWebFileChange}
-                  />
-                )}
-
-                <Text style={styles.label}>{t("register.labels.name")}</Text>
-                <View style={styles.inputContainer}>
-                  <MaterialIcons
-                    name="person-outline"
-                    size={20}
-                    color={COLORS.textMuted}
-                    style={styles.inputIcon}
-                  />
-                  <TextInput
-                    placeholder={t("register.placeholders.name")}
-                    placeholderTextColor="rgba(157,185,168,0.55)"
-                    style={styles.input}
-                    value={name}
-                    onChangeText={setName}
-                  />
-                </View>
-
-                <Text style={styles.label}>{t("register.labels.lastName")}</Text>
-                <View style={styles.inputContainer}>
-                  <MaterialIcons
-                    name="person-outline"
-                    size={20}
-                    color={COLORS.textMuted}
-                    style={styles.inputIcon}
-                  />
-                  <TextInput
-                    placeholder={t("register.placeholders.lastName")}
-                    placeholderTextColor="rgba(157,185,168,0.55)"
-                    style={styles.input}
-                    value={lastName}
-                    onChangeText={setLastName}
-                  />
-                </View>
-
-                <Text style={styles.label}>{t("register.labels.email")}</Text>
-                <View style={styles.inputContainer}>
-                  <MaterialIcons
-                    name="mail-outline"
-                    size={20}
-                    color={COLORS.textMuted}
-                    style={styles.inputIcon}
-                  />
-                  <TextInput
-                    placeholder={t("register.placeholders.email")}
-                    placeholderTextColor="rgba(157,185,168,0.55)"
-                    style={styles.input}
-                    autoCapitalize="none"
-                    keyboardType="email-address"
-                    value={mail}
-                    onChangeText={setMail}
-                  />
-                </View>
-
-                <Text style={styles.label}>{t("register.labels.password")}</Text>
-                <View style={styles.inputContainer}>
-                  <MaterialIcons
-                    name="lock-outline"
-                    size={20}
-                    color={COLORS.textMuted}
-                    style={styles.inputIcon}
-                  />
-                  <TextInput
-                    placeholder={t("register.placeholders.password")}
-                    placeholderTextColor="rgba(157,185,168,0.55)"
-                    style={styles.input}
-                    secureTextEntry={!showPassword}
-                    value={psw}
-                    onChangeText={setPsw}
-                    autoCapitalize="none"
-                  />
-                  <TouchableOpacity style={styles.eyeIcon} onPress={() => setShowPassword(!showPassword)}>
-                    <MaterialIcons
-                      name={showPassword ? "visibility" : "visibility-off"}
-                      size={20}
-                      color={COLORS.textMuted}
-                    />
-                  </TouchableOpacity>
-                </View>
-
-                <Text style={styles.label}>{t("register.labels.dni")}</Text>
-                <View style={styles.inputContainer}>
-                  <MaterialIcons
-                    name="fingerprint"
-                    size={20}
-                    color={COLORS.textMuted}
-                    style={styles.inputIcon}
-                  />
-                  <TextInput
-                    placeholder={t("register.placeholders.dni")}
-                    placeholderTextColor="rgba(157,185,168,0.55)"
-                    style={styles.input}
-                    autoCapitalize="characters"
-                    value={dni}
-                    onChangeText={setDni}
-                  />
-                </View>
-
-                <Text style={styles.label}>{t("register.labels.birthDate")}</Text>
-
-                {Platform.OS === "web" ? (
-                  <View style={{ position: "relative" }}>
-                    <TouchableOpacity
-                      style={styles.inputContainer}
-                      activeOpacity={0.7}
-                      onPress={() => setWebDateOpen(true)}
-                    >
-                      <MaterialIcons
-                        name="calendar-today"
-                        size={20}
-                        color={COLORS.textMuted}
-                        style={styles.inputIcon}
-                      />
-                      <Text
-                        style={[
-                          styles.input,
-                          !fNac && { color: "rgba(157,185,168,0.55)" },
-                          { lineHeight: 56 },
-                        ]}
-                      >
-                        {fNac ? fNac : t("register.placeholders.birthDate")}
-                      </Text>
-                    </TouchableOpacity>
-
-                    {webDateOpen && (
-                      <input
-                        type="date"
-                        autoFocus
-                        max={new Date().toISOString().split("T")[0]}
-                        style={{
-                          position: "absolute",
-                          left: 0,
-                          top: 60,
-                          zIndex: 9999,
-                        }}
-                        onBlur={() => setWebDateOpen(false)}
-                        onChange={(e) => {
-                          const value = e.target.value;
-                          if (!value) return;
-
-                          const [yyyy, mm, dd] = value.split("-");
-                          const selectedDate = new Date(Number(yyyy), Number(mm) - 1, Number(dd));
-                          setDate(selectedDate);
-                          setFnac(`${dd}/${mm}/${yyyy}`);
-                          setWebDateOpen(false);
-                        }}
-                      />
-                    )}
-                  </View>
-                ) : (
-                  <TouchableOpacity
-                    style={styles.inputContainer}
-                    onPress={() => {
-                      if (Platform.OS === "android") {
-                        DateTimePickerAndroid.open({
-                          value: date,
-                          mode: "date",
-                          display: "calendar",
-                          maximumDate: new Date(),
-                          onChange,
-                        });
-                      } else {
-                        setShow(true);
-                      }
-                    }}
-                    activeOpacity={0.7}
-                  >
-                    <MaterialIcons
-                      name="calendar-today"
-                      size={20}
-                      color={COLORS.textMuted}
-                      style={styles.inputIcon}
-                    />
-                    <Text
-                      style={[
-                        styles.input,
-                        !fNac && { color: "rgba(157,185,168,0.55)" },
-                        { lineHeight: 56 },
-                      ]}
-                    >
-                      {fNac ? fNac : t("register.placeholders.birthDate")}
-                    </Text>
-                  </TouchableOpacity>
-                )}
-
-                {show && Platform.OS === "ios" && (
-                  <View style={styles.iosPickerWrap}>
-                    <DateTimePicker
-                      value={date}
-                      mode="date"
-                      display="inline"
-                      onChange={onChange}
-                      maximumDate={new Date()}
-                    />
-                  </View>
-                )}
-
-                <TouchableOpacity
-                  style={styles.termsRow}
-                  activeOpacity={0.8}
-                  onPress={() => setAcceptedTerms(!acceptedTerms)}
-                >
-                  <View style={[styles.checkbox, acceptedTerms && styles.checkboxChecked]}>
-                    {acceptedTerms && (
-                      <MaterialIcons name="check" size={16} color={COLORS.bg || COLORS.backgroundDark} />
-                    )}
-                  </View>
-
-                  <Text style={styles.termsText}>
-                    {t("register.terms.textPrefix")}{" "}
-                    <Text style={styles.termsLink}>{t("register.terms.termsOfService")}</Text>{" "}
-                    {t("register.terms.and")}{" "}
-                    <Text style={styles.termsLink}>{t("register.terms.privacyPolicy")}</Text>
-                    {t("register.terms.textSuffix")}
-                  </Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity style={styles.primaryBtn} activeOpacity={0.85} onPress={handleRegister}>
-                  <Text style={styles.primaryBtnText}>{t("register.buttons.register")}</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-
-            <View style={styles.footer}>
-              <Text style={styles.footerText}>{t("register.footer.haveAccount")} </Text>
-              <Pressable onPress={() => props.navigation.navigate("InicioSesion")}>
-                <Text style={styles.footerLink}>{t("register.footer.login")}</Text>
-              </Pressable>
-            </View>
-          </View>
-        </ScrollView>
-      )}
+      </ScrollView>
     </KeyboardAvoidingView>
   );
 };
@@ -746,19 +420,11 @@ const RegistroUsuario = (props) => {
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: COLORS.bg || COLORS.backgroundDark },
 
+  // ✅ web: bloquea el body, pero el ScrollView hace scroll
   safeWeb: { height: "100vh", overflow: "hidden" },
-  
-  webScroll: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    overflowY: "auto",
-    overflowX: "hidden",
-  },
+  webScroll: { height: "100%", overflowY: "auto", overflowX: "hidden" },
 
-
+  scroll: { flex: 1 },
   scrollContainer: { flexGrow: 1, paddingBottom: 40 },
 
   root: { alignItems: "center" },

@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useContext } from "react";
+import React, { useEffect, useState, useContext, useRef, useMemo } from "react";
 import {
   View,
   Text,
@@ -16,25 +16,39 @@ import { LinearGradient } from "expo-linear-gradient";
 import Nav from "../../components/Nav";
 
 import common from "../../styles/common";
-import theme from "../../styles/theme";
 import Context from "../../context/Context";
+import { useSettings } from "../../context/SettingsContext";
 
-const COLORS = theme?.colors || theme?.COLORS || theme;
-
-const NAV_HEIGHT = 90; 
+const NAV_HEIGHT = 90;
 
 const Billetera = (props) => {
+  const { C } = useSettings();
+  const styles = useMemo(() => makeStyles(C), [C]);
+
+  const { user, isLogged, isLoading } = useContext(Context);
+
   const [hideBalance, setHideBalance] = useState(false);
   const [screenW, setScreenW] = useState(Dimensions.get("window").width);
   const [lastUpdate, setLastUpdate] = useState("");
 
-  const { user, isLogged, isLoading } = useContext(Context);
-
   const [ethBalance, setEthBalance] = useState("0.00");
   const [loadingBalance, setLoadingBalance] = useState(true);
 
+  // ✅ Portfolio que en el snippet de tus compis se usaba pero no estaba definido
+  const [portfolio, setPortfolio] = useState({
+    totalBalanceEur: 0,
+    assets: [
+      { symbol: "ETH", name: "Ethereum", cryptoAmount: 0, valueEur: 0, change24h: "+0.0%" },
+    ],
+  });
+
   const isWeb = Platform.OS === "web";
   const isPC = isWeb && screenW >= 900;
+
+  const [trend, setTrend] = useState("neutral");
+  const prevBalanceRef = useRef(0);
+
+  const topInset = Platform.OS === "android" ? (StatusBar.currentHeight || 0) : 0;
 
   useEffect(() => {
     const sub = Dimensions.addEventListener("change", ({ window }) => {
@@ -45,11 +59,57 @@ const Billetera = (props) => {
     };
   }, []);
 
+  const getTrendStyle = () => {
+    if (trend === "up") return { color: "#00ff88", icon: "trending-up" };
+    if (trend === "down") return { color: "#ff3333", icon: "trending-down" };
+    return { color: C.textMain, icon: null };
+  };
+
+  const fetchPortfolio = async () => {
+    if (user && user.walletAddress) {
+      try {
+        const url = `http://10.10.6.84:8080/api/blockchain/portfolio/${user.walletAddress}`;
+        const response = await fetch(url);
+        if (!response.ok) throw new Error("Error en el servidor");
+        const data = await response.json();
+
+        // trend según el totalBalanceEur
+        if (prevBalanceRef.current !== 0) {
+          if (data.totalBalanceEur > prevBalanceRef.current) setTrend("up");
+          else if (data.totalBalanceEur < prevBalanceRef.current) setTrend("down");
+        }
+
+        prevBalanceRef.current = data.totalBalanceEur;
+        setPortfolio(data);
+
+        const d = new Date();
+        setLastUpdate(
+          String(d.getHours()).padStart(2, "0") +
+            ":" +
+            String(d.getMinutes()).padStart(2, "0") +
+            ":" +
+            String(d.getSeconds()).padStart(2, "0")
+        );
+      } catch (error) {
+        console.error("Error al obtener portfolio:", error);
+      } finally {
+        setLoadingBalance(false);
+      }
+    } else {
+      setLoadingBalance(false);
+    }
+  };
+
   useEffect(() => {
+    // Si quieres que actualice “Live” al entrar
     const d = new Date();
-    const hh = String(d.getHours()).padStart(2, "0");
-    const mm = String(d.getMinutes()).padStart(2, "0");
-    setLastUpdate(hh + ":" + mm);
+    setLastUpdate(
+      String(d.getHours()).padStart(2, "0") +
+        ":" +
+        String(d.getMinutes()).padStart(2, "0") +
+        ":" +
+        String(d.getSeconds()).padStart(2, "0")
+    );
   }, []);
 
   useEffect(() => {
@@ -66,425 +126,163 @@ const Billetera = (props) => {
         } catch (error) {
           console.error("Error al obtener saldo:", error);
           setEthBalance("N/A");
-        } finally {
-          setLoadingBalance(false);
         }
-      } else {
-        setLoadingBalance(false);
       }
     };
 
-    if (isLogged) fetchBalance();
-    else setLoadingBalance(false);
+    if (isLogged) {
+      setLoadingBalance(true);
+      fetchBalance();
+      fetchPortfolio();
+    } else {
+      setLoadingBalance(false);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, isLogged]);
 
   if (isLoading || loadingBalance) {
     return (
-      <SafeAreaView style={[common.safe, common.center]}>
-        <ActivityIndicator size="large" color={COLORS.primary} />
-        <Text style={common.loadingText}>Cargando billetera...</Text>
-      </SafeAreaView>
+      <View style={[styles.loaderContainer, { backgroundColor: C.bg }]}>
+        <ActivityIndicator size="large" color={C.primary} />
+      </View>
     );
   }
 
-  let titleSize = 28;
-  let padH = 24;
+  const trendData = getTrendStyle();
 
-  if (isPC) {
-    titleSize = 30;
-    padH = 28;
-  }
+  const renderContent = () => (
+    <>
+      <View style={styles.topRow}>
+        <View>
+          <Text style={styles.welcome}>Hola, {user?.firstName || ""}</Text>
+          <Text style={styles.miniInfo}>Live • {lastUpdate}</Text>
+        </View>
 
-  const totalBalance = 2450.35;
-  const variation24h = 3.42;
+        <Pressable onPress={() => setHideBalance(!hideBalance)} style={styles.iconBtn}>
+          <MaterialIcons
+            name={hideBalance ? "visibility-off" : "visibility"}
+            size={22}
+            color={C.textMuted}
+          />
+        </Pressable>
+      </View>
 
-  const availableBalance = 2310.2;
-  const retainedEarnings = 140.15;
+      <View style={styles.balanceCardMain}>
+        <LinearGradient
+          colors={[
+            C.isDark ? "rgba(43,238,121,0.05)" : "rgba(43,238,121,0.10)",
+            "transparent",
+          ]}
+          style={styles.balanceGlow}
+        />
 
-  const assets = [
-    { symbol: "ETH", name: "Ethereum (Real)", amount: ethBalance, valueEUR: 0, change24h: 0.0 },
-    { symbol: "BTC", name: "Bitcoin", amount: 0.0324, valueEUR: 1336.5, change24h: 2.1 },
-    { symbol: "SOL", name: "Solana", amount: 18.2, valueEUR: 178.9, change24h: 5.7 },
-  ];
+        <Text style={styles.balanceLabel}>Balance Total Estimado</Text>
 
-  const movements = [
-    { type: "receive", title: "Recibido", subtitle: "0.0100 BTC", date: "Hoy", value: "+412.50 €", status: "Confirmado" },
-    { type: "send", title: "Enviado", subtitle: "0.20 ETH", date: "Ayer", value: "-448.00 €", status: "Confirmado" },
-    { type: "swap", title: "Swap", subtitle: "SOL → ETH", date: "Hace 3 días", value: "+120.00 €", status: "Procesando" },
-  ];
+        <View style={styles.balanceRowTop}>
+          <Text style={[styles.balanceValue, { color: C.textMain }]}>
+            {hideBalance ? "•••• €" : `${Number(portfolio.totalBalanceEur || 0).toFixed(2)} €`}
+          </Text>
 
-  const formatEUR = (num) => {
-    let s = Number(num).toFixed(2);
-    s = s.replace(".", ",");
-    return s + " €";
-  };
+          {trendData.icon && !hideBalance && (
+            <MaterialIcons
+              name={trendData.icon}
+              size={22}
+              color={trendData.color}
+              style={{ marginLeft: 10 }}
+            />
+          )}
+        </View>
 
-  const hiddenTime = () => {
-    if (hideBalance) return "••:••";
-    return lastUpdate;
-  };
+        <Text style={styles.addressSub}>
+          {user?.walletAddress ? user.walletAddress : "Sin wallet"}
+        </Text>
 
-  const getBalanceText = () => {
-    if (hideBalance) return "•••••";
-    return formatEUR(totalBalance);
-  };
+        <Text style={[styles.miniInfo, { marginTop: 10 }]}>
+          ETH (Sepolia): {hideBalance ? "••••" : `${ethBalance} ETH`}
+        </Text>
+      </View>
 
-  const getAvailableText = () => {
-    if (hideBalance) return "••••";
-    return formatEUR(availableBalance);
-  };
+      <View style={styles.card}>
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>Tus Activos</Text>
+          <View style={styles.liveIndicator} />
+        </View>
 
-  const getRetainedText = () => {
-    if (hideBalance) return "••••";
-    return formatEUR(retainedEarnings);
-  };
+        {(portfolio.assets || []).map((asset, index) => (
+          <View key={`${asset.symbol}-${index}`}>
+            <View style={styles.assetRow}>
+              <View style={styles.assetLeft}>
+                <View style={styles.coinBadge}>
+                  <Text style={styles.coinBadgeText}>{asset.symbol}</Text>
+                </View>
 
-  const getTrendConfig = () => {
-    if (variation24h >= 0) {
-      return {
-        colourTrend: COLORS.primaryDark,
-        edgeTrend: COLORS.primarySoft,
-        backgroundTrend: "rgba(43,238,121,0.10)",
-        iconTrend: "trending-up",
-      };
-    }
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.assetName}>{asset.name}</Text>
+                  <Text style={styles.assetSub}>
+                    {hideBalance
+                      ? "••••"
+                      : `${Number(asset.cryptoAmount || 0).toFixed(4)} ${asset.symbol}`}
+                  </Text>
+                </View>
 
-    return {
-      colourTrend: COLORS.danger,
-      edgeTrend: COLORS.dangerSoft,
-      backgroundTrend: "rgba(255,92,92,0.10)",
-      iconTrend: "trending-down",
-    };
-  };
+                <View style={{ alignItems: "flex-end" }}>
+                  <Text style={styles.assetValueEur}>
+                    {hideBalance ? "•••• €" : `${Number(asset.valueEur || 0).toFixed(2)} €`}
+                  </Text>
 
-  const getVariationText = () => {
-    if (hideBalance) return "•••";
-    if (variation24h >= 0) return "+" + variation24h.toFixed(2) + "%";
-    return variation24h.toFixed(2) + "%";
-  };
+                  <View style={styles.changeRow}>
+                    <Text
+                      style={[
+                        styles.assetChange,
+                        {
+                          color: hideBalance
+                            ? C.textMuted
+                            : String(asset.change24h || "").includes("-")
+                            ? "#ff3333"
+                            : "#00ff88",
+                        },
+                      ]}
+                    >
+                      {hideBalance ? "••%" : asset.change24h}
+                    </Text>
+                  </View>
+                </View>
+              </View>
+            </View>
 
-  const iconMovement = (type) => {
-    let icon = "swap-horiz";
-    if (type === "receive") icon = "south-west";
-    else if (type === "send") icon = "north-east";
-    return icon;
-  };
+            {index !== (portfolio.assets || []).length - 1 && <View style={styles.divider} />}
+          </View>
+        ))}
+      </View>
 
-  const getAssetRowData = (a) => {
-    let colourChange = COLORS.danger;
-    if (a.change24h >= 0) colourChange = COLORS.primaryDark;
-
-    let amountText = "•••";
-    if (!hideBalance) amountText = String(a.amount) + " " + a.symbol;
-
-    let valText = "••••";
-    if (!hideBalance) {
-      if (a.symbol === "ETH" && (a.amount === "N/A" || a.amount === undefined || a.amount === null)) {
-        valText = "N/A";
-      } else {
-        valText = formatEUR(a.valueEUR);
-      }
-    }
-
-    let chText = "•••";
-    if (!hideBalance) {
-      if (a.change24h >= 0) chText = "+" + a.change24h + "%";
-      else chText = a.change24h + "%";
-    }
-
-    return { colourChange, amountText, valText, chText };
-  };
-
-  const getMovementRowData = (m) => {
-    let valMov = "••••";
-    if (!hideBalance) valMov = m.value;
-
-    let statusColour = "#ffd166";
-    if (m.status === "Confirmado") statusColour = COLORS.textMuted;
-
-    let statusText = "•••";
-    if (!hideBalance) statusText = m.status;
-
-    return { valMov, statusColour, statusText };
-  };
-
-  const trend = getTrendConfig();
-  const textBalance = getBalanceText();
-  const textAvailable = getAvailableText();
-  const retText = getRetainedText();
-  const textVariation = getVariationText();
-
-  const renderDividerIfNotLast = (index, length) => {
-    if (index !== length - 1) return <View style={styles.divider} />;
-    return null;
-  };
-
-  const getVisibilityIconName = () => {
-    if (hideBalance) return "visibility-off";
-    return "visibility";
-  };
-
-  const getBalanceSubText = () => {
-    if (hideBalance) return "últimas 24h";
-    return "últimas 24h · variación estimada";
-  };
-
-  const topInset = Platform.OS === "android" ? (StatusBar.currentHeight || 0) : 0;
+      <View style={{ height: isWeb ? 20 : NAV_HEIGHT + 20 }} />
+    </>
+  );
 
   return (
-    <SafeAreaView style={[common.safe, { paddingTop: topInset }, isWeb && styles.safeWeb]}>
-      <View style={[styles.blob, styles.blobTop]} />
-
+    <SafeAreaView style={[common.safe, { backgroundColor: C.bg, paddingTop: topInset }, isWeb && styles.safeWeb]}>
       <View style={styles.page}>
         {isWeb ? (
           <View style={styles.webScroll}>
-            <View style={[common.container, { paddingHorizontal: padH, paddingTop: 10, paddingBottom: 20 }]}>
-              <View style={styles.topRow}>
-                <View>
-                  <Text style={styles.kicker}>Billetera</Text>
-                  <Text style={[styles.title, { fontSize: titleSize }]}>Tu cartera segura</Text>
-                  <Text style={styles.miniInfo}>Última actualización: {hiddenTime()}</Text>
-                </View>
-
-                <Pressable onPress={() => setHideBalance(!hideBalance)} style={styles.iconBtn}>
-                  <MaterialIcons name={getVisibilityIconName()} size={22} color={COLORS.textMuted} />
-                </Pressable>
-              </View>
-
-              <View style={styles.balanceCard}>
-                <LinearGradient colors={[COLORS.primarySoft, "transparent"]} style={styles.balanceGlow} />
-                <Text style={styles.balanceLabel}>Balance total</Text>
-
-                <View style={styles.balanceRowTop}>
-                  <Text style={styles.balanceValue}>{textBalance}</Text>
-
-                  <View style={[styles.pill, { borderColor: trend.edgeTrend, backgroundColor: trend.backgroundTrend }]}>
-                    <MaterialIcons name={trend.iconTrend} size={16} color={trend.colourTrend} />
-                    <Text style={[styles.pillText, { color: trend.colourTrend }]}>{textVariation}</Text>
-                  </View>
-                </View>
-
-                <Text style={styles.balanceSub}>{getBalanceSubText()}</Text>
-
-                <View style={styles.smallGrid}>
-                  <View style={styles.smallCard}>
-                    <Text style={styles.smallLabel}>Disponible</Text>
-                    <Text style={styles.smallValue}>{textAvailable}</Text>
-                  </View>
-
-                  <View style={styles.smallCard}>
-                    <Text style={styles.smallLabel}>Retenido</Text>
-                    <Text style={styles.smallValue}>{retText}</Text>
-                  </View>
-                </View>
-
-                <View style={{ marginTop: 14 }}>
-                  <Text style={[styles.balanceSub, { marginTop: 0 }]}>
-                    ETH (Sepolia): {hideBalance ? "••••" : `${ethBalance} ETH`}
-                  </Text>
-                  <Text style={styles.addressSub}>
-                    {user?.walletAddress
-                      ? `${user.walletAddress.substring(0, 8)}...${user.walletAddress.substring(36)}`
-                      : "Sin wallet"}
-                  </Text>
-                </View>
-              </View>
-
-              <View style={[common.card, styles.sectionCard]}>
-                <Text style={common.sectionTitle}>Activos</Text>
-
-                {assets.map((a, index) => {
-                  const row = getAssetRowData(a);
-
-                  return (
-                    <View key={a.symbol} style={styles.assetRow}>
-                      <View style={styles.assetLeft}>
-                        <View style={styles.coinBadge}>
-                          <Text style={styles.coinBadgeText}>{a.symbol}</Text>
-                        </View>
-
-                        <View style={{ flex: 1 }}>
-                          <Text style={styles.assetName}>{a.name}</Text>
-                          <Text style={styles.assetSub}>{row.amountText}</Text>
-                        </View>
-                      </View>
-
-                      <View style={styles.assetRight}>
-                        <Text style={styles.assetValue}>{row.valText}</Text>
-                        <Text style={[styles.assetChange, { color: row.colourChange }]}>{row.chText}</Text>
-                      </View>
-
-                      {renderDividerIfNotLast(index, assets.length)}
-                    </View>
-                  );
-                })}
-              </View>
-
-              <View style={[common.card, styles.sectionCard]}>
-                <Text style={common.sectionTitle}>Movimientos</Text>
-
-                {movements.map((m, index) => {
-                  const mov = getMovementRowData(m);
-
-                  return (
-                    <View key={m.type + "-" + index} style={styles.movRow}>
-                      <View style={styles.movLeft}>
-                        <View style={styles.movIconWrap}>
-                          <MaterialIcons name={iconMovement(m.type)} size={20} color={COLORS.primary} />
-                        </View>
-
-                        <View style={{ flex: 1 }}>
-                          <View style={styles.movHeaderRow}>
-                            <Text style={styles.movTitle}>{m.title}</Text>
-                            <Text style={styles.movValueInline}>{mov.valMov}</Text>
-                          </View>
-
-                          <View style={styles.movSubRow}>
-                            <Text style={styles.movSub}>
-                              {m.subtitle} · {m.date}
-                            </Text>
-                            <Text style={[styles.movStatus, { color: mov.statusColour }]}>{mov.statusText}</Text>
-                          </View>
-                        </View>
-                      </View>
-
-                      {renderDividerIfNotLast(index, movements.length)}
-                    </View>
-                  );
-                })}
-              </View>
-
-              <View style={{ height: 20 }} />
-            </View>
+            <ScrollView
+              style={{ flex: 1, backgroundColor: C.bg }}
+              contentContainerStyle={styles.scrollContainer}
+              showsVerticalScrollIndicator={false}
+            >
+              {renderContent()}
+            </ScrollView>
           </View>
         ) : (
           <ScrollView
-            style={{ flex: 1 }}
-            contentContainerStyle={[
-              common.container,
-              { paddingHorizontal: padH, paddingTop: 10, paddingBottom: NAV_HEIGHT },
-            ]}
+            style={{ flex: 1, backgroundColor: C.bg }}
+            contentContainerStyle={styles.scrollContainer}
             showsVerticalScrollIndicator={false}
           >
-            <View style={styles.topRow}>
-              <View>
-                <Text style={styles.kicker}>Billetera</Text>
-                <Text style={[styles.title, { fontSize: titleSize }]}>Tu cartera segura</Text>
-                <Text style={styles.miniInfo}>Última actualización: {hiddenTime()}</Text>
-              </View>
-
-              <Pressable onPress={() => setHideBalance(!hideBalance)} style={styles.iconBtn}>
-                <MaterialIcons name={getVisibilityIconName()} size={22} color={COLORS.textMuted} />
-              </Pressable>
-            </View>
-
-            <View style={styles.balanceCard}>
-              <LinearGradient colors={[COLORS.primarySoft, "transparent"]} style={styles.balanceGlow} />
-              <Text style={styles.balanceLabel}>Balance total</Text>
-
-              <View style={styles.balanceRowTop}>
-                <Text style={styles.balanceValue}>{textBalance}</Text>
-
-                <View style={[styles.pill, { borderColor: trend.edgeTrend, backgroundColor: trend.backgroundTrend }]}>
-                  <MaterialIcons name={trend.iconTrend} size={16} color={trend.colourTrend} />
-                  <Text style={[styles.pillText, { color: trend.colourTrend }]}>{textVariation}</Text>
-                </View>
-              </View>
-
-              <Text style={styles.balanceSub}>{getBalanceSubText()}</Text>
-
-              <View style={styles.smallGrid}>
-                <View style={styles.smallCard}>
-                  <Text style={styles.smallLabel}>Disponible</Text>
-                  <Text style={styles.smallValue}>{textAvailable}</Text>
-                </View>
-
-                <View style={styles.smallCard}>
-                  <Text style={styles.smallLabel}>Retenido</Text>
-                  <Text style={styles.smallValue}>{retText}</Text>
-                </View>
-              </View>
-
-              <View style={{ marginTop: 14 }}>
-                <Text style={[styles.balanceSub, { marginTop: 0 }]}>
-                  ETH (Sepolia): {hideBalance ? "••••" : `${ethBalance} ETH`}
-                </Text>
-                <Text style={styles.addressSub}>
-                  {user?.walletAddress
-                    ? `${user.walletAddress.substring(0, 8)}...${user.walletAddress.substring(36)}`
-                    : "Sin wallet"}
-                </Text>
-              </View>
-            </View>
-
-            <View style={[common.card, styles.sectionCard]}>
-              <Text style={common.sectionTitle}>Activos</Text>
-
-              {assets.map((a, index) => {
-                const row = getAssetRowData(a);
-
-                return (
-                  <View key={a.symbol} style={styles.assetRow}>
-                    <View style={styles.assetLeft}>
-                      <View style={styles.coinBadge}>
-                        <Text style={styles.coinBadgeText}>{a.symbol}</Text>
-                      </View>
-
-                      <View style={{ flex: 1 }}>
-                        <Text style={styles.assetName}>{a.name}</Text>
-                        <Text style={styles.assetSub}>{row.amountText}</Text>
-                      </View>
-                    </View>
-
-                    <View style={styles.assetRight}>
-                      <Text style={styles.assetValue}>{row.valText}</Text>
-                      <Text style={[styles.assetChange, { color: row.colourChange }]}>{row.chText}</Text>
-                    </View>
-
-                    {renderDividerIfNotLast(index, assets.length)}
-                  </View>
-                );
-              })}
-            </View>
-
-            <View style={[common.card, styles.sectionCard]}>
-              <Text style={common.sectionTitle}>Movimientos</Text>
-
-              {movements.map((m, index) => {
-                const mov = getMovementRowData(m);
-
-                return (
-                  <View key={m.type + "-" + index} style={styles.movRow}>
-                    <View style={styles.movLeft}>
-                      <View style={styles.movIconWrap}>
-                        <MaterialIcons name={iconMovement(m.type)} size={20} color={COLORS.primary} />
-                      </View>
-
-                      <View style={{ flex: 1 }}>
-                        <View style={styles.movHeaderRow}>
-                          <Text style={styles.movTitle}>{m.title}</Text>
-                          <Text style={styles.movValueInline}>{mov.valMov}</Text>
-                        </View>
-
-                        <View style={styles.movSubRow}>
-                          <Text style={styles.movSub}>
-                            {m.subtitle} · {m.date}
-                          </Text>
-                          <Text style={[styles.movStatus, { color: mov.statusColour }]}>{mov.statusText}</Text>
-                        </View>
-                      </View>
-                    </View>
-
-                    {renderDividerIfNotLast(index, movements.length)}
-                  </View>
-                );
-              })}
-            </View>
-
-            <View style={{ height: 120 }} />
+            {renderContent()}
           </ScrollView>
         )}
 
+        {/* Nav fijo abajo (web fixed / móvil absolute) */}
         <View style={[styles.navWrap, isWeb ? styles.navWrapWeb : styles.navWrapNative]}>
           <Nav />
         </View>
@@ -493,164 +291,136 @@ const Billetera = (props) => {
   );
 };
 
-const styles = StyleSheet.create({
-  safeWeb: {
-    height: "100vh",
-    overflow: "hidden",
-  },
+const makeStyles = (C) =>
+  StyleSheet.create({
+    safeWeb: {
+      height: "100vh",
+      overflow: "hidden",
+    },
 
-  page: {
-    flex: 1,
-    position: "relative",
-  },
+    page: {
+      flex: 1,
+      position: "relative",
+      backgroundColor: C.bg,
+    },
 
-  webScroll: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: NAV_HEIGHT, 
-    overflowY: "auto",  
-    overflowX: "hidden",
-  },
+    webScroll: {
+      position: "absolute",
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: NAV_HEIGHT,
+      overflowY: "auto",
+      overflowX: "hidden",
+    },
 
-  navWrap: {
-    left: 0,
-    right: 0,
-    bottom: 0,
-    height: NAV_HEIGHT, 
-    zIndex: 9999,
-    elevation: 50,
-  },
-  navWrapWeb: { position: "fixed" },
-  navWrapNative: { position: "absolute" },
+    navWrap: {
+      left: 0,
+      right: 0,
+      bottom: 0,
+      height: NAV_HEIGHT,
+      zIndex: 9999,
+      elevation: 50,
+    },
+    navWrapWeb: { position: "fixed" },
+    navWrapNative: { position: "absolute" },
 
-  blob: {
-    position: "absolute",
-    width: 520,
-    height: 520,
-    backgroundColor: COLORS.primarySoft,
-    borderRadius: 999,
-    top: -220,
-    right: -220,
-  },
-  blobTop: {},
+    scrollContainer: { padding: 20, paddingBottom: NAV_HEIGHT + 20 },
 
-  topRow: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-    justifyContent: "space-between",
-    marginBottom: 16,
-  },
-  kicker: { color: COLORS.textMuted, fontSize: 13, letterSpacing: 0.8, textTransform: "uppercase" },
-  title: { color: COLORS.textMain, fontWeight: "800", marginTop: 4 },
-  miniInfo: { color: COLORS.textSoft, fontSize: 12, marginTop: 6 },
+    loaderContainer: { flex: 1, justifyContent: "center", alignItems: "center" },
 
-  iconBtn: {
-    width: 46,
-    height: 46,
-    borderRadius: 23,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    backgroundColor: COLORS.cardBg,
-    alignItems: "center",
-    justifyContent: "center",
-  },
+    topRow: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      marginBottom: 25,
+    },
+    welcome: { color: C.textMain, fontSize: 28, fontWeight: "800" },
+    miniInfo: { color: C.textMuted, fontSize: 12, fontWeight: "700" },
 
-  balanceCard: {
-    backgroundColor: COLORS.cardBg,
-    borderRadius: 26,
-    padding: 24,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    marginBottom: 26,
-    overflow: "hidden",
-    shadowColor: COLORS.primary,
-    shadowOpacity: 0.18,
-    shadowRadius: 16,
-    elevation: 6,
-  },
-  balanceGlow: { position: "absolute", top: 0, height: 160, left: 0, right: 0 },
-  balanceLabel: { color: COLORS.textMuted, fontSize: 14 },
+    iconBtn: {
+      width: 44,
+      height: 44,
+      borderRadius: 22,
+      backgroundColor: C.cardBg,
+      alignItems: "center",
+      justifyContent: "center",
+      borderWidth: 1,
+      borderColor: C.border,
+      shadowColor: C.shadow,
+      shadowOpacity: C.isDark ? 0.05 : 0.1,
+      shadowRadius: 10,
+      shadowOffset: { width: 0, height: 6 },
+      elevation: 2,
+    },
 
-  balanceRowTop: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginTop: 6 },
-  balanceValue: { color: COLORS.textMain, fontSize: 36, fontWeight: "900" },
+    balanceCardMain: {
+      backgroundColor: C.cardBg,
+      borderRadius: 28,
+      padding: 25,
+      borderWidth: 1,
+      borderColor: C.border,
+      marginBottom: 25,
+      shadowColor: C.shadow,
+      shadowOpacity: C.isDark ? 0.06 : 0.12,
+      shadowRadius: 18,
+      shadowOffset: { width: 0, height: 10 },
+      elevation: 2,
+      overflow: "hidden",
+    },
+    balanceGlow: { position: "absolute", top: 0, left: 0, right: 0, height: 100 },
 
-  pill: { flexDirection: "row", alignItems: "center", paddingHorizontal: 10, paddingVertical: 6, borderRadius: 999, borderWidth: 1 },
-  pillText: { fontSize: 13, fontWeight: "800", marginLeft: 6 },
+    balanceLabel: { color: C.textMuted, fontSize: 13, fontWeight: "800", textTransform: "uppercase" },
+    balanceRowTop: { flexDirection: "row", alignItems: "center", marginTop: 8 },
+    balanceValue: { fontSize: 34, fontWeight: "900" },
 
-  balanceSub: { marginTop: 8, color: COLORS.textMuted, fontSize: 13 },
+    addressSub: {
+      color: C.isDark ? "rgba(157,185,168,0.3)" : "rgba(15,23,42,0.45)",
+      fontSize: 10,
+      marginTop: 15,
+      fontFamily: Platform.OS === "ios" ? "Courier" : "monospace",
+    },
 
-  smallGrid: { flexDirection: "row", gap: 10, marginTop: 14 },
+    card: {
+      backgroundColor: C.cardBg,
+      borderRadius: 24,
+      padding: 20,
+      borderWidth: 1,
+      borderColor: C.border,
+      shadowColor: C.shadow,
+      shadowOpacity: C.isDark ? 0.05 : 0.12,
+      shadowRadius: 16,
+      shadowOffset: { width: 0, height: 10 },
+      elevation: 2,
+    },
 
-  smallCard: {
-    flex: 1,
-    borderRadius: 18,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    backgroundColor: COLORS.cardBg,
-    padding: 14,
-  },
-  smallLabel: { color: COLORS.textMuted, fontSize: 12, fontWeight: "700" },
-  smallValue: { color: COLORS.textMain, fontSize: 14, fontWeight: "900", marginTop: 6 },
+    sectionHeader: { flexDirection: "row", alignItems: "center", marginBottom: 15 },
+    sectionTitle: { color: C.textMain, fontSize: 18, fontWeight: "800" },
+    liveIndicator: { width: 8, height: 8, borderRadius: 4, backgroundColor: C.primary, marginLeft: 10 },
 
-  divider: { height: 1, backgroundColor: COLORS.border, marginTop: 14 },
+    assetRow: { paddingVertical: 15 },
+    assetLeft: { flexDirection: "row", alignItems: "center" },
 
-  sectionCard: { marginBottom: 16 },
+    coinBadge: {
+      width: 45,
+      height: 45,
+      borderRadius: 14,
+      backgroundColor: C.isDark ? "rgba(43,238,121,0.10)" : "rgba(43,238,121,0.14)",
+      alignItems: "center",
+      justifyContent: "center",
+      marginRight: 15,
+      borderWidth: 1,
+      borderColor: C.isDark ? "rgba(43,238,121,0.20)" : "rgba(43,238,121,0.28)",
+    },
+    coinBadgeText: { color: C.primary, fontWeight: "900", fontSize: 11 },
 
-  assetRow: { paddingVertical: 14 },
-  assetLeft: { flexDirection: "row", alignItems: "center" },
-  assetRight: { position: "absolute", right: 0, top: 14, alignItems: "flex-end" },
+    assetName: { color: C.textMain, fontSize: 16, fontWeight: "800" },
+    assetSub: { color: C.textMuted, fontSize: 13, marginTop: 2, fontWeight: "700" },
+    assetValueEur: { color: C.textMain, fontWeight: "900", fontSize: 16 },
+    changeRow: { marginTop: 4 },
+    assetChange: { fontSize: 13, fontWeight: "900" },
 
-  coinBadge: {
-    width: 40,
-    height: 40,
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: COLORS.primarySoft,
-    backgroundColor: "rgba(43,238,121,0.08)",
-    alignItems: "center",
-    justifyContent: "center",
-    marginRight: 12,
-  },
-  coinBadgeText: { color: COLORS.textMain, fontWeight: "900" },
-
-  assetName: { color: COLORS.textMain, fontWeight: "800" },
-  assetSub: { color: COLORS.textSoft, fontSize: 13, marginTop: 2 },
-
-  assetValue: { color: COLORS.textMain, fontWeight: "900" },
-  assetChange: { marginTop: 4, fontSize: 13, fontWeight: "800" },
-
-  movRow: { paddingVertical: 14 },
-  movLeft: { flexDirection: "row", alignItems: "center" },
-
-  movIconWrap: {
-    width: 40,
-    height: 40,
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    backgroundColor: "rgba(43,238,121,0.08)",
-    alignItems: "center",
-    justifyContent: "center",
-    marginRight: 12,
-  },
-
-  movHeaderRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
-  movSubRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginTop: 2, gap: 10 },
-
-  movTitle: { color: COLORS.textMain, fontWeight: "900" },
-  movValueInline: { color: COLORS.textMain, fontWeight: "900" },
-
-  movSub: { color: COLORS.textSoft, fontSize: 13, flex: 1 },
-  movStatus: { fontSize: 12, fontWeight: "900" },
-
-  addressSub: {
-    color: "rgba(157,185,168,0.55)",
-    fontSize: 11,
-    marginTop: 8,
-    fontFamily: Platform.OS === "ios" ? "Courier" : "monospace",
-  },
-});
+    divider: { height: 1, backgroundColor: C.isDark ? "rgba(255,255,255,0.06)" : "rgba(15,23,42,0.08)" },
+  });
 
 export default Billetera;

@@ -1,9 +1,6 @@
-// src/styles/theme.js
-
 const theme = {
   colors: {
     backgroundDark: "#102217",
-
     cardBg: "#1f2e26",
     inputBg: "#1c2720",
     border: "#355b49",
@@ -18,6 +15,14 @@ const theme = {
     textMain: "#ffffff",
     textMuted: "#9db9a8",
     textSoft: "rgba(255,255,255,0.65)",
+
+    backgroundLight: "#ffffff",
+    cardBgLight: "#f6f7f8",
+    inputBgLight: "#ffffff",
+    borderLight: "rgba(0,0,0,0.10)",
+    textMainLight: "#0f172a",
+    textMutedLight: "#64748b",
+    textSoftLight: "rgba(15, 23, 42, 0.65)",
   },
 
   radius: {
@@ -37,7 +42,6 @@ const theme = {
   },
 };
 
-// Por si alguna vez lo usas como theme.primary en vez de theme.colors.primary
 theme.primary = theme.colors.primary;
 theme.backgroundDark = theme.colors.backgroundDark;
 

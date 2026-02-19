@@ -1,18 +1,14 @@
-// src/styles/common.js
 import { StyleSheet } from "react-native";
 import theme from "./theme";
 
 const common = StyleSheet.create({
-  // Base
   safe: { flex: 1, backgroundColor: theme.colors.backgroundDark },
   container: { padding: 20, paddingBottom: 40 },
 
-  // Helpers
   center: { flex: 1, justifyContent: "center", alignItems: "center" },
   loadingText: { color: theme.colors.textMuted, marginTop: 10 },
   scrollPadding: { padding: 16 },
 
-  // Header simple (como menuNoticias)
   headerRow: {
     paddingHorizontal: 20,
     paddingBottom: 20,
@@ -22,7 +18,6 @@ const common = StyleSheet.create({
   },
   headerTitle: { fontSize: 22, fontWeight: "800", color: theme.colors.textMain },
 
-  // Cards genéricas
   card: {
     backgroundColor: theme.colors.cardBg,
     borderRadius: theme.radius.lg,
@@ -37,7 +32,6 @@ const common = StyleSheet.create({
     marginBottom: 10,
   },
 
-  // --- Noticias (menuNoticias) ---
   newsCard: {
     backgroundColor: theme.colors.inputBg,
     borderRadius: 16,

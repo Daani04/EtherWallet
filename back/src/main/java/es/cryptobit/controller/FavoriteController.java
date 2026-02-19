@@ -82,4 +82,31 @@ public class FavoriteController {
                     .body("Error al borrar favorito");
         }
     }
+
+    //ENDPOINS UTILIZADOS
+    // 1. Ver favoritos de UN usuario concreto
+    @GetMapping("/SeeFavorites/{clientId}")
+    public ResponseEntity<List<Favorite>> seeFavoritesByUser(@PathVariable String clientId) {
+        try {
+            // Asumiendo que añades este método al Repository
+            return ResponseEntity.ok(favoriteRepository.findByClientId(clientId));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    // 2. Eliminar
+    @DeleteMapping("/RemoveFavorite")
+    public ResponseEntity<Object> removeFavorite(@RequestParam String clientId, @RequestParam String crypto) {
+        try {
+            Optional<Favorite> fav = favoriteRepository.findByClientIdAndCrypto(clientId, crypto);
+            if (fav.isPresent()) {
+                favoriteRepository.delete(fav.get());
+                return ResponseEntity.ok("Eliminado");
+            }
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No encontrado");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
 }

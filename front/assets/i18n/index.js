@@ -19,4 +19,15 @@ i18n.use(initReactI18next).init({
   },
 });
 
+i18n
+    .use(initReactI18next)
+    .init({
+        resources,
+        lng: 'EN',
+        fallbackLng: 'ES',
+        interpolation: {
+            escapeValue: false,
+        },
+    });
+
 export default i18n;

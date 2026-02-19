@@ -2,65 +2,36 @@ import React from "react";
 import { View, Text, StyleSheet, Pressable } from "react-native";
 import Icon from "react-native-vector-icons/MaterialIcons";
 import { useNavigation, useRoute } from "@react-navigation/native";
-
-const COLORS = {
-  primary: "#2bee79",
-  bg: "#0d1a12",
-  white: "#ffffff",
-};
+import { useSettings } from "../context/SettingsContext";
 
 const BottomBar = () => {
   const navigation = useNavigation();
-  const route = useRoute(); // Para saber en qué pantalla estamos
+  const route = useRoute();
+  const { C } = useSettings();
 
-  // Función para determinar si el botón debe estar activo (verde)
   const isActive = (screenName) => route.name === screenName;
 
   return (
-    <View style={styles.bottomBar}>
-      <TabItem 
-        icon="candlestick-chart" 
-        label="Inicio"
-        active={isActive('MenuPrincipal')} 
-        onPress={() => navigation.navigate('MenuPrincipal')}  
-      />
+    <View style={[styles.bottomBar, { backgroundColor: C.navBg, borderTopColor: C.navBorder }]}>
+      <TabItem icon="candlestick-chart" label="Inicio" active={isActive("MenuPrincipal")} onPress={() => navigation.navigate("MenuPrincipal")} C={C} />
+      <TabItem icon="account-balance-wallet" label="Billetera" active={isActive("Billetera")} onPress={() => navigation.navigate("Billetera")} C={C} />
 
-      <TabItem 
-        icon="account-balance-wallet" 
-        label="Billetera" 
-        active={isActive('Billetera')} 
-        onPress={() => navigation.navigate('Billetera')} 
-      />
-
-      {/* Botón Central */}
-      <Pressable onPress={() => navigation.navigate('MenuTransacciones')}>
-        <View style={styles.centerButton}>
+      <Pressable onPress={() => navigation.navigate("MenuTransacciones")}>
+        <View style={[styles.centerButton, { backgroundColor: C.primary, shadowColor: C.primary }]}>
           <Icon name="swap-vert" size={28} color="#000" />
         </View>
       </Pressable>
 
-      <TabItem
-        icon="article" 
-        label="Noticias" 
-        active={isActive('MenuNoticias')} 
-        onPress={() => navigation.navigate('MenuNoticias')} 
-      />
-
-      <TabItem 
-        icon="settings" 
-        label="Ajustes" 
-        active={isActive('PerfilUsuario')} 
-        onPress={() => navigation.navigate('PerfilUsuario')} 
-    />
-    
+      <TabItem icon="article" label="Noticias" active={isActive("MenuNoticias")} onPress={() => navigation.navigate("MenuNoticias")} C={C} />
+      <TabItem icon="settings" label="Ajustes" active={isActive("PerfilUsuario")} onPress={() => navigation.navigate("PerfilUsuario")} C={C} />
     </View>
   );
 };
 
-const TabItem = ({ icon, label, active, onPress }) => (
+const TabItem = ({ icon, label, active, onPress, C }) => (
   <Pressable onPress={onPress} style={styles.tabItem}>
-    <Icon name={icon} size={24} color={active ? COLORS.primary : "#888"} />
-    <Text style={[styles.bottomText, active && { color: COLORS.primary }]}>
+    <Icon name={icon} size={24} color={active ? C.primary : (C.isDark ? "#888" : C.textMuted)} />
+    <Text style={[styles.bottomText, { color: active ? C.primary : (C.isDark ? "#888" : C.textMuted) }]}>
       {label}
     </Text>
   </Pressable>
@@ -75,31 +46,19 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-around",
     alignItems: "center",
-    backgroundColor: "rgba(13, 26, 18, 0.98)",
     borderTopWidth: 1,
-    borderTopColor: "rgba(255,255,255,0.05)",
-    paddingBottom: 10, 
+    paddingBottom: 10,
   },
-  tabItem: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  bottomText: {
-    fontSize: 10,
-    marginTop: 4,
-    color: "#888",
-  },
+  tabItem: { flex: 1, alignItems: "center", justifyContent: "center" },
+  bottomText: { fontSize: 10, marginTop: 4 },
   centerButton: {
     width: 54,
     height: 54,
     borderRadius: 27,
-    backgroundColor: COLORS.primary,
     alignItems: "center",
     justifyContent: "center",
-    marginBottom: 25, 
+    marginBottom: 25,
     elevation: 5,
-    shadowColor: COLORS.primary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 5,

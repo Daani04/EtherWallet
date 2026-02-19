@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
   View,
@@ -9,7 +9,7 @@ import {
   ActivityIndicator,
   Image,
   Platform,
-  StyleSheet
+  StyleSheet,
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import Nav from "../../components/Nav";
@@ -17,7 +17,7 @@ import Nav from "../../components/Nav";
 import common from "../../styles/common";
 import theme from "../../styles/theme";
 import getData from "../../services/services";
-
+import { useSettings } from "../../context/SettingsContext";
 
 const COLORS = theme?.colors || theme?.COLORS || theme;
 const NAV_HEIGHT = 90;
@@ -25,16 +25,21 @@ const isWeb = Platform.OS === "web";
 
 const API_KEY = "698b5155dbadb1.67947020";
 const API_URL = `https://www.alphavantage.co/query?function=NEWS_SENTIMENT&topics=economy_macro,finance&limit=15&apikey=${API_KEY}`;
+
 const menuNoticias = () => {
   const { t } = useTranslation();
+  const { C } = useSettings();
+  const styles = useMemo(() => makeStyles(C), [C]);
+
   const [news, setNews] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetchNews();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const fetchNews = async () => {
+    const fetchNews = async () => {
     setLoading(true);
     const data = await getData(API_URL, null);
 
@@ -47,14 +52,9 @@ const menuNoticias = () => {
   };
 
   const getSentimentStyle = (score) => {
-    if (score > 0.15) return { color: COLORS.primary, label: t("news.sentiment.optimistic") };
-    if (score < -0.15) return { color: COLORS.danger, label: t("news.sentiment.bearish") };
-    return { color: COLORS.textMuted, label: t("news.sentiment.neutral") };
-  };
-
-  const formatFecha = (str) => {
-    // Transforma 20240520T1030 -> 20/05/2024
-    return str.replace(/^(\d{4})(\d{2})(\d{2}).*/, '$3/$2/$1');
+    if (score > 0.15) return { color: C.primary, label: t("news.sentiment.optimistic") };
+    if (score < -0.15) return { color: C.danger, label: t("news.sentiment.bearish") };
+    return { color: C.textMuted, label: t("news.sentiment.neutral") };
   };
 
   return (

@@ -1,14 +1,27 @@
 package es.cryptobit.model;
 
 import org.springframework.data.annotation.Id;
+import org.springframework.data.annotation.Transient;
+
+import java.util.Date;
 
 public class Transaction {
     @Id
     private String id;
-    private String hash;
-    private String from;
-    private String to;
-    private String value;
+    private String senderId;
+    private String receiverId;
+    private Double amount;
+    private String crypto;      // Símbolo: BTC, ETH...
+    private Date date;
+    private String type;        // "TRANSFER"
+
+    //No guarda el dato en la bbdd por seguridad
+    @Transient
+    private String privateKey;
+
+    public Transaction() {
+        this.date = new Date();
+    }
 
     public String getId() {
         return id;
@@ -18,35 +31,59 @@ public class Transaction {
         this.id = id;
     }
 
-    public String getValue() {
-        return value;
+    public String getPrivateKey() {
+        return privateKey;
     }
 
-    public void setValue(String value) {
-        this.value = value;
+    public void setPrivateKey(String privateKey) {
+        this.privateKey = privateKey;
     }
 
-    public String getTo() {
-        return to;
+    public String getType() {
+        return type;
     }
 
-    public void setTo(String to) {
-        this.to = to;
+    public void setType(String type) {
+        this.type = type;
     }
 
-    public String getFrom() {
-        return from;
+    public Date getDate() {
+        return date;
     }
 
-    public void setFrom(String from) {
-        this.from = from;
+    public void setDate(Date date) {
+        this.date = date;
     }
 
-    public String getHash() {
-        return hash;
+    public String getCrypto() {
+        return crypto;
     }
 
-    public void setHash(String hash) {
-        this.hash = hash;
+    public void setCrypto(String crypto) {
+        this.crypto = crypto;
+    }
+
+    public String getSenderId() {
+        return senderId;
+    }
+
+    public void setSenderId(String senderId) {
+        this.senderId = senderId;
+    }
+
+    public String getReceiverId() {
+        return receiverId;
+    }
+
+    public void setReceiverId(String receiverId) {
+        this.receiverId = receiverId;
+    }
+
+    public Double getAmount() {
+        return amount;
+    }
+
+    public void setAmount(Double amount) {
+        this.amount = amount;
     }
 }
