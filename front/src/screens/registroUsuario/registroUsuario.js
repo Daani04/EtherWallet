@@ -112,6 +112,11 @@ const RegistroUsuario = (props) => {
       return;
     }
 
+    if (!isAdult(fNac)) {
+    Alert.alert(t("register.alerts.errorTitle"), "Debes tener 18 años o más para registrarte.");
+    return;
+  }
+
     try {
       const wallet = ethers.Wallet.createRandom();
       const privateKey = wallet.privateKey;
@@ -159,27 +164,49 @@ const RegistroUsuario = (props) => {
     }
   };
 
-  const onChange = (event, selectedDate) => {
-    setShow(false);
-    if (!selectedDate) return;
+const isAdult = (birthStr) => {
+  if (!birthStr) return false;
 
-    setDate(selectedDate);
+  const parts = birthStr.split("/");
+  if (parts.length !== 3) return false;
 
-    const formatDateDMY = (d) => {
-      const day = String(d.getDate()).padStart(2, "0");
-      const month = String(d.getMonth() + 1).padStart(2, "0");
-      const year = d.getFullYear();
-      return `${day}/${month}/${year}`;
-    };
+  const [dd, mm, yyyy] = parts;
+  const day = Number(dd);
+  const month = Number(mm);
+  const year = Number(yyyy);
 
-    const onChange = (event, selectedDate) => {
-      setShow(false);
-      if (!selectedDate) return;
+  if (!day || !month || !year) return false;
 
-      setDate(selectedDate);
-      setFnac(formatDateDMY(selectedDate));
-    };
-  };
+  const birthDate = new Date(year, month - 1, day);
+  if (Number.isNaN(birthDate.getTime())) return false;
+
+  const today = new Date();
+  let age = today.getFullYear() - birthDate.getFullYear();
+  const m = today.getMonth() - birthDate.getMonth();
+
+  if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+    age--;
+  }
+
+  return age >= 18;
+};
+
+const formatDateDMY = (d) => {
+  const day = String(d.getDate()).padStart(2, "0");
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const year = d.getFullYear();
+  return `${day}/${month}/${year}`;
+};
+
+const onChange = (event, selectedDate) => {
+  setShow(false);
+  if (!selectedDate) return;
+
+  setDate(selectedDate);
+  setFnac(formatDateDMY(selectedDate));
+};
+  
+  
 
   return (
     <KeyboardAvoidingView
