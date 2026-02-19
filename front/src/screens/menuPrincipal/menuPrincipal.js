@@ -20,12 +20,17 @@ import Nav from "../../components/Nav";
 import common from "../../styles/common";
 import Context from '../../context/Context';
 import { useSettings } from "../../context/SettingsContext"; 
-import getData from "../../services/services";
-import theme from "../../styles/theme";
 
 const { width } = Dimensions.get("window");
-const COLORS = theme?.colors || theme?.COLORS || theme;
 const BASE_URL = "http://35.170.12.68:8080";
+const CMC_API_KEY = "82ecd83d0cd541108839042bd32f3a55";
+
+const CURRENCY_SYMBOLS = {
+  EUR: "€",
+  USD: "$",
+  GBP: "£",
+  JPY: "¥"
+};
 
 export default function MenuPrincipal({ navigation }) {
   const { user } = useContext(Context);
@@ -38,8 +43,24 @@ export default function MenuPrincipal({ navigation }) {
   const [loading, setLoading] = useState(true);
   const [limit, setLimit] = useState(20); 
   const [activeFilter, setActiveFilter] = useState("Todos");
+  const [userCurrency, setUserCurrency] = useState("EUR");
 
   const isFetching = useRef(false);
+
+  const fetchUserSettings = async () => {
+    if (!user?.userId) return;
+    try {
+      const response = await fetch(`${BASE_URL}/API/Settings/${user.userId}`);
+      if (response.ok) {
+        const settings = await response.json();
+        if (settings.currency) {
+          setUserCurrency(settings.currency.toUpperCase());
+        }
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  };
 
   const fetchFavorites = async () => {
     if (!user?.userId) return;
@@ -54,36 +75,65 @@ export default function MenuPrincipal({ navigation }) {
     }
   };
 
-  const fetchMarketData = async (currentLimit) => {
-      if (isFetching.current) return;
-      isFetching.current = true;
-      
-      if (cryptos.length === 0) setLoading(true);
+  const fetchMarketData = async (currentLimit, currency) => {
+    if (isFetching.current) return;
+    isFetching.current = true;
+    
+    if (cryptos.length === 0) setLoading(true);
 
-      const url = `https://api.coingecko.com/api/v3/coins/markets?vs_currency=eur&order=market_cap_desc&per_page=${currentLimit}&page=1&sparkline=true&price_change_percentage=24h`;
-      
-      try {
-        const data = await getData(url, "");
-        if (data && Array.isArray(data)) {
-          setCryptos(data);
-        }
-      } catch (error) {
-        console.error(error);
-      } finally {
-        setLoading(false);
-        isFetching.current = false;
+    const vsCurrency = currency.toUpperCase();
+    const url = `https://pro-api.coinmarketcap.com/v1/cryptocurrency/listings/latest?limit=${currentLimit}&convert=${vsCurrency}`;
+
+    try {
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'X-CMC_PRO_API_KEY': CMC_API_KEY,
+          'Accept': 'application/json'
+        },
+      });
+
+      const json = await response.json();
+
+      if (json.data && Array.isArray(json.data)) {
+        const formattedData = json.data.map(coin => ({
+          id: coin.slug,
+          name: coin.name,
+          symbol: coin.symbol,
+          image: `https://s2.coinmarketcap.com/static/img/coins/64x64/${coin.id}.png`,
+          current_price: coin.quote[vsCurrency].price,
+          price_change_percentage_24h: coin.quote[vsCurrency].percent_change_24h,
+        }));
+        setCryptos(formattedData);
+      } else {
+        console.error("Error CMC:", json.status?.error_message);
       }
-    };
+    } catch (error) {
+      console.error("Network Error CMC:", error);
+    } finally {
+      setLoading(false);
+      isFetching.current = false;
+    }
+  };
 
-  useEffect(() => { fetchFavorites(); }, [user]);
-  useEffect(() => { fetchMarketData(limit); }, [limit]);
+  useEffect(() => {
+    const init = async () => {
+      await fetchUserSettings();
+      fetchFavorites();
+    };
+    init();
+  }, [user]);
+
+  useEffect(() => {
+    fetchMarketData(limit, userCurrency);
+  }, [limit, userCurrency]);
 
   const handleLoadMore = () => {
-      if (!loading) {
-        const nextLimit = limit + 10; 
-        setLimit(nextLimit); 
-        fetchMarketData(nextLimit); 
-      }
+    if (!loading) {
+      const nextLimit = limit + 10;
+      setLimit(nextLimit);
+      fetchMarketData(nextLimit, userCurrency);
+    }
   };
 
   const toggleFavorite = async (crypto) => {
@@ -103,20 +153,6 @@ export default function MenuPrincipal({ navigation }) {
         if (res.ok) setFavoritesIds(prev => prev.filter(id => id !== crypto.id));
       } catch (error) { Alert.alert("Error", "Error al eliminar"); }
     }
-  };
-
-  const generateSVGPath = (prices) => {
-    if (!prices || prices.length === 0) return "";
-    const min = Math.min(...prices);
-    const max = Math.max(...prices);
-    const range = max - min || 1;
-    const widthSVG = 150;
-    const heightSVG = 40;
-    return prices.map((price, i) => {
-      const x = (i / (prices.length - 1)) * widthSVG;
-      const y = heightSVG - ((price - min) / range) * heightSVG;
-      return `${i === 0 ? "M" : "L"} ${x} ${y}`;
-    }).join(" ");
   };
 
   const filteredCryptos = useMemo(() => {
@@ -181,9 +217,9 @@ export default function MenuPrincipal({ navigation }) {
                 <TrendingCard 
                     key={item.id} 
                     item={item} 
-                    path={generateSVGPath(item.sparkline_in_7d?.price)} 
                     C={C} 
                     styles={styles} 
+                    currencySymbol={CURRENCY_SYMBOLS[userCurrency] || userCurrency}
                 />
               ))}
             </ScrollView>
@@ -204,6 +240,7 @@ export default function MenuPrincipal({ navigation }) {
                     onFavPress={() => toggleFavorite(item)} 
                     C={C} 
                     styles={styles} 
+                    currencySymbol={CURRENCY_SYMBOLS[userCurrency] || userCurrency}
                   />
                 ))
               ) : (
@@ -241,7 +278,7 @@ export default function MenuPrincipal({ navigation }) {
   );
 }
 
-const TrendingCard = ({ item, path, C, styles }) => {
+const TrendingCard = ({ item, C, styles, currencySymbol }) => {
   const isPositive = item.price_change_percentage_24h >= 0;
   return (
     <View style={styles.trendingCard}>
@@ -259,17 +296,14 @@ const TrendingCard = ({ item, path, C, styles }) => {
           </Text>
         </View>
       </View>
-      <Text style={styles.cardPrice}>{item.current_price?.toLocaleString()} €</Text>
-      <View style={styles.chartMini}>
-        <Svg height="40" width="100%">
-          <Path d={path} fill="none" stroke={isPositive ? C.primary : C.danger} strokeWidth="2" />
-        </Svg>
-      </View>
+      <Text style={styles.cardPrice}>
+        {item.current_price?.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} {currencySymbol}
+      </Text>
     </View>
   );
 };
 
-const MarketItem = ({ item, isFav, onFavPress, C, styles }) => {
+const MarketItem = ({ item, isFav, onFavPress, C, styles, currencySymbol }) => {
   const isPositive = item.price_change_percentage_24h >= 0;
   return (
     <View style={styles.marketItem}>
@@ -282,7 +316,9 @@ const MarketItem = ({ item, isFav, onFavPress, C, styles }) => {
       </View>
       <View style={styles.rightAction}>
         <View style={styles.marketValues}>
-          <Text style={styles.marketPrice}>{item.current_price?.toLocaleString()} €</Text>
+          <Text style={styles.marketPrice}>
+            {item.current_price?.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} {currencySymbol}
+          </Text>
           <Text style={[styles.marketChange, { color: isPositive ? C.primary : C.danger }]}>
             {isPositive ? "+" : ""}{item.price_change_percentage_24h?.toFixed(2)}%
           </Text>
@@ -443,10 +479,6 @@ const makeStyles = (C) => StyleSheet.create({
     color: C.textMain, 
     marginTop: 15 
   },
-  chartMini: { 
-    marginTop: 10, 
-    height: 40 
-  },
   marketSection: { 
     marginTop: 10 
   },
@@ -496,9 +528,9 @@ const makeStyles = (C) => StyleSheet.create({
     fontSize: 16, 
     fontWeight: "bold" 
   },
-  marketChange: {
-    fontSize: 14,
-    fontWeight: "600"
+  marketChange: { 
+    fontSize: 14, 
+    fontWeight: "600" 
   },
   starBtn: { 
     padding: 5 
