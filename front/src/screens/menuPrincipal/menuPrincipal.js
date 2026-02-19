@@ -20,6 +20,7 @@ import common from "../../styles/common";
 import Context from "../../context/Context";
 import getData from "../../services/services";
 import { useSettings } from "../../context/SettingsContext";
+import theme from "../../styles/theme";
 
 const { width } = Dimensions.get("window");
 const COLORS = theme?.colors || theme?.COLORS || theme;

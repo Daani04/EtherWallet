@@ -13,6 +13,7 @@ import { MaterialIcons, Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import Nav from "../../components/Nav";
 
+import theme from "../../styles/theme";
 import common from "../../styles/common";
 import Context from "../../context/Context";
 import { useSettings } from "../../context/SettingsContext";
