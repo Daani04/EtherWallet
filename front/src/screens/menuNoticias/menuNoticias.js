@@ -29,7 +29,6 @@ const API_URL = `https://www.alphavantage.co/query?function=NEWS_SENTIMENT&topic
 const menuNoticias = () => {
   const { t } = useTranslation();
   const { C } = useSettings();
-  const styles = useMemo(() => makeStyles(C), [C]);
 
   const [news, setNews] = useState([]);
   const [loading, setLoading] = useState(true);
