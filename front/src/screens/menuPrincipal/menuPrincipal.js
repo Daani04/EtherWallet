@@ -14,17 +14,14 @@ import {
   Alert,
 } from "react-native";
 import { Search, ArrowRight, X, Star } from "lucide-react-native";
-import Svg, { Path } from "react-native-svg";
 
 import Nav from "../../components/Nav";
 import common from "../../styles/common";
 import Context from '../../context/Context';
 import { useSettings } from "../../context/SettingsContext"; 
-import getData from "../../services/services";
 
 const { width } = Dimensions.get("window");
 const BASE_URL = "http://35.170.12.68:8080";
-const CMC_API_KEY = "82ecd83d0cd541108839042bd32f3a55";
 const isWeb = Platform.OS === 'web';
 
 const CURRENCY_SYMBOLS = {
@@ -55,7 +52,7 @@ export default function MenuPrincipal({ navigation }) {
       const response = await fetch(`${BASE_URL}/API/Settings/${user.userId}`);
       if (response.ok) {
         const settings = await response.json();
-        if (settings.currency) {
+        if (settings && settings.currency) {
           setUserCurrency(settings.currency.toUpperCase());
         }
       }
@@ -82,33 +79,35 @@ export default function MenuPrincipal({ navigation }) {
     isFetching.current = true;
     if (cryptos.length === 0) setLoading(true);
 
-    const vsCurrency = currency.toUpperCase();
-    const url = `https://pro-api.coinmarketcap.com/v1/cryptocurrency/listings/latest?limit=${currentLimit}&convert=${vsCurrency}`;
+    const vsCurrency = (currency || "EUR").toLowerCase();
+    
+    // Usamos CoinGecko para ambos, es más sencillo el mapeo
+    const url = `https://api.coingecko.com/api/v3/coins/markets?vs_currency=${vsCurrency}&order=market_cap_desc&per_page=${currentLimit}&page=1&sparkline=false`;
 
     try {
       const response = await fetch(url, {
-        method: 'GET',
         headers: {
-          'X-CMC_PRO_API_KEY': CMC_API_KEY,
-          'Accept': 'application/json'
-        },
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          // Esto ayuda a evitar bloqueos en emuladores
+          'User-Agent': 'Mozilla/5.0' 
+        }
       });
-
-      const json = await response.json();
-
-      if (json.data && Array.isArray(json.data)) {
-        const formattedData = json.data.map(coin => ({
-          id: coin.slug,
+      const data = await response.json();
+      
+      if (Array.isArray(data)) {
+        const formatted = data.map(coin => ({
+          id: coin.id,
           name: coin.name,
           symbol: coin.symbol,
-          image: `https://s2.coinmarketcap.com/static/img/coins/64x64/${coin.id}.png`,
-          current_price: coin.quote[vsCurrency].price,
-          price_change_percentage_24h: coin.quote[vsCurrency].percent_change_24h,
+          image: coin.image,
+          current_price: coin.current_price,
+          price_change_percentage_24h: coin.price_change_percentage_24h,
         }));
-        setCryptos(formattedData);
+        setCryptos(formatted);
       }
     } catch (error) {
-      console.error("Network Error CMC:", error);
+      console.error("Fetch Error:", error);
     } finally {
       setLoading(false);
       isFetching.current = false;
@@ -136,10 +135,7 @@ export default function MenuPrincipal({ navigation }) {
   };
 
   const toggleFavorite = async (crypto) => {
-    if (!user?.userId) {
-      Alert.alert("Error", "No hay usuario logueado.");
-      return;
-    }
+    if (!user?.userId) return;
     const isFav = favoritesIds.includes(crypto.id);
     if (!isFav) {
       try {
@@ -150,7 +146,7 @@ export default function MenuPrincipal({ navigation }) {
         });
         if (res.ok) setFavoritesIds((prev) => [...prev, crypto.id]);
       } catch (error) {
-        Alert.alert("Error", "Error al guardar");
+        Alert.alert("Error", "No se pudo guardar");
       }
     } else {
       try {
@@ -160,7 +156,7 @@ export default function MenuPrincipal({ navigation }) {
         );
         if (res.ok) setFavoritesIds((prev) => prev.filter((id) => id !== crypto.id));
       } catch (error) {
-        Alert.alert("Error", "Error al eliminar");
+        Alert.alert("Error", "No se pudo eliminar");
       }
     }
   };
@@ -176,19 +172,19 @@ export default function MenuPrincipal({ navigation }) {
     if (activeFilter === "Favoritos") result = result.filter((c) => favoritesIds.includes(c.id));
     else if (activeFilter === "Ganadores") {
       result = result
-        .filter((c) => c.price_change_percentage_24h > 0)
+        .filter((c) => (c.price_change_percentage_24h || 0) > 0)
         .sort((a, b) => b.price_change_percentage_24h - a.price_change_percentage_24h);
     } else if (activeFilter === "Perdedores") {
       result = result
-        .filter((c) => c.price_change_percentage_24h < 0)
+        .filter((c) => (c.price_change_percentage_24h || 0) < 0)
         .sort((a, b) => a.price_change_percentage_24h - b.price_change_percentage_24h);
     }
     return result;
   }, [cryptos, search, activeFilter, favoritesIds]);
 
-  const Content = () => (
-    <View style={[common.container, { backgroundColor: C.bg }]}>
-      <ScrollView showsVerticalScrollIndicator={false} style={{ backgroundColor: C.bg }}>
+  const MainContent = () => (
+    <View style={styles.flex1}>
+      <ScrollView showsVerticalScrollIndicator={false}>
         <View style={styles.mainTitleContainer}>
           <Text style={styles.mainTitle}>Mercados</Text>
         </View>
@@ -204,7 +200,7 @@ export default function MenuPrincipal({ navigation }) {
               style={styles.input}
             />
             {search !== "" && (
-              <TouchableOpacity onPress={() => setSearch("")} activeOpacity={0.85}>
+              <TouchableOpacity onPress={() => setSearch("")}>
                 <X size={18} color={C.textMuted} />
               </TouchableOpacity>
             )}
@@ -217,7 +213,6 @@ export default function MenuPrincipal({ navigation }) {
               key={label}
               onPress={() => setActiveFilter(label)}
               style={[styles.chip, activeFilter === label && styles.chipActive]}
-              activeOpacity={0.85}
             >
               <Text style={[styles.chipText, activeFilter === label && styles.chipTextActive]}>
                 {label}
@@ -231,7 +226,7 @@ export default function MenuPrincipal({ navigation }) {
         </View>
 
         {loading && cryptos.length === 0 ? (
-          <ActivityIndicator color={C.primary} style={{ marginTop: 30 }} />
+          <ActivityIndicator color={C.primary} style={styles.loadingMargin} />
         ) : (
           <ScrollView
             horizontal
@@ -273,11 +268,11 @@ export default function MenuPrincipal({ navigation }) {
                 />
               ))
             ) : (
-              <View style={{ paddingVertical: 40 }}>
+              <View style={styles.emptyContainer}>
                 {loading ? (
                   <ActivityIndicator color={C.primary} />
                 ) : (
-                  <Text style={styles.emptyText}>No hay datos disponibles para este filtro</Text>
+                  <Text style={styles.emptyText}>No hay datos disponibles</Text>
                 )}
               </View>
             )}
@@ -285,10 +280,9 @@ export default function MenuPrincipal({ navigation }) {
 
           {activeFilter === "Todos" && filteredCryptos.length > 0 && (
             <TouchableOpacity
-              style={[styles.seeMoreBottom, loading && { opacity: 0.5 }]}
+              style={[styles.seeMoreBottom, loading && styles.opacity05]}
               onPress={handleLoadMore}
               disabled={loading}
-              activeOpacity={0.85}
             >
               {loading ? (
                 <ActivityIndicator size="small" color={C.primary} />
@@ -301,35 +295,23 @@ export default function MenuPrincipal({ navigation }) {
             </TouchableOpacity>
           )}
         </View>
-
-        <View style={{ height: 120 }} />
+        <View style={styles.bottomSpacer} />
       </ScrollView>
     </View>
   );
 
   return (
     <SafeAreaView style={[common.safe, { backgroundColor: C.bg }]}>
-      <View style={{ flex: 1 }}>
-        {isWeb ? (
-          <View style={{ flex: 1, flexDirection: 'row' }}>
-            <View style={{ flex: 1 }}>
-              <Content />
-            </View>
-            <Nav />
-          </View>
-        ) : (
-          <>
-            <Content />
-            <Nav />
-          </>
-        )}
+      <View style={styles.flex1}>
+        <MainContent />
+        <Nav />
       </View>
     </SafeAreaView>
   );
 }
 
 const TrendingCard = ({ item, C, styles, currencySymbol }) => {
-  const isPositive = item.price_change_percentage_24h >= 0;
+  const isPositive = (item.price_change_percentage_24h || 0) >= 0;
   return (
     <View style={styles.trendingCard}>
       <View style={styles.cardHeader}>
@@ -354,7 +336,7 @@ const TrendingCard = ({ item, C, styles, currencySymbol }) => {
 };
 
 const MarketItem = ({ item, isFav, onFavPress, C, styles, currencySymbol }) => {
-  const isPositive = item.price_change_percentage_24h >= 0;
+  const isPositive = (item.price_change_percentage_24h || 0) >= 0;
   return (
     <View style={styles.marketItem}>
       <View style={styles.marketInfo}>
@@ -370,7 +352,7 @@ const MarketItem = ({ item, isFav, onFavPress, C, styles, currencySymbol }) => {
             {item.current_price?.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} {currencySymbol}
           </Text>
           <Text style={[styles.marketChange, { color: isPositive ? C.primary : C.danger }]}>
-            {isPositive ? "+" : ""}{item.price_change_percentage_24h?.toFixed(2)}%
+            {isPositive ? "+" : ""}{Number(item.price_change_percentage_24h || 0).toFixed(2)}%
           </Text>
         </View>
         <TouchableOpacity onPress={onFavPress} style={styles.starBtn}>
@@ -382,6 +364,9 @@ const MarketItem = ({ item, isFav, onFavPress, C, styles, currencySymbol }) => {
 };
 
 const makeStyles = (C) => StyleSheet.create({
+  flex1: { 
+    flex: 1 
+  },
   mainTitleContainer: { 
     paddingHorizontal: 24, 
     paddingTop: 20, 
@@ -590,5 +575,17 @@ const makeStyles = (C) => StyleSheet.create({
     textAlign: "center", 
     marginTop: 30, 
     fontSize: 14 
+  },
+  emptyContainer: { 
+    paddingVertical: 40 
+  },
+  loadingMargin: { 
+    marginTop: 30 
+  },
+  opacity05: { 
+    opacity: 0.5 
+  },
+  bottomSpacer: { 
+    height: 110 
   }
 });
