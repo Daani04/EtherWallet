@@ -6,6 +6,8 @@ import EN from "./EN/EN.json";
 import CA from "./CA/CA.json";
 import FR from "./FR/FR.json";
 import DE from "./DE/DE.json";
+import CH from "./CH/CH.json";
+
 
 i18n.use(initReactI18next).init({
   compatibilityJSON: "v3",

@@ -25,9 +25,8 @@ import Nav from "../../components/Nav";
 const BASE_URL = "http://35.170.12.68:8080";
 
 export default function PerfilUsuario(props) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
 
-  // ✅ SOLO una fuente de settings (nada de useState duplicado)
   const {
     C,
     isDarkMode,
@@ -48,7 +47,7 @@ export default function PerfilUsuario(props) {
   const [dbUser, setDbUser] = useState(null);
 
   const [languageModalVisible, setLanguageModalVisible] = useState(false);
-  const LANGUAGES = ["ES", "EN", "CA"];
+  const LANGUAGES = ["ES", "EN", "CA", "FR", "DE", "CH"];
 
   const [currencyModalVisible, setCurrencyModalVisible] = useState(false);
   const CURRENCIES = ["USD", "EUR", "GBP", "MXN"];
@@ -349,6 +348,7 @@ export default function PerfilUsuario(props) {
                 style={styles.modalItem}
                 onPress={() => {
                   setLanguage(lang);
+                  i18n.changeLanguage(lang);
                   setLanguageModalVisible(false);
                   saveSettings({ language: lang });
                 }}
