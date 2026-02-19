@@ -21,6 +21,7 @@ import common from "../../styles/common";
 import Context from '../../context/Context';
 import { useSettings } from "../../context/SettingsContext"; 
 import getData from "../../services/services";
+import theme from "../../styles/theme";
 
 const { width } = Dimensions.get("window");
 const COLORS = theme?.colors || theme?.COLORS || theme;
