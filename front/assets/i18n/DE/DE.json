@@ -1,0 +1,209 @@
+{
+  "NoAccount": {
+    "Question": "Sie haben kein Konto?",
+    "Register": "Registrieren"
+  },
+  "common": {
+    "cancel": "Abbrechen",
+    "ok": "OK",
+    "error": "Fehler"
+  },
+  "news": {
+    "headerTitle": "Geopolitik & Märkte",
+    "loading": "Markt wird analysiert...",
+    "sentiment": {
+      "optimistic": "Optimistisch",
+      "bearish": "Bärisch",
+      "neutral": "Neutral"
+    }
+  },
+  "transactions": {
+    "headerTitle": "Transaktionen",
+    "searchPlaceholder": "Empfänger oder Bewegung suchen…",
+    "sections": {
+      "quickActions": "Schnellaktionen",
+      "recentRecipients": "Letzte Empfänger",
+      "recentMovements": "Letzte Bewegungen"
+    },
+    "viewAll": "Alle anzeigen",
+    "newTransaction": "Neue Transaktion",
+    "quickActions": {
+      "deposit": {
+        "title": "Einzahlen",
+        "subtitle": "EUR zu Ihrer Wallet hinzufügen"
+      },
+      "transfer": {
+        "title": "Überweisen",
+        "subtitle": "An ein anderes Konto/IBAN"
+      },
+      "withdraw": {
+        "title": "Auszahlen",
+        "subtitle": "Auf Ihr Bankkonto"
+      }
+    },
+    "types": {
+      "deposit": "Einzahlung",
+      "withdraw": "Auszahlung",
+      "transfer": "Überweisung"
+    },
+    "dates": {
+      "today": "Heute",
+      "yesterday": "Gestern"
+    },
+    "to": {
+      "bank": "Bank"
+    }
+  },
+  "editProfile": {
+    "title": "Profil bearbeiten",
+    "helpImageUrl": "Bild-URL einfügen ",
+    "help": {
+      "imageUrl": "Bild-URL einfügen "
+    },
+    "labels": {
+      "image": "Bild (userImage)",
+      "firstName": "Vorname (firstName)",
+      "lastName": "Nachname (lastName)",
+      "birthDate": "Geburtsdatum (birthDate)",
+      "newPassword": "Neues Passwort (optional)"
+    },
+    "placeholders": {
+      "imageUrl": "https://...",
+      "firstName": "Vorname",
+      "lastName": "Nachname",
+      "birthDate": "tt/mm/jjjj",
+      "passwordOptional": "Leer lassen, um das aktuelle zu behalten",
+      "newPassword": "Leer lassen, um das aktuelle zu behalten"
+    },
+    "buttons": {
+      "save": "Änderungen speichern",
+      "cancel": "Abbrechen"
+    },
+    "actions": {
+      "save": "Änderungen speichern"
+    },
+    "alerts": {
+      "errorTitle": "Fehler",
+      "okTitle": "OK",
+      "missingId": "Benutzer-ID fehlt (user.id fehlt).",
+      "fillFields": "Bitte firstName, lastName, birthDate und userImage ausfüllen.",
+      "updated": "Profil aktualisiert",
+      "serverError": "Verbindung zum Server nicht möglich"
+    },
+    "errors": {
+      "missingUserId": "Benutzer-ID fehlt (user.id fehlt).",
+      "fillAllRequired": "Bitte firstName, lastName, birthDate und userImage ausfüllen.",
+      "serverConnection": "Verbindung zum Server nicht möglich"
+    },
+    "success": {
+      "updated": "Profil aktualisiert"
+    }
+  },
+  "register": {
+    "title": "Erstellen Sie Ihr Konto",
+    "subtitle": "Treten Sie noch heute der Zukunft der Kryptowährung bei.\nRegistrieren Sie sich, um mit dem Handel zu beginnen.",
+    "labels": {
+      "profilePhotoOptional": "Profilbild (optional)",
+      "name": "Vorname",
+      "lastName": "Nachname",
+      "email": "E-Mail",
+      "password": "Passwort",
+      "dni": "ID / NIE",
+      "birthDate": "Geburtsdatum"
+    },
+    "avatar": {
+      "selectImage": "Bild auswählen",
+      "fromFiles": "Aus Dateien",
+      "fromGallery": "Aus der Galerie"
+    },
+    "placeholders": {
+      "name": "Ihr Vorname",
+      "lastName": "Ihr Nachname",
+      "email": "z.B. benutzer@email.com",
+      "password": "••••••••••••",
+      "dni": "12345678X",
+      "birthDate": "Geburtsdatum auswählen"
+    },
+    "terms": {
+      "textPrefix": "Ich akzeptiere die",
+      "termsOfService": "Nutzungsbedingungen",
+      "and": "und die",
+      "privacyPolicy": "Datenschutzrichtlinie",
+      "textSuffix": "."
+    },
+    "buttons": {
+      "register": "REGISTRIEREN"
+    },
+    "footer": {
+      "haveAccount": "Haben Sie bereits ein Konto?",
+      "login": "Anmelden"
+    },
+    "alerts": {
+      "errorTitle": "Fehler",
+      "successTitle": "Erfolg",
+      "fillAllFields": "Bitte alle Felder ausfüllen.",
+      "acceptTerms": "Sie müssen die Nutzungsbedingungen akzeptieren.",
+      "permissionDeniedTitle": "Berechtigung verweigert",
+      "permissionDeniedMsg": "Sie benötigen Zugriff auf die Galerie.",
+      "galleryError": "Galerie konnte nicht geöffnet werden.",
+      "serverError": "Verbindung zum Server nicht möglich.",
+      "registerOk": "Benutzer erfolgreich registriert",
+      "registerFail": "Registrierung fehlgeschlagen"
+    }
+  },
+  "login": {
+    "title": "Willkommen",
+    "subtitle": "Greifen Sie auf Ihre sichere Wallet zu",
+    "placeholders": {
+      "email": "E-Mail",
+      "password": "••••••••••••"
+    },
+    "forgotPassword": "Passwort vergessen?",
+    "buttons": {
+      "login": "Anmelden",
+      "faceId": "Mit Face ID anmelden"
+    },
+    "biometric": {
+      "noSupportTitle": "Fehler",
+      "noSupportMsg": "Dieses Gerät unterstützt keine Biometrie.",
+      "notEnrolledTitle": "Fehler",
+      "notEnrolledMsg": "Face ID ist nicht eingerichtet.",
+      "promptMessage": "Mit Face ID authentifizieren",
+      "fallbackLabel": "Code eingeben",
+      "successTitle": "Erfolg",
+      "successMsg": "Willkommen",
+      "notAuthTitle": "Nicht authentifiziert",
+      "cancelled": "Abgebrochen",
+      "criticalTitle": "Kritischer Fehler"
+    },
+    "alerts": {
+      "errorTitle": "Fehler",
+      "fillAllFields": "Bitte alle Felder ausfüllen",
+      "connectionError": "Verbindungsfehler. Bitte später erneut versuchen."
+    }
+  },
+  "profile": {
+    "settingsTitle": "Einstellungen",
+    "versionPrefix": "Version",
+    "sections": {
+      "account": "Konto",
+      "security": "Sicherheit",
+      "preferences": "Einstellungen"
+    },
+    "items": {
+      "editProfile": "Profil bearbeiten",
+      "lightDark": "Hell/Dunkel",
+      "faceId": "Face ID",
+      "twoFA": "2FA-Authentifizierung",
+      "kyc": "KYC-Verifizierung",
+      "notifications": "Benachrichtigungen",
+      "localCurrency": "Lokale Währung",
+      "language": "Sprache",
+      "logout": "Abmelden"
+    },
+    "status": {
+      "enabled": "Aktiviert",
+      "kycLevel2": "Verifiziert Level 2"
+    }
+  }
+}

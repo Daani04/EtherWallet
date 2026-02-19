@@ -4,6 +4,8 @@ import { initReactI18next } from "react-i18next";
 import ES from "./ES/ES.json";
 import EN from "./EN/EN.json";
 import CA from "./CA/CA.json";
+import FR from "./FR/FR.json";
+import DE from "./DE/DE.json";
 
 i18n.use(initReactI18next).init({
   compatibilityJSON: "v3",
@@ -11,9 +13,12 @@ i18n.use(initReactI18next).init({
     ES: { translation: ES },
     EN: { translation: EN },
     CA: { translation: CA },
+    FR: { translation: FR },
+    DE: { translation: DE },
+    CH: { translation: CH }
   },
-  lng: "ES",        
-  fallbackLng: "ES",
+  lng: "CH",
+  fallbackLng: "CH",
   interpolation: {
     escapeValue: false,
   },

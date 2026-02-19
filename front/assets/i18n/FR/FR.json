@@ -1,0 +1,209 @@
+{
+  "NoAccount": {
+    "Question": "Vous n'avez pas de compte ?",
+    "Register": "S'inscrire"
+  },
+  "common": {
+    "cancel": "Annuler",
+    "ok": "OK",
+    "error": "Erreur"
+  },
+  "news": {
+    "headerTitle": "Géopolitique & Marchés",
+    "loading": "Analyse du marché...",
+    "sentiment": {
+      "optimistic": "Optimiste",
+      "bearish": "Baissier",
+      "neutral": "Neutre"
+    }
+  },
+  "transactions": {
+    "headerTitle": "Transactions",
+    "searchPlaceholder": "Rechercher un destinataire ou un mouvement…",
+    "sections": {
+      "quickActions": "Actions rapides",
+      "recentRecipients": "Destinataires récents",
+      "recentMovements": "Mouvements récents"
+    },
+    "viewAll": "Voir tout",
+    "newTransaction": "Nouvelle transaction",
+    "quickActions": {
+      "deposit": {
+        "title": "Déposer",
+        "subtitle": "Ajoutez des EUR à votre portefeuille"
+      },
+      "transfer": {
+        "title": "Transférer",
+        "subtitle": "Vers un autre compte/IBAN"
+      },
+      "withdraw": {
+        "title": "Retirer",
+        "subtitle": "Vers votre banque"
+      }
+    },
+    "types": {
+      "deposit": "Dépôt",
+      "withdraw": "Retrait",
+      "transfer": "Virement"
+    },
+    "dates": {
+      "today": "Aujourd'hui",
+      "yesterday": "Hier"
+    },
+    "to": {
+      "bank": "Banque"
+    }
+  },
+  "editProfile": {
+    "title": "Modifier le profil",
+    "helpImageUrl": "Collez une URL d'image ",
+    "help": {
+      "imageUrl": "Collez une URL d'image "
+    },
+    "labels": {
+      "image": "Image (userImage)",
+      "firstName": "Prénom (firstName)",
+      "lastName": "Nom (lastName)",
+      "birthDate": "Date de naissance (birthDate)",
+      "newPassword": "Nouveau mot de passe (optionnel)"
+    },
+    "placeholders": {
+      "imageUrl": "https://...",
+      "firstName": "Prénom",
+      "lastName": "Nom",
+      "birthDate": "jj/mm/aaaa",
+      "passwordOptional": "Laissez vide pour conserver l'actuel",
+      "newPassword": "Laissez vide pour conserver l'actuel"
+    },
+    "buttons": {
+      "save": "Enregistrer les modifications",
+      "cancel": "Annuler"
+    },
+    "actions": {
+      "save": "Enregistrer les modifications"
+    },
+    "alerts": {
+      "errorTitle": "Erreur",
+      "okTitle": "OK",
+      "missingId": "Je n'ai pas l'identifiant utilisateur (user.id manquant).",
+      "fillFields": "Renseignez firstName, lastName, birthDate et userImage.",
+      "updated": "Profil mis à jour",
+      "serverError": "Impossible de se connecter au serveur"
+    },
+    "errors": {
+      "missingUserId": "Je n'ai pas l'identifiant utilisateur (user.id manquant).",
+      "fillAllRequired": "Renseignez firstName, lastName, birthDate et userImage.",
+      "serverConnection": "Impossible de se connecter au serveur"
+    },
+    "success": {
+      "updated": "Profil mis à jour"
+    }
+  },
+  "register": {
+    "title": "Créez votre compte",
+    "subtitle": "Rejoignez dès aujourd'hui l'avenir de la finance crypto.\nInscrivez-vous pour commencer à trader.",
+    "labels": {
+      "profilePhotoOptional": "Photo de profil (optionnel)",
+      "name": "Prénom",
+      "lastName": "Nom",
+      "email": "E-mail",
+      "password": "Mot de passe",
+      "dni": "ID / NIE",
+      "birthDate": "Date de naissance"
+    },
+    "avatar": {
+      "selectImage": "Choisir une image",
+      "fromFiles": "Depuis les fichiers",
+      "fromGallery": "Depuis la galerie"
+    },
+    "placeholders": {
+      "name": "Votre prénom",
+      "lastName": "Votre nom",
+      "email": "ex. utilisateur@email.com",
+      "password": "••••••••••••",
+      "dni": "12345678X",
+      "birthDate": "Sélectionner la date de naissance"
+    },
+    "terms": {
+      "textPrefix": "J'accepte les",
+      "termsOfService": "Conditions d'utilisation",
+      "and": "et la",
+      "privacyPolicy": "Politique de confidentialité",
+      "textSuffix": "."
+    },
+    "buttons": {
+      "register": "S'INSCRIRE"
+    },
+    "footer": {
+      "haveAccount": "Vous avez déjà un compte ?",
+      "login": "Se connecter"
+    },
+    "alerts": {
+      "errorTitle": "Erreur",
+      "successTitle": "Succès",
+      "fillAllFields": "Veuillez remplir tous les champs.",
+      "acceptTerms": "Vous devez accepter les conditions générales.",
+      "permissionDeniedTitle": "Autorisation refusée",
+      "permissionDeniedMsg": "Vous avez besoin d'une autorisation pour accéder à la galerie.",
+      "galleryError": "Impossible d'ouvrir la galerie.",
+      "serverError": "Impossible de se connecter au serveur.",
+      "registerOk": "Utilisateur enregistré avec succès",
+      "registerFail": "Impossible de s'inscrire"
+    }
+  },
+  "login": {
+    "title": "Bienvenue",
+    "subtitle": "Accédez à votre portefeuille sécurisé",
+    "placeholders": {
+      "email": "E-mail",
+      "password": "••••••••••••"
+    },
+    "forgotPassword": "Mot de passe oublié ?",
+    "buttons": {
+      "login": "Se connecter",
+      "faceId": "Se connecter avec Face ID"
+    },
+    "biometric": {
+      "noSupportTitle": "Erreur",
+      "noSupportMsg": "Cet appareil ne prend pas en charge la biométrie.",
+      "notEnrolledTitle": "Erreur",
+      "notEnrolledMsg": "Face ID n'est pas configuré sur cet iPhone.",
+      "promptMessage": "Authentifiez-vous avec Face ID",
+      "fallbackLabel": "Saisir le code",
+      "successTitle": "Succès",
+      "successMsg": "Bienvenue",
+      "notAuthTitle": "Non authentifié",
+      "cancelled": "Annulé",
+      "criticalTitle": "Erreur critique"
+    },
+    "alerts": {
+      "errorTitle": "Erreur",
+      "fillAllFields": "Veuillez remplir tous les champs",
+      "connectionError": "Erreur de connexion. Veuillez réessayer plus tard."
+    }
+  },
+  "profile": {
+    "settingsTitle": "Paramètres",
+    "versionPrefix": "Version",
+    "sections": {
+      "account": "Compte",
+      "security": "Sécurité",
+      "preferences": "Préférences"
+    },
+    "items": {
+      "editProfile": "Modifier le profil",
+      "lightDark": "Clair/Sombre",
+      "faceId": "Face ID",
+      "twoFA": "Authentification 2FA",
+      "kyc": "Vérification KYC",
+      "notifications": "Notifications",
+      "localCurrency": "Devise locale",
+      "language": "Langue",
+      "logout": "Se déconnecter"
+    },
+    "status": {
+      "enabled": "Activé",
+      "kycLevel2": "Vérifié niveau 2"
+    }
+  }
+}
