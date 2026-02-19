@@ -23,7 +23,8 @@ import { useSettings } from "../../context/SettingsContext";
 import getData from "../../services/services";
 
 const { width } = Dimensions.get("window");
-const BASE_URL = "http://10.10.6.84:8080";
+const COLORS = theme?.colors || theme?.COLORS || theme;
+const BASE_URL = "http://35.170.12.68:8080";
 
 export default function MenuPrincipal({ navigation }) {
   const { user } = useContext(Context);
