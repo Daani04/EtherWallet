@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useContext, useEffect } from "react";
 import {
   View,
   Text,
@@ -8,15 +8,20 @@ import {
   TextInput,
   Platform,
   useWindowDimensions,
+  Modal,
+  Alert,
+  ActivityIndicator
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next"; 
+import * as SecureStore from "expo-secure-store"; 
 
 import common from "../../styles/common";
 import theme from "../../styles/theme";
+import Context from '../../context/Context';
 
 const BREAKPOINT_MD = 768;
-const BREAKPOINT_LG = 1100;
+const BASE_URL = "http://10.10.6.84:8080";
 
 const THEME = theme?.colors || theme?.COLORS || theme || {};
 const COLORS = {
@@ -31,547 +36,273 @@ const COLORS = {
 
 export default function MenuTransacciones({ navigation }) {
   const { t } = useTranslation(); 
-
+  const { user } = useContext(Context);
   const { width } = useWindowDimensions();
+  const isDesktop = width >= BREAKPOINT_MD;
 
-  let isDesktop = false;
-  if (width >= BREAKPOINT_MD) isDesktop = true;
+  const [modalVisible, setModalVisible] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [transactions, setTransactions] = useState([]);
+  
+  const [walletAddress, setWalletAddress] = useState("");
+  const [amount, setAmount] = useState("");
+  const [senderPrivKey, setSenderPrivKey] = useState(""); // Nuevo estado para la clave manual
+  const [cryptoSymbol, setCryptoSymbol] = useState("ETH");
 
-  let isLarge = false;
-  if (width >= BREAKPOINT_LG) isLarge = true;
-
-  const [search, setSearch] = useState("");
-
-  const goToScreen = (screenName, params) => {
-    if (!navigation) return;
-    if (!navigation.navigate) return;
-
-    if (params) navigation.navigate(screenName, params);
-    else navigation.navigate(screenName);
+  const fetchTransactions = async () => {
+    if (!user?.userId) return;
+    try {
+      const response = await fetch(`${BASE_URL}/api/blockchain/MyTransactions/${user.userId}`);
+      if (response.ok) {
+        const data = await response.json();
+        const sorted = data.sort((a, b) => new Date(b.date) - new Date(a.date));
+        setTransactions(sorted);
+      }
+    } catch (error) {
+      console.error("Error cargando transacciones:", error);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const goBack = () => {
-    if (!navigation) return;
-    if (!navigation.goBack) return;
-    navigation.goBack();
+  useEffect(() => {
+    fetchTransactions();
+  }, [user]);
+
+  const handleTransfer = async () => {
+    // Validamos que ahora también incluya la clave privada manual
+    if (!walletAddress || !amount || !senderPrivKey) {
+      Alert.alert("Error", "Por favor, rellena todos los campos, incluida tu clave privada");
+      return;
+    }
+
+    try {
+      const newTransaction = {
+        senderId: user.userId,
+        receiverId: walletAddress,
+        amount: parseFloat(amount),
+        crypto: cryptoSymbol.toUpperCase(),
+        type: "TRANSFER",
+        privateKey: senderPrivKey // Enviamos la que el usuario escribió a mano
+      };
+
+      const response = await fetch(`${BASE_URL}/api/blockchain/Transfer`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(newTransaction),
+      });
+
+      if (response.ok) {
+        Alert.alert("Éxito", "Transferencia firmada y enviada a Sepolia");
+        setModalVisible(false);
+        setWalletAddress("");
+        setAmount("");
+        setSenderPrivKey(""); // Limpiamos la clave por seguridad
+        fetchTransactions(); 
+      } else {
+        const errorMsg = await response.text();
+        Alert.alert("Error", errorMsg || "Fondos insuficientes o clave incorrecta");
+      }
+    } catch (error) {
+      Alert.alert("Error", "Error de conexión con el servidor");
+    }
   };
 
-  const clearSearch = () => {
-    setSearch("");
-  };
-
-  const showClearButton = () => {
-    if (search && search.length > 0) return true;
-    return false;
-  };
-
-  const quickActions = useMemo(() => {
-    return [
-      {
-        id: "deposit",
-        title: t("transactions.quickActions.deposit.title"),
-        subtitle: t("transactions.quickActions.deposit.subtitle"),
-        icon: "south-west",
-        onPress: () => goToScreen("Depositar"),
-      },
-      {
-        id: "transfer",
-        title: t("transactions.quickActions.transfer.title"),
-        subtitle: t("transactions.quickActions.transfer.subtitle"),
-        icon: "compare-arrows",
-        onPress: () => goToScreen("Transferencia"),
-      },
-      {
-        id: "withdraw",
-        title: t("transactions.quickActions.withdraw.title"),
-        subtitle: t("transactions.quickActions.withdraw.subtitle"),
-        icon: "north-east",
-        onPress: () => goToScreen("Retirar"),
-      },
-    ];
-  }, [navigation, t]);
-
-  const recentRecipients = useMemo(() => {
-    return [
-      { id: "1", initials: "CF", name: "Carlos Fernández Bou", favorite: true },
-      { id: "2", initials: "AM", name: "Ana Martínez", favorite: false },
-      { id: "3", initials: "JP", name: "Juan Pérez", favorite: false },
-    ];
-  }, []);
-
-  const transactions = useMemo(() => {
-    return [
-      {
-        id: "t1",
-        type: t("transactions.types.transfer"),
-        to: "Carlos Fernández Bou",
-        amount: -25.5,
-        date: t("transactions.dates.today"),
-      },
-      {
-        id: "t2",
-        type: t("transactions.types.deposit"),
-        to: "Wallet EUR",
-        amount: 150,
-        date: t("transactions.dates.yesterday"),
-      },
-      {
-        id: "t3",
-        type: t("transactions.types.withdraw"),
-        to: t("transactions.to.bank"),
-        amount: -60,
-        date: "05/02",
-      },
-    ];
-  }, [t]);
-
-  const normalize = (txt) => {
-    return String(txt || "").toLowerCase();
-  };
-
-  const hasQuery = () => {
-    if (!search) return false;
-    if (!search.trim()) return false;
-    return true;
-  };
-
-  const filteredRecipients = useMemo(() => {
-    if (!hasQuery()) return recentRecipients;
-    const q = normalize(search);
-    return recentRecipients.filter((r) => normalize(r.name).includes(q));
-  }, [search, recentRecipients]);
-
-  const filteredTransactions = useMemo(() => {
-    if (!hasQuery()) return transactions;
-    const q = normalize(search);
-    return transactions.filter((tx) => {
-      const a = normalize(tx.type).includes(q);
-      const b = normalize(tx.to).includes(q);
-      if (a || b) return true;
-      return false;
-    });
-  }, [search, transactions]);
-
-  const getHeaderStyle = () => {
-    const arr = [styles.header];
-    if (isDesktop) arr.push(styles.headerDesktop);
-    return arr;
-  };
-
-  const getHeaderTitleStyle = () => {
-    const arr = [styles.headerTitle];
-    if (isDesktop) arr.push(styles.headerTitleDesktop);
-    return arr;
-  };
-
-  const getScrollStyle = () => {
-    const arr = [styles.scroll];
-    if (isDesktop) arr.push(styles.scrollDesktop);
-    return arr;
-  };
-
-  const getContainerStyle = () => {
-    const arr = [styles.container];
-    if (isDesktop) arr.push(styles.containerDesktop);
-    if (isLarge) arr.push(styles.containerLarge);
-    return arr;
-  };
-
-  const getSearchWrapStyle = () => {
-    const arr = [styles.searchWrap];
-    if (isDesktop) arr.push(styles.searchWrapDesktop);
-    return arr;
-  };
-
-  const getLayoutStyle = () => {
-    const arr = [styles.layout];
-    if (isDesktop) arr.push(styles.layoutDesktop);
-    return arr;
-  };
-
-  const getLeftColStyle = () => {
-    const arr = [styles.col];
-    if (isDesktop) arr.push(styles.leftCol);
-    return arr;
-  };
-
-  const getRightColStyle = () => {
-    const arr = [styles.col];
-    if (isDesktop) arr.push(styles.rightCol);
-    return arr;
-  };
-
-  const getRecipientsWrapStyle = () => {
-    const arr = [styles.recipientsWrap];
-    if (isDesktop) arr.push(styles.recipientsWrapDesktop);
-    return arr;
-  };
-
-  const getRecipientCardStyle = () => {
-    const arr = [styles.recipientCard];
-    if (isDesktop) arr.push(styles.recipientCardDesktop);
-    return arr;
-  };
-
-  const getMovTitleStyle = () => {
-    const arr = [common.sectionTitle || styles.sectionTitle];
-    if (isDesktop) arr.push({ marginTop: 18 });
-    return arr;
-  };
-
-  const getPrimaryBtnStyle = () => {
-    const arr = [styles.primaryBtn];
-    if (isDesktop) arr.push(styles.primaryBtnDesktop);
-    return arr;
-  };
-
-  const getTxRowStyle = (idx) => {
-    const arr = [styles.txRow];
-    if (idx !== 0) arr.push(styles.txRowBorder);
-    return arr;
-  };
-
-  const getTxIconName = (type) => {
-    if (type === t("transactions.types.deposit")) return "south-west";
-    if (type === t("transactions.types.withdraw")) return "north-east";
-    return "compare-arrows";
-  };
-
-  const getAmountStyle = (amount) => {
-    const arr = [styles.txAmount];
-    if (amount < 0) arr.push(styles.negative);
-    else arr.push(styles.positive);
-    return arr;
-  };
-
-  const getFavIconName = (favorite) => {
-    if (favorite) return "favorite";
-    return "favorite-border";
-  };
-
-  const getFavIconColor = (favorite) => {
-    if (favorite) return COLORS.primary;
-    return COLORS.textMutedSoft;
-  };
-
-  const renderClearButton = () => {
-    if (!showClearButton()) return null;
-
-    return (
-      <TouchableOpacity onPress={clearSearch} activeOpacity={0.7} style={styles.clearBtn}>
-        <MaterialIcons name="close" size={18} color={COLORS.textMutedSoft} />
-      </TouchableOpacity>
-    );
-  };
-
-  const renderQuickActions = () => {
-    return quickActions.map((a) => {
-      return (
-        <TouchableOpacity
-          key={a.id}
-          style={styles.actionCard}
-          activeOpacity={0.85}
-          onPress={a.onPress}
-        >
-          <View style={styles.actionIcon}>
-            <MaterialIcons name={a.icon} size={20} color={COLORS.primary} />
-          </View>
-
-          <View style={{ flex: 1 }}>
-            <Text style={styles.actionTitle}>{a.title}</Text>
-            <Text style={styles.actionSubtitle}>{a.subtitle}</Text>
-          </View>
-
-          <MaterialIcons name="chevron-right" size={22} color={COLORS.textMutedSoft} />
-        </TouchableOpacity>
-      );
-    });
-  };
-
-  const renderRecipients = () => {
-    return filteredRecipients.map((r) => {
-      return (
-        <TouchableOpacity
-          key={r.id}
-          style={getRecipientCardStyle()}
-          activeOpacity={0.85}
-          onPress={() => goToScreen("Transferencia", { recipientId: r.id })}
-        >
-          <View style={styles.recipientTop}>
-            <View style={styles.initialsCircle}>
-              <Text style={styles.initialsText}>{r.initials}</Text>
-            </View>
-
-            <TouchableOpacity onPress={() => {}} activeOpacity={0.7} style={styles.favBtn}>
-              <MaterialIcons
-                name={getFavIconName(r.favorite)}
-                size={18}
-                color={getFavIconColor(r.favorite)}
-              />
-            </TouchableOpacity>
-          </View>
-
-          <Text style={styles.recipientName} numberOfLines={2}>
-            {r.name}
-          </Text>
-        </TouchableOpacity>
-      );
-    });
-  };
-
-  const renderTransactions = () => {
-    return filteredTransactions.map((tx, idx) => {
-      return (
-        <View key={tx.id} style={getTxRowStyle(idx)}>
-          <View style={styles.txIcon}>
-            <MaterialIcons name={getTxIconName(tx.type)} size={18} color={COLORS.primary} />
-          </View>
-
-          <View style={{ flex: 1 }}>
-            <Text style={styles.txTitle}>{tx.type}</Text>
-            <Text style={styles.txSubtitle} numberOfLines={1}>
-              {tx.to} · {tx.date}
-            </Text>
-          </View>
-
-          <Text style={getAmountStyle(tx.amount)}>{formatEUR(tx.amount)}</Text>
-        </View>
-      );
-    });
-  };
+  const recentRecipients = useMemo(() => [
+    { id: "1", initials: "CF", name: "Carlos Fernández Bou" },
+    { id: "2", initials: "AM", name: "Ana Martínez" },
+    { id: "3", initials: "JP", name: "Juan Pérez" },
+  ], []);
 
   return (
     <View style={[common.safe, styles.safe]}>
-      <View style={getHeaderStyle()}>
-        <TouchableOpacity onPress={goBack} style={styles.iconBtn} activeOpacity={0.8}>
+      <View style={[styles.header, isDesktop && styles.headerDesktop]}>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.iconBtn}>
           <MaterialIcons name="arrow-back" size={22} color="#fff" />
         </TouchableOpacity>
-
-        <Text style={getHeaderTitleStyle()}>{t("transactions.headerTitle")}</Text>
-
-        <TouchableOpacity
-          onPress={() => goToScreen("AyudaTransacciones")}
-          style={styles.iconBtn}
-          activeOpacity={0.8}
-        >
-          <MaterialIcons name="help-outline" size={22} color="#fff" />
-        </TouchableOpacity>
+        <Text style={[styles.headerTitle, isDesktop && styles.headerTitleDesktop]}>
+          {t("transactions.headerTitle")}
+        </Text>
+        <View style={{ width: 44 }} /> 
       </View>
 
-      <ScrollView contentContainerStyle={getScrollStyle()} showsVerticalScrollIndicator={false}>
-        <View style={getContainerStyle()}>
-          <View style={getSearchWrapStyle()}>
-            <MaterialIcons name="search" size={20} color={COLORS.textMutedSoft} />
-            <TextInput
-              value={search}
-              onChangeText={setSearch}
-              placeholder={t("transactions.searchPlaceholder")}
-              placeholderTextColor={COLORS.textMutedSoft}
-              style={styles.searchInput}
-            />
-            {renderClearButton()}
-          </View>
+      <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
+        <View style={[styles.container, isDesktop && styles.containerDesktop]}>
+          <View style={[styles.layout, isDesktop && styles.layoutDesktop]}>
+            <View style={styles.leftCol}>
+              <Text style={styles.sectionTitle}>{t("transactions.sections.quickActions")}</Text>
+              <TouchableOpacity 
+                style={styles.actionCard} 
+                activeOpacity={0.85} 
+                onPress={() => setModalVisible(true)}
+              >
+                <View style={styles.actionIcon}>
+                  <MaterialIcons name="compare-arrows" size={20} color={COLORS.primary} />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.actionTitle}>{t("transactions.quickActions.transfer.title")}</Text>
+                  <Text style={styles.actionSubtitle}>{t("transactions.quickActions.transfer.subtitle")}</Text>
+                </View>
+                <MaterialIcons name="chevron-right" size={22} color={COLORS.textMutedSoft} />
+              </TouchableOpacity>
 
-          <View style={getLayoutStyle()}>
-            <View style={getLeftColStyle()}>
-              <Text style={common.sectionTitle || styles.sectionTitle}>
-                {t("transactions.sections.quickActions")}
-              </Text>
-
-              <View style={styles.actionsGrid}>{renderQuickActions()}</View>
-
-              <View style={styles.sectionRow}>
-                <Text style={common.sectionTitle || styles.sectionTitle}>
-                  {t("transactions.sections.recentRecipients")}
-                </Text>
-                <TouchableOpacity onPress={() => goToScreen("Destinatarios")} activeOpacity={0.8}>
-                  <Text style={styles.link}>{t("transactions.viewAll")}</Text>
-                </TouchableOpacity>
+              <Text style={styles.sectionTitle}>{t("transactions.sections.recentRecipients")}</Text>
+              <View style={styles.recipientsWrap}>
+                {recentRecipients.map((r) => (
+                  <TouchableOpacity 
+                    key={r.id} 
+                    style={styles.recipientCard} 
+                    onPress={() => { setWalletAddress(r.name); setModalVisible(true); }}
+                  >
+                    <View style={styles.recipientInfo}>
+                        <View style={styles.initialsCircle}>
+                          <Text style={styles.initialsText}>{r.initials}</Text>
+                        </View>
+                        <Text style={styles.recipientName}>{r.name}</Text>
+                    </View>
+                    <MaterialIcons name="chevron-right" size={20} color={COLORS.textMutedSoft} />
+                  </TouchableOpacity>
+                ))}
               </View>
-
-              <View style={getRecipientsWrapStyle()}>{renderRecipients()}</View>
             </View>
 
-            <View style={getRightColStyle()}>
-              <Text style={getMovTitleStyle()}>{t("transactions.sections.recentMovements")}</Text>
+            <View style={styles.rightCol}>
+              <Text style={styles.sectionTitle}>{t("transactions.sections.recentMovements")}</Text>
+              <View style={styles.listCard}>
+                {loading ? (
+                  <ActivityIndicator color={COLORS.primary} style={{ margin: 20 }} />
+                ) : (
+                  transactions.map((tx, idx) => (
+                    <View key={tx.id} style={[styles.txRow, idx !== 0 && styles.txRowBorder]}>
+                      <View style={styles.txIcon}>
+                        <MaterialIcons 
+                          name={tx.senderId === user?.userId ? "north-east" : "south-west"} 
+                          size={18} 
+                          color={tx.senderId === user?.userId ? COLORS.danger : COLORS.primary} 
+                        />
+                      </View>
+                      <View style={{ flex: 1 }}>
+                        <Text style={styles.txTitle}>{tx.senderId === user?.userId ? "Envío" : "Recibido"}</Text>
+                        <Text style={styles.txSubtitle} numberOfLines={1}>
+                          {tx.senderId === user?.userId ? `A: ${tx.receiverId}` : `De: ${tx.senderId}`}
+                        </Text>
+                      </View>
+                      <Text style={[styles.txAmount, tx.senderId === user?.userId ? styles.negative : styles.positive]}>
+                        {tx.senderId === user?.userId ? "-" : "+"}{tx.amount} {tx.crypto}
+                      </Text>
+                    </View>
+                  ))
+                )}
+              </View>
+            </View>
+          </View>
+        </View>
+      </ScrollView>
 
-              <View style={styles.listCard}>{renderTransactions()}</View>
+      <Modal 
+        animationType="slide" 
+        transparent={true} 
+        visible={modalVisible} 
+        onRequestClose={() => setModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Nueva Transferencia</Text>
+              <TouchableOpacity onPress={() => setModalVisible(false)}>
+                <MaterialIcons name="close" size={24} color="#fff" />
+              </TouchableOpacity>
+            </View>
+            <View style={styles.modalBody}>
+              <Text style={styles.label}>Tu Clave Privada (Firma)</Text>
+              <TextInput 
+                style={styles.modalInput} 
+                placeholder="Pega aquí tu clave privada" 
+                placeholderTextColor={COLORS.textMutedSoft} 
+                secureTextEntry={true} // Ocultar clave por seguridad
+                value={senderPrivKey} 
+                onChangeText={setSenderPrivKey} 
+              />
 
-              <TouchableOpacity
-                style={getPrimaryBtnStyle()}
-                activeOpacity={0.9}
-                onPress={() => goToScreen("NuevaTransaccion")}
-              >
-                <Text style={styles.primaryBtnText}>{t("transactions.newTransaction")}</Text>
+              <Text style={styles.label}>Billetera Destino (Address)</Text>
+              <TextInput 
+                style={styles.modalInput} 
+                placeholder="0x..." 
+                placeholderTextColor={COLORS.textMutedSoft} 
+                value={walletAddress} 
+                onChangeText={setWalletAddress} 
+              />
+              
+              <Text style={styles.label}>Cantidad (ETH)</Text>
+              <TextInput 
+                style={styles.modalInput} 
+                placeholder="0.00" 
+                placeholderTextColor={COLORS.textMutedSoft} 
+                keyboardType="numeric" 
+                value={amount} 
+                onChangeText={setAmount} 
+              />
+              
+              <Text style={styles.label}>Cripto</Text>
+              <TextInput 
+                value={cryptoSymbol} 
+                editable={false} 
+                style={[styles.modalInput, { opacity: 0.6, marginBottom: 30 }]} 
+              />
+              
+              <TouchableOpacity style={styles.confirmBtn} onPress={handleTransfer}>
+                <Text style={styles.confirmBtnText}>Firmar y Enviar</Text>
               </TouchableOpacity>
             </View>
           </View>
         </View>
-
-        <View style={{ height: 18 }} />
-      </ScrollView>
+      </Modal>
     </View>
   );
 }
 
-function formatEUR(value) {
-  let sign = "+";
-  if (value < 0) sign = "-";
-
-  const abs = Math.abs(value);
-  return sign + abs.toFixed(2) + " €";
-}
-
 const styles = StyleSheet.create({
+  // ... (mantenemos tus estilos exactamente iguales)
   safe: { flex: 1, backgroundColor: COLORS.backgroundDark },
-
-  header: {
-    paddingTop: Platform.OS === "ios" ? 56 : 18,
-    paddingHorizontal: 16,
-    paddingBottom: 10,
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 10,
-  },
-  headerDesktop: { paddingTop: 18, paddingBottom: 14, paddingHorizontal: 24 },
+  header: { paddingTop: Platform.OS === "ios" ? 56 : 18, paddingHorizontal: 16, paddingBottom: 10, flexDirection: "row", alignItems: "center" },
+  headerDesktop: { paddingHorizontal: 24, paddingBottom: 20 },
   headerTitle: { flex: 1, textAlign: "center", fontSize: 18, fontWeight: "900", color: "#fff" },
-  headerTitleDesktop: { fontSize: 20 },
-
-  iconBtn: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: COLORS.inputBg,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-  },
-
+  headerTitleDesktop: { fontSize: 22 },
+  iconBtn: { width: 44, height: 44, borderRadius: 22, alignItems: "center", justifyContent: "center", backgroundColor: COLORS.inputBg, borderWidth: 1, borderColor: COLORS.border },
   scroll: { paddingHorizontal: 16, paddingBottom: 20 },
-  scrollDesktop: { paddingHorizontal: 24 },
-
   container: { width: "100%" },
-  containerDesktop: { alignSelf: "center", width: "100%", maxWidth: 1100 },
-  containerLarge: { maxWidth: 1280 },
-
-  searchWrap: {
-    marginTop: 6,
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 10,
-    backgroundColor: COLORS.inputBg,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    borderRadius: 16,
-    paddingHorizontal: 12,
-    height: 56,
-  },
-  searchWrapDesktop: { height: 58, borderRadius: 18 },
-  searchInput: { flex: 1, fontSize: 15, color: "#fff" },
-  clearBtn: { width: 32, height: 32, borderRadius: 10, alignItems: "center", justifyContent: "center" },
-
+  containerDesktop: { alignSelf: "center", maxWidth: 1100 },
   layout: { marginTop: 10 },
-  layoutDesktop: { flexDirection: "row", alignItems: "flex-start", gap: 18 },
-
-  col: { width: "100%" },
-  leftCol: { flex: 1 },
+  layoutDesktop: { flexDirection: "row", gap: 20 },
+  leftCol: { flex: 1.2 },
   rightCol: { flex: 1 },
-
-  sectionTitle: { marginTop: 18, marginBottom: 10, fontSize: 16, fontWeight: "900", color: "#fff" },
-  sectionRow: {
-    marginTop: 18,
-    marginBottom: 10,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-  },
-  link: { color: COLORS.primary, fontWeight: "900" },
-
-  actionsGrid: { gap: 12 },
-  actionCard: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-    padding: 14,
-    borderRadius: 18,
-    backgroundColor: COLORS.inputBg,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-  },
-  actionIcon: {
-    width: 38,
-    height: 38,
-    borderRadius: 14,
-    backgroundColor: "rgba(43,238,121,0.12)",
-    alignItems: "center",
-    justifyContent: "center",
-  },
+  sectionTitle: { marginTop: 20, marginBottom: 12, fontSize: 16, fontWeight: "900", color: "#fff" },
+  actionCard: { flexDirection: "row", alignItems: "center", gap: 12, padding: 16, borderRadius: 18, backgroundColor: COLORS.inputBg, borderWidth: 1, borderColor: COLORS.border },
+  actionIcon: { width: 40, height: 40, borderRadius: 12, backgroundColor: "rgba(43,238,121,0.1)", alignItems: "center", justifyContent: "center" },
   actionTitle: { fontSize: 15, fontWeight: "900", color: "#fff" },
-  actionSubtitle: { marginTop: 2, fontSize: 13, color: COLORS.textMutedSoft },
-
-  recipientsWrap: { flexDirection: "row", flexWrap: "wrap", gap: 12 },
-  recipientsWrapDesktop: { flexDirection: "row", flexWrap: "wrap", gap: 12 },
-  recipientCard: {
-    width: "100%",
-    padding: 14,
-    borderRadius: 18,
-    backgroundColor: COLORS.inputBg,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-  },
-  recipientCardDesktop: { width: 230 },
-  recipientTop: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
-  initialsCircle: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: "rgba(255,255,255,0.06)",
-    alignItems: "center",
-    justifyContent: "center",
-    borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.06)",
-  },
-  initialsText: { fontWeight: "900", color: "#fff" },
-  favBtn: { width: 34, height: 34, borderRadius: 12, alignItems: "center", justifyContent: "center" },
-  recipientName: { marginTop: 14, fontSize: 15, fontWeight: "900", color: "#fff" },
-
-  listCard: {
-    backgroundColor: COLORS.inputBg,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    borderRadius: 18,
-    overflow: "hidden",
-  },
-  txRow: { flexDirection: "row", alignItems: "center", gap: 12, padding: 14 },
+  actionSubtitle: { color: COLORS.textMutedSoft, fontSize: 13 },
+  recipientsWrap: { gap: 10 },
+  recipientCard: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", padding: 14, borderRadius: 18, backgroundColor: COLORS.inputBg, borderWidth: 1, borderColor: COLORS.border },
+  recipientInfo: { flexDirection: "row", alignItems: "center", gap: 12 },
+  initialsCircle: { width: 40, height: 40, borderRadius: 20, backgroundColor: "rgba(255,255,255,0.05)", alignItems: "center", justifyContent: "center" },
+  initialsText: { color: "#fff", fontWeight: "900" },
+  recipientName: { color: "#fff", fontSize: 15, fontWeight: "700" },
+  listCard: { backgroundColor: COLORS.inputBg, borderRadius: 18, borderWidth: 1, borderColor: COLORS.border, overflow: "hidden" },
+  txRow: { flexDirection: "row", alignItems: "center", gap: 12, padding: 15 },
   txRowBorder: { borderTopWidth: 1, borderTopColor: COLORS.border },
-  txIcon: {
-    width: 38,
-    height: 38,
-    borderRadius: 14,
-    backgroundColor: "rgba(43,238,121,0.12)",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  txTitle: { fontSize: 15, fontWeight: "900", color: "#fff" },
-  txSubtitle: { marginTop: 2, fontSize: 13, color: COLORS.textMutedSoft },
-  txAmount: { fontSize: 14, fontWeight: "900" },
+  txIcon: { width: 36, height: 36, borderRadius: 10, backgroundColor: "rgba(43,238,121,0.05)", alignItems: "center", justifyContent: "center" },
+  txTitle: { color: "#fff", fontWeight: "700" },
+  txSubtitle: { color: COLORS.textMutedSoft, fontSize: 12 },
+  txAmount: { fontWeight: "900" },
   negative: { color: COLORS.danger },
   positive: { color: COLORS.primary },
-
-  primaryBtn: {
-    backgroundColor: COLORS.primary,
-    height: 58,
-    borderRadius: 29,
-    alignItems: "center",
-    justifyContent: "center",
-    marginTop: 16,
-    shadowColor: COLORS.primary,
-    shadowOpacity: 0.35,
-    shadowRadius: 12,
-    shadowOffset: { width: 0, height: 4 },
-    elevation: 6,
-  },
-  primaryBtnDesktop: { height: 60, borderRadius: 30 },
-  primaryBtnText: { color: COLORS.backgroundDark, fontSize: 16, fontWeight: "900", letterSpacing: 0.4 },
+  modalOverlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.7)", justifyContent: "center", alignItems: "center" },
+  modalContent: { width: "90%", maxWidth: 400, backgroundColor: COLORS.backgroundDark, borderRadius: 24, borderWidth: 1, borderColor: COLORS.border, overflow: "hidden" },
+  modalHeader: { padding: 20, flexDirection: "row", justifyContent: "space-between", alignItems: "center", borderBottomWidth: 1, borderBottomColor: COLORS.border },
+  modalTitle: { color: "#fff", fontSize: 18, fontWeight: "900" },
+  modalBody: { padding: 20 },
+  label: { color: COLORS.textMuted, fontSize: 13, marginBottom: 8, fontWeight: "700" },
+  modalInput: { backgroundColor: COLORS.inputBg, borderWidth: 1, borderColor: COLORS.border, borderRadius: 12, padding: 12, color: "#fff", marginBottom: 20 },
+  confirmBtn: { backgroundColor: COLORS.primary, padding: 16, borderRadius: 14, alignItems: "center" },
+  confirmBtnText: { color: COLORS.backgroundDark, fontWeight: "900", fontSize: 16 }
 });

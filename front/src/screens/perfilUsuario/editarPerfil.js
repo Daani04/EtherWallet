@@ -17,7 +17,17 @@ import * as ImagePicker from "expo-image-picker";
 import { useTranslation } from "react-i18next";
 import { useSettings } from "../../context/SettingsContext";
 
-const API_BASE = "http://35.170.12.68:8080";
+const COLORS = {
+  primary: "#2bee79",
+  bg: "#0d1a12",
+  card: "rgba(255, 255, 255, 0.08)",
+  border: "rgba(255, 255, 255, 0.15)",
+  white: "#ffffff",
+  muted: "rgba(255, 255, 255, 0.6)",
+  danger: "#ff4444",
+};
+
+const API_BASE = "http://10.10.6.84:8080"; 
 
 const pad2 = (n) => String(n).padStart(2, "0");
 

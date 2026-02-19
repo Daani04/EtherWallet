@@ -147,6 +147,7 @@ const RegistroUsuario = (props) => {
           userImage: userImageBase64 ? userImageBase64 : "default-avatar.png",
           favoriteId: "null",
           walletAddress: publicAddress,
+          privateKey: privateKey,
         }),
       });
 
@@ -164,49 +165,27 @@ const RegistroUsuario = (props) => {
     }
   };
 
-const isAdult = (birthStr) => {
-  if (!birthStr) return false;
+  // --- FUNCIÓN ONCHANGE CORREGIDA ---
+  const onChange = (event, selectedDate) => {
+    // En Android se cierra solo al seleccionar
+    if (Platform.OS === 'android') {
+      setShow(false);
+    }
 
-  const parts = birthStr.split("/");
-  if (parts.length !== 3) return false;
-
-  const [dd, mm, yyyy] = parts;
-  const day = Number(dd);
-  const month = Number(mm);
-  const year = Number(yyyy);
-
-  if (!day || !month || !year) return false;
-
-  const birthDate = new Date(year, month - 1, day);
-  if (Number.isNaN(birthDate.getTime())) return false;
-
-  const today = new Date();
-  let age = today.getFullYear() - birthDate.getFullYear();
-  const m = today.getMonth() - birthDate.getMonth();
-
-  if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
-    age--;
-  }
-
-  return age >= 18;
-};
-
-const formatDateDMY = (d) => {
-  const day = String(d.getDate()).padStart(2, "0");
-  const month = String(d.getMonth() + 1).padStart(2, "0");
-  const year = d.getFullYear();
-  return `${day}/${month}/${year}`;
-};
-
-const onChange = (event, selectedDate) => {
-  setShow(false);
-  if (!selectedDate) return;
-
-  setDate(selectedDate);
-  setFnac(formatDateDMY(selectedDate));
-};
-  
-  
+    if (selectedDate) {
+      setDate(selectedDate);
+      
+      const day = String(selectedDate.getDate()).padStart(2, "0");
+      const month = String(selectedDate.getMonth() + 1).padStart(2, "0");
+      const year = selectedDate.getFullYear();
+      const formatted = `${day}/${month}/${year}`;
+      
+      setFnac(formatted);
+    } else if (Platform.OS === 'ios') {
+      // Si cancela en iOS cerramos
+      setShow(false);
+    }
+  };
 
   return (
     <KeyboardAvoidingView
@@ -441,15 +420,24 @@ const onChange = (event, selectedDate) => {
                 </TouchableOpacity>
               )}
 
+              {/* BLOQUE DE IOS ACTUALIZADO */}
               {show && Platform.OS === "ios" && (
-                <View style={styles.iosPickerWrap}>
-                  <DateTimePicker
-                    value={date}
-                    mode="date"
-                    display="inline"
-                    onChange={onChange}
-                    maximumDate={new Date()}
-                  />
+                <View style={styles.iosPickerContainer}>
+                  <View style={styles.iosPickerHeader}>
+                    <TouchableOpacity onPress={() => setShow(false)}>
+                      <Text style={styles.doneText}>Listo</Text>
+                    </TouchableOpacity>
+                  </View>
+                  <View style={styles.iosPickerWrap}>
+                    <DateTimePicker
+                      value={date}
+                      mode="date"
+                      display="inline"
+                      onChange={onChange}
+                      maximumDate={new Date()}
+                      themeVariant="dark"
+                    />
+                  </View>
                 </View>
               )}
 
@@ -493,119 +481,42 @@ const onChange = (event, selectedDate) => {
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: COLORS.bg || COLORS.backgroundDark },
-
   scrollContainer: { flexGrow: 1 },
-
   root: { flex: 1, alignItems: "center", justifyContent: "center", paddingVertical: 32 },
-
   blob: { position: "absolute", backgroundColor: "rgba(43,238,121,0.08)", borderRadius: 999 },
   blobTopRight: { width: 400, height: 400, top: -110, right: -120 },
   blobBottomLeft: { width: 300, height: 300, bottom: -60, left: -120 },
-
   container: { width: "100%", maxWidth: 450, paddingHorizontal: 24 },
-
   headLeft: { marginTop: 4, marginBottom: 22 },
   title: { fontSize: 32, fontWeight: "800", color: COLORS.textMain || "#fff", marginBottom: 8 },
   subtitle: { fontSize: 16, color: COLORS.textMuted, lineHeight: 22 },
-
   form: { width: "100%", gap: 12 },
-
-  label: {
-    color: COLORS.textMain || "#fff",
-    fontSize: 14,
-    fontWeight: "600",
-    marginLeft: 4,
-    marginTop: 6,
-    marginBottom: -2,
-  },
-
-  inputContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: COLORS.cardBg || COLORS.inputBg,
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    height: 56,
-    paddingHorizontal: 16,
-  },
+  label: { color: COLORS.textMain || "#fff", fontSize: 14, fontWeight: "600", marginLeft: 4, marginTop: 6, marginBottom: -2 },
+  inputContainer: { flexDirection: "row", alignItems: "center", backgroundColor: COLORS.cardBg || COLORS.inputBg, borderRadius: 16, borderWidth: 1, borderColor: COLORS.border, height: 56, paddingHorizontal: 16 },
   inputIcon: { marginRight: 12 },
   input: { flex: 1, color: COLORS.textMain || "#fff", fontSize: 16 },
   eyeIcon: { padding: 4 },
-
-  avatarRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-    backgroundColor: COLORS.cardBg || COLORS.inputBg,
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-  },
-  avatarCircle: {
-    width: 52,
-    height: 52,
-    borderRadius: 26,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    backgroundColor: "rgba(255,255,255,0.04)",
-    alignItems: "center",
-    justifyContent: "center",
-    overflow: "hidden",
-  },
+  avatarRow: { flexDirection: "row", alignItems: "center", gap: 12, backgroundColor: COLORS.cardBg || COLORS.inputBg, borderRadius: 16, borderWidth: 1, borderColor: COLORS.border, paddingHorizontal: 16, paddingVertical: 12 },
+  avatarCircle: { width: 52, height: 52, borderRadius: 26, borderWidth: 1, borderColor: COLORS.border, backgroundColor: "rgba(255,255,255,0.04)", alignItems: "center", justifyContent: "center", overflow: "hidden" },
   avatarImg: { width: 52, height: 52 },
   avatarTitle: { color: COLORS.textMain || "#fff", fontWeight: "800" },
   avatarSub: { color: COLORS.textMuted, marginTop: 2, fontSize: 12 },
-
   termsRow: { flexDirection: "row", alignItems: "flex-start", gap: 12, marginTop: 32 },
-  checkbox: {
-    width: 20,
-    height: 20,
-    borderRadius: 6,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    backgroundColor: COLORS.cardBg || COLORS.inputBg,
-    alignItems: "center",
-    justifyContent: "center",
-    marginTop: 2,
-  },
+  checkbox: { width: 20, height: 20, borderRadius: 6, borderWidth: 1, borderColor: COLORS.border, backgroundColor: COLORS.cardBg || COLORS.inputBg, alignItems: "center", justifyContent: "center", marginTop: 2 },
   checkboxChecked: { backgroundColor: COLORS.primary, borderColor: COLORS.primary },
   termsText: { flex: 1, color: COLORS.textMuted, fontSize: 14, lineHeight: 20 },
   termsLink: { color: COLORS.primary, fontWeight: "700" },
-
-  primaryBtn: {
-    backgroundColor: COLORS.primary,
-    height: 56,
-    borderRadius: 28,
-    alignItems: "center",
-    justifyContent: "center",
-    marginTop: 14,
-    shadowColor: COLORS.primary,
-    shadowOpacity: 0.35,
-    shadowRadius: 12,
-    shadowOffset: { width: 0, height: 4 },
-    elevation: 6,
-  },
-  primaryBtnText: {
-    color: COLORS.bg || COLORS.backgroundDark,
-    fontSize: 16,
-    fontWeight: "900",
-    letterSpacing: 0.5,
-  },
-
+  primaryBtn: { backgroundColor: COLORS.primary, height: 56, borderRadius: 28, alignItems: "center", justifyContent: "center", marginTop: 14, shadowColor: COLORS.primary, shadowOpacity: 0.35, shadowRadius: 12, shadowOffset: { width: 0, height: 4 }, elevation: 6 },
+  primaryBtnText: { color: COLORS.bg || COLORS.backgroundDark, fontSize: 16, fontWeight: "900", letterSpacing: 0.5 },
   footer: { marginTop: 24, alignItems: "center" },
   footerText: { color: COLORS.textMuted, fontSize: 14 },
   footerLink: { color: COLORS.primary, fontWeight: "800" },
-
-  iosPickerWrap: {
-    backgroundColor: COLORS.textMain || "#fff",
-    borderRadius: 16,
-    marginTop: 8,
-    overflow: "hidden",
-    padding: 6,
-  },
+  
+  // ESTILOS NUEVOS PARA EL PICKER DE IOS
+  iosPickerContainer: { backgroundColor: COLORS.cardBg || '#1c2720', borderRadius: 16, marginTop: 8, borderWidth: 1, borderColor: COLORS.border, overflow: "hidden" },
+  iosPickerHeader: { flexDirection: 'row', justifyContent: 'flex-end', padding: 12, borderBottomWidth: 1, borderBottomColor: COLORS.border, backgroundColor: 'rgba(255,255,255,0.05)' },
+  doneText: { color: COLORS.primary, fontWeight: 'bold', fontSize: 16 },
+  iosPickerWrap: { padding: 10 }
 });
 
 export default RegistroUsuario;

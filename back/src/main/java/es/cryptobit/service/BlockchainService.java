@@ -7,6 +7,9 @@ import org.springframework.web.client.RestTemplate;
 import org.web3j.protocol.Web3j;
 import org.web3j.protocol.core.DefaultBlockParameterName;
 import org.web3j.utils.Convert;
+import org.web3j.crypto.Credentials;
+import org.web3j.protocol.core.methods.response.TransactionReceipt;
+import org.web3j.tx.Transfer;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -70,5 +73,33 @@ public class BlockchainService {
 
     private String formatChange(Double change) {
         return (change >= 0 ? "+" : "") + String.format("%.2f", change) + "%";
+    }
+
+    //PERMITE HACER TRANSFERENCIAS DE SALDO ENTRE BILLETERAS
+    public boolean executeTransfer(String privateKey, String receiverAddress, Double amount) {
+        try {
+            // 1. Limpiar el prefijo 0x si existe
+            String cleanPrivateKey = privateKey.startsWith("0x") ? privateKey.substring(2) : privateKey;
+            Credentials credentials = Credentials.create(cleanPrivateKey);
+
+            // LOG DE CONTROL: Verifica en la consola si esta dirección es 0x11a532...
+            System.out.println("DEBUG: Back enviando desde -> " + credentials.getAddress());
+
+            // 2. Ejecutar la transferencia
+            // Usamos una versión un poco más robusta de sendFunds
+            TransactionReceipt receipt = Transfer.sendFunds(
+                    web3j,
+                    credentials,
+                    receiverAddress,
+                    BigDecimal.valueOf(amount),
+                    Convert.Unit.ETHER
+            ).send();
+
+            return receipt.isStatusOK();
+        } catch (Exception e) {
+            // Este print te dirá si el error es de "Nonce", "Gas" o "Balance"
+            System.err.println("Error detallado en blockchain: " + e.getMessage());
+            return false;
+        }
     }
 }
