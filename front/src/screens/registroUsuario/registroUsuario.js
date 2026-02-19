@@ -85,6 +85,23 @@ const RegistroUsuario = (props) => {
     }
   };
 
+  const isAdult = (birthStr) => {
+  if (!birthStr) return false;
+  const parts = birthStr.split("/");
+  if (parts.length !== 3) return false;
+
+  const [dd, mm, yyyy] = parts;
+  const birthDate = new Date(Number(yyyy), Number(mm) - 1, Number(dd));
+  if (Number.isNaN(birthDate.getTime())) return false;
+
+  const today = new Date();
+  let age = today.getFullYear() - birthDate.getFullYear();
+  const m = today.getMonth() - birthDate.getMonth();
+  if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) age--;
+
+  return age >= 18;
+};
+
   const onWebFileChange = (e) => {
     const file = e?.target?.files?.[0];
     if (!file) return;
