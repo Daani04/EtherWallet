@@ -30,7 +30,7 @@ const COLORS = theme?.colors || theme?.COLORS || theme;
 const isWeb = Platform.OS === "web";
 
 // ✅ usa la misma base que el resto de tu app
-const API_BASE = "http://10.10.6.84:8080";
+const API_BASE = "http://35.170.12.68:8080";
 
 const RegistroUsuario = (props) => {
   const { t } = useTranslation();
