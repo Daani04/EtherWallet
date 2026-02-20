@@ -43,7 +43,9 @@ const InicioSesion = (props) => {
   const [psw, setPsw] = useState("");
 
   const [langModalVisible, setLangModalVisible] = useState(false);
-  const LANGUAGES = ["ES", "EN", "CA"];
+  const LANGUAGES = Object.keys(i18n.options.resources).map((lng) =>
+    lng.toUpperCase()
+  );
 
   const currentLng = String(i18n.language || "ES")
     .split("-")[0]
@@ -180,7 +182,7 @@ const InicioSesion = (props) => {
     }
   };
 
-  const LangModal = () => (
+  const renderLangModal = () => (
     <Modal
       transparent
       visible={langModalVisible}
@@ -188,7 +190,7 @@ const InicioSesion = (props) => {
       onRequestClose={() => setLangModalVisible(false)}
     >
       <Pressable style={styles.langOverlay} onPress={() => setLangModalVisible(false)}>
-        <Pressable style={styles.langModal} onPress={() => {}}>
+        <Pressable style={styles.langModal} onPress={() => { }}>
           {LANGUAGES.map((lng) => (
             <TouchableOpacity
               key={lng}
@@ -207,7 +209,8 @@ const InicioSesion = (props) => {
     </Modal>
   );
 
-  const Content = () => (
+
+  const renderContent = () => (
     <View style={[styles.root, isWeb && styles.rootWeb]}>
       <View style={[styles.blob, styles.blobTopRight]} />
       <View style={[styles.blob, styles.blobBottomLeft]} />
@@ -300,7 +303,7 @@ const InicioSesion = (props) => {
           </Text>
         </View>
 
-        <LangModal />
+        {renderLangModal()}
       </View>
     </View>
   );
@@ -310,7 +313,7 @@ const InicioSesion = (props) => {
       <View style={styles.page}>
         {isWeb ? (
           <View style={styles.webScroll}>
-            <Content />
+            {renderContent()}
           </View>
         ) : (
           <KeyboardAvoidingView
@@ -321,7 +324,7 @@ const InicioSesion = (props) => {
               contentContainerStyle={common.container || styles.scrollContainer}
               bounces={false}
             >
-              <Content />
+              {renderContent()}            
             </ScrollView>
           </KeyboardAvoidingView>
         )}
