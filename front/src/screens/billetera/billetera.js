@@ -37,7 +37,7 @@ const Billetera = (props) => {
     assets: [],
   });
 
-  const [trend, setTrend] = useState("neutral"); 
+  const [trend, setTrend] = useState("neutral");
   const prevBalanceRef = useRef(0);
 
   const isWeb = Platform.OS === "web";
@@ -94,7 +94,7 @@ const Billetera = (props) => {
 
       const interval = setInterval(() => {
         fetchPortfolio();
-      }, 5000); 
+      }, 5000);
 
       return () => clearInterval(interval);
     } else {
@@ -145,9 +145,9 @@ const Billetera = (props) => {
         <Text style={styles.balanceLabel}>Balance Total</Text>
 
         <View style={styles.balanceRowTop}>
-          <Text 
+          <Text
             style={[
-              styles.balanceValue, 
+              styles.balanceValue,
               { color: (hideBalance || trend === "neutral") ? C.textMain : trendStyle.color }
             ]}
           >
@@ -205,8 +205,8 @@ const Billetera = (props) => {
                           color: hideBalance
                             ? C.textMuted
                             : String(asset.change24h || "").includes("-")
-                            ? "#ff3333"
-                            : "#00ff88",
+                              ? "#ff3333"
+                              : "#00ff88",
                         },
                       ]}
                     >
@@ -226,25 +226,62 @@ const Billetera = (props) => {
   );
 
   return (
-    <SafeAreaView style={[common.safe, { backgroundColor: C.bg, paddingTop: topInset }]}>
+    <SafeAreaView
+      style={[
+        common.safe,
+        { backgroundColor: C.bg, paddingTop: topInset },
+        isWeb && styles.safeWeb,
+      ]}
+    >
       <View style={styles.page}>
-        <ScrollView
-          style={{ flex: 1, backgroundColor: C.bg }}
-          contentContainerStyle={styles.scrollContainer}
-          showsVerticalScrollIndicator={false}
-        >
-          {renderContent()}
-        </ScrollView>
+        {isWeb ? (
+          <View style={styles.webScroll}>
+            <View style={styles.scrollContainer}>{renderContent()}</View>
+          </View>
+
+        ) : (
+          <ScrollView
+            style={{ flex: 1, backgroundColor: C.bg }}
+            contentContainerStyle={styles.scrollContainer}
+            showsVerticalScrollIndicator={false}
+            showsHorizontalScrollIndicator={false}
+          >
+            {renderContent()}
+          </ScrollView>
+        )}
+
         <View style={[styles.navWrap, isWeb ? styles.navWrapWeb : styles.navWrapNative]}>
           <Nav />
         </View>
       </View>
     </SafeAreaView>
   );
+
 };
 
 const makeStyles = (C) =>
   StyleSheet.create({
+
+    safeWeb: {
+      height: "100vh",
+      overflow: "hidden",
+    },
+
+    webScroll: {
+      position: "absolute",
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 90,   // para que no se tape con el Nav
+      overflowY: "auto",
+      overflowX: "hidden",
+
+      // ocultar barrita donde se pueda
+      scrollbarWidth: "none",
+      msOverflowStyle: "none",
+    },
+
+
     page: {
       flex: 1,
       position: "relative",
@@ -254,7 +291,7 @@ const makeStyles = (C) =>
       left: 0,
       right: 0,
       bottom: 0,
-      height: NAV_HEIGHT,
+      height: 90,
       zIndex: 9999,
       elevation: 50,
     },
@@ -266,7 +303,7 @@ const makeStyles = (C) =>
     },
     scrollContainer: {
       padding: 20,
-      paddingBottom: NAV_HEIGHT + 20,
+      paddingBottom: 90 + 20,
     },
     loaderContainer: {
       flex: 1,
