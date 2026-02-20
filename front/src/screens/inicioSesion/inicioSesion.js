@@ -210,8 +210,8 @@ const InicioSesion = (props) => {
   );
 
 
-const renderContent = () => (
-  <View style={[styles.root, isWeb && styles.rootWeb]}>
+  const renderContent = () => (
+    <View style={[styles.root, isWeb && styles.rootWeb]}>
       <View style={[styles.blob, styles.blobTopRight]} />
       <View style={[styles.blob, styles.blobBottomLeft]} />
 
@@ -303,7 +303,7 @@ const renderContent = () => (
           </Text>
         </View>
 
-    {renderLangModal()}
+        {renderLangModal()}
       </View>
     </View>
   );
@@ -313,8 +313,8 @@ const renderContent = () => (
       <View style={styles.page}>
         {isWeb ? (
           <View style={styles.webScroll}>
-  {renderContent()}
-</View>
+            {renderContent()}
+          </View>
         ) : (
           <KeyboardAvoidingView
             behavior={Platform.OS === "ios" ? "padding" : "height"}
@@ -324,7 +324,7 @@ const renderContent = () => (
               contentContainerStyle={common.container || styles.scrollContainer}
               bounces={false}
             >
-              <Content />
+              {renderContent()}            
             </ScrollView>
           </KeyboardAvoidingView>
         )}
