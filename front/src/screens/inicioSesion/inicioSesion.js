@@ -14,6 +14,7 @@ import {
   Pressable,
   SafeAreaView,
   Modal,
+  ActivityIndicator, // ✅ Importado para la barra de carga
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { MaterialIcons } from "@expo/vector-icons";
@@ -36,6 +37,7 @@ const InicioSesion = (props) => {
   const [isBiometricSupported, setIsBiometricSupported] = useState(false);
   const { t } = useTranslation();
   const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false); // ✅ Estado para controlar la carga
 
   const { loginUser, setUserId } = useContext(Context);
 
@@ -74,8 +76,6 @@ const InicioSesion = (props) => {
       const supportedTypes = await LocalAuthentication.supportedAuthenticationTypesAsync();
       const isEnrolled = await LocalAuthentication.isEnrolledAsync();
 
-      console.log({ hasHardware, isEnrolled, supportedTypes });
-
       if (!hasHardware) {
         return Alert.alert(
           t("login.biometric.noSupportTitle"),
@@ -109,33 +109,28 @@ const InicioSesion = (props) => {
   };
 
   const handleLogin = async () => {
-    console.log("LOGIN CLICK", { mail, psw });
-
     if (!mail || !psw) {
       Alert.alert(t("login.alerts.errorTitle"), t("login.alerts.fillAllFields"));
       return;
     }
 
+    setLoading(true); // ✅ Iniciamos la carga
     const hashedPassword = CryptoJS.SHA256(psw).toString();
 
     try {
-      // 1) LOGIN: Validar credenciales
       const response = await fetch(`${BASE_URL}/API/Login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: mail, password: hashedPassword }),
       });
 
-      const text = await response.text();
+      if (!response.ok) {
+        setLoading(false); // ✅ Apagamos carga si falla
+        const text = await response.text();
+        Alert.alert(t("login.alerts.errorTitle"), text);
+        return;
+      }
 
-      Alert.alert(
-        response.ok ? t("login.biometric.successTitle") : t("login.alerts.errorTitle"),
-        text
-      );
-
-      if (!response.ok) return;
-
-      // 2) Obtener ID por email
       const idRes = await fetch(
         `${BASE_URL}/API/UserIdByEmail?email=${encodeURIComponent(mail)}`,
         { method: "GET" }
@@ -144,6 +139,7 @@ const InicioSesion = (props) => {
       const idText = await idRes.text();
 
       if (!idRes.ok) {
+        setLoading(false);
         Alert.alert(t("login.alerts.errorTitle"), "Login OK, pero no se pudo obtener el ID.");
         return;
       }
@@ -152,33 +148,30 @@ const InicioSesion = (props) => {
       const fetchedId = idData?.id;
 
       if (!fetchedId) {
-        Alert.alert(
-          t("login.alerts.errorTitle"),
-          "Login OK, pero la respuesta no trae un ID válido."
-        );
+        setLoading(false);
+        Alert.alert(t("login.alerts.errorTitle"), "Login OK, pero no hay ID válido.");
         return;
       }
 
-      // 3) Obtener datos completos del usuario (walletAddress, firstName, etc.)
       const userRes = await fetch(`${BASE_URL}/API/User/${fetchedId}`, { method: "GET" });
 
       if (!userRes.ok) {
-        Alert.alert("Error", "Login OK, pero no se pudieron recuperar los datos del perfil.");
+        setLoading(false);
+        Alert.alert("Error", "No se pudieron recuperar los datos del perfil.");
         return;
       }
 
       const fullUserData = await userRes.json();
-      console.log("DATOS COMPLETOS RECUPERADOS:", fullUserData);
-
-      // 4) Guardar en Context
       setUserId(fetchedId);
       await loginUser({ ...fullUserData, userId: fetchedId });
 
-      // 5) Navegar
       props.navigation.navigate("HomeNav");
     } catch (error) {
-      console.log("FETCH ERROR", error);
+      setLoading(false); // ✅ Apagamos carga si hay error de red
       Alert.alert(t("login.alerts.errorTitle"), t("login.alerts.connectionError"));
+    } finally {
+        // En caso de éxito, la navegación se encarga, si no, nos aseguramos de apagar el loader
+        // aunque el try/catch ya lo maneja.
     }
   };
 
@@ -249,6 +242,7 @@ const InicioSesion = (props) => {
               keyboardType="email-address"
               onChangeText={(userMail) => setMail(userMail)}
               value={mail}
+              editable={!loading} // Bloqueamos input si carga
             />
           </View>
 
@@ -261,11 +255,13 @@ const InicioSesion = (props) => {
               secureTextEntry={!showPassword}
               onChangeText={(userPsw) => setPsw(userPsw)}
               value={psw}
+              editable={!loading} // Bloqueamos input si carga
             />
             <TouchableOpacity
               style={styles.eyeIcon}
               activeOpacity={0.7}
               onPress={() => setShowPassword((v) => !v)}
+              disabled={loading}
             >
               <MaterialIcons
                 name={showPassword ? "visibility" : "visibility-off"}
@@ -275,15 +271,29 @@ const InicioSesion = (props) => {
             </TouchableOpacity>
           </View>
 
-          <TouchableOpacity style={styles.forgotPassRow}>
+          <TouchableOpacity style={styles.forgotPassRow} disabled={loading}>
             <Text style={styles.forgotPassText}>{t("login.forgotPassword")}</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.primaryBtn} activeOpacity={0.8} onPress={handleLogin}>
-            <Text style={styles.primaryBtnText}>{t("login.buttons.login")}</Text>
+          <TouchableOpacity 
+            style={[styles.primaryBtn, loading && styles.btnDisabled]} 
+            activeOpacity={0.8} 
+            onPress={handleLogin}
+            disabled={loading} // Desactivamos botón si carga
+          >
+            {loading ? (
+                <ActivityIndicator color={COLORS?.backgroundDark || "#102217"} />
+            ) : (
+                <Text style={styles.primaryBtnText}>{t("login.buttons.login")}</Text>
+            )}
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.secondaryBtn} activeOpacity={0.8} onPress={handleBiometricAuth}>
+          <TouchableOpacity 
+            style={styles.secondaryBtn} 
+            activeOpacity={0.8} 
+            onPress={handleBiometricAuth}
+            disabled={loading}
+          >
             <MaterialIcons name="face" size={24} color="#ffffff" />
             <Text style={styles.secondaryBtnText}>{t("login.buttons.faceId")}</Text>
           </TouchableOpacity>
@@ -292,7 +302,7 @@ const InicioSesion = (props) => {
         <View style={styles.footer}>
           <Text style={styles.footerText}>
             {t("NoAccount.Question")}{" "}
-            <Pressable onPress={() => props.navigation.navigate("RegistroUsuario")}>
+            <Pressable onPress={() => !loading && props.navigation.navigate("RegistroUsuario")}>
               <Text style={styles.footerLink}>{t("NoAccount.Register")}</Text>
             </Pressable>
           </Text>
@@ -332,9 +342,13 @@ const InicioSesion = (props) => {
 };
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: COLORS?.backgroundDark || "#102217" },
-  scrollContainer: { flexGrow: 1 },
-
+  safe: {
+    flex: 1,
+    backgroundColor: COLORS?.backgroundDark || "#102217",
+  },
+  scrollContainer: {
+    flexGrow: 1,
+  },
   webScroll: {
     position: "absolute",
     top: 0,
@@ -343,11 +357,9 @@ const styles = StyleSheet.create({
     bottom: 0,
     overflowY: "auto",
     overflowX: "hidden",
-
     scrollbarWidth: "none",
     msOverflowStyle: "none",
   },
-
   safeWeb: {
     height: "100vh",
     overflow: "hidden",
@@ -364,16 +376,41 @@ const styles = StyleSheet.create({
     transform: [{ scale: 0.9 }],
     alignSelf: "center",
   },
-
-  root: { flex: 1, alignItems: "center", justifyContent: "center", paddingVertical: 40 },
-
-  blob: { position: "absolute", backgroundColor: "rgba(43,238,121,0.08)", borderRadius: 999 },
-  blobTopRight: { width: 400, height: 400, top: -100, right: -100 },
-  blobBottomLeft: { width: 300, height: 300, bottom: -50, left: -100 },
-
-  container: { width: "100%", maxWidth: 450, paddingHorizontal: 24, position: "relative" },
-
-  langBtnWrap: { position: "absolute", top: 0, right: 24, zIndex: 50 },
+  root: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 40,
+  },
+  blob: {
+    position: "absolute",
+    backgroundColor: "rgba(43,238,121,0.08)",
+    borderRadius: 999,
+  },
+  blobTopRight: {
+    width: 400,
+    height: 400,
+    top: -100,
+    right: -100,
+  },
+  blobBottomLeft: {
+    width: 300,
+    height: 300,
+    bottom: -50,
+    left: -100,
+  },
+  container: {
+    width: "100%",
+    maxWidth: 450,
+    paddingHorizontal: 24,
+    position: "relative",
+  },
+  langBtnWrap: {
+    position: "absolute",
+    top: 0,
+    right: 24,
+    zIndex: 50,
+  },
   langBtn: {
     width: 44,
     height: 44,
@@ -384,8 +421,11 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: COLORS?.border || "#3b5445",
   },
-
-  heroWrap: { marginBottom: 20, alignItems: "center", width: "100%" },
+  heroWrap: {
+    marginBottom: 20,
+    alignItems: "center",
+    width: "100%",
+  },
   heroCard: {
     width: "90%",
     aspectRatio: 16.4 / 12,
@@ -395,15 +435,36 @@ const styles = StyleSheet.create({
     elevation: 10,
     overflow: "hidden",
   },
-  heroImg: { flex: 1, width: "100%", height: "100%" },
-  heroGradient: { position: "absolute", left: 0, right: 0, top: 0, bottom: 0 },
-
-  head: { marginBottom: 32, alignItems: "center" },
-  title: { fontSize: 32, fontWeight: "700", color: COLORS?.textMain || "#fff", marginBottom: 8 },
-  subtitle: { fontSize: 16, color: COLORS?.textMuted || "rgba(255,255,255,0.6)" },
-
-  form: { width: "100%", gap: 16 },
-
+  heroImg: {
+    flex: 1,
+    width: "100%",
+    height: "100%",
+  },
+  heroGradient: {
+    position: "absolute",
+    left: 0,
+    right: 0,
+    top: 0,
+    bottom: 0,
+  },
+  head: {
+    marginBottom: 32,
+    alignItems: "center",
+  },
+  title: {
+    fontSize: 32,
+    fontWeight: "700",
+    color: COLORS?.textMain || "#fff",
+    marginBottom: 8,
+  },
+  subtitle: {
+    fontSize: 16,
+    color: COLORS?.textMuted || "rgba(255,255,255,0.6)",
+  },
+  form: {
+    width: "100%",
+    gap: 16,
+  },
   inputContainer: {
     flexDirection: "row",
     alignItems: "center",
@@ -414,13 +475,26 @@ const styles = StyleSheet.create({
     height: 60,
     paddingHorizontal: 16,
   },
-  inputIcon: { marginRight: 12 },
-  input: { flex: 1, color: COLORS?.textMain || "#fff", fontSize: 16 },
-  eyeIcon: { padding: 4 },
-
-  forgotPassRow: { alignSelf: "flex-end", marginTop: -8 },
-  forgotPassText: { color: COLORS?.primary || "#2bee79", fontSize: 14, fontWeight: "500" },
-
+  inputIcon: {
+    marginRight: 12,
+  },
+  input: {
+    flex: 1,
+    color: COLORS?.textMain || "#fff",
+    fontSize: 16,
+  },
+  eyeIcon: {
+    padding: 4,
+  },
+  forgotPassRow: {
+    alignSelf: "flex-end",
+    marginTop: -8,
+  },
+  forgotPassText: {
+    color: COLORS?.primary || "#2bee79",
+    fontSize: 14,
+    fontWeight: "500",
+  },
   primaryBtn: {
     backgroundColor: COLORS?.primary || "#2bee79",
     height: 58,
@@ -431,11 +505,20 @@ const styles = StyleSheet.create({
     shadowColor: COLORS?.primary || "#2bee79",
     shadowOpacity: 0.4,
     shadowRadius: 12,
-    shadowOffset: { width: 0, height: 4 },
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
     elevation: 6,
   },
-  primaryBtnText: { color: COLORS?.backgroundDark || "#102217", fontSize: 18, fontWeight: "700" },
-
+  primaryBtnText: {
+    color: COLORS?.backgroundDark || "#102217",
+    fontSize: 18,
+    fontWeight: "700",
+  },
+  btnDisabled: {
+    opacity: 0.7,
+  },
   secondaryBtn: {
     flexDirection: "row",
     height: 58,
@@ -446,12 +529,23 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     gap: 10,
   },
-  secondaryBtnText: { color: COLORS?.textMain || "#fff", fontSize: 16, fontWeight: "500" },
-
-  footer: { marginTop: 32, alignItems: "center" },
-  footerText: { color: COLORS?.textMuted || "rgba(255,255,255,0.6)", fontSize: 14 },
-  footerLink: { color: COLORS?.primary || "#2bee79", fontWeight: "700" },
-
+  secondaryBtnText: {
+    color: COLORS?.textMain || "#fff",
+    fontSize: 16,
+    fontWeight: "500",
+  },
+  footer: {
+    marginTop: 32,
+    alignItems: "center",
+  },
+  footerText: {
+    color: COLORS?.textMuted || "rgba(255,255,255,0.6)",
+    fontSize: 14,
+  },
+  footerLink: {
+    color: COLORS?.primary || "#2bee79",
+    fontWeight: "700",
+  },
   langOverlay: {
     flex: 1,
     backgroundColor: "rgba(0,0,0,0.5)",
@@ -473,7 +567,10 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
   },
-  langText: { fontSize: 16, color: COLORS?.textMain || "#000" },
+  langText: {
+    fontSize: 16,
+    color: COLORS?.textMain || "#000",
+  },
 });
 
 export default InicioSesion;
