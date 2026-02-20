@@ -46,7 +46,7 @@ const InicioSesion = (props) => {
   const LANGUAGES = Object.keys(i18n.options.resources).map((lng) =>
     lng.toUpperCase()
   );
-  
+
   const currentLng = String(i18n.language || "ES")
     .split("-")[0]
     .toUpperCase();
@@ -182,7 +182,7 @@ const InicioSesion = (props) => {
     }
   };
 
-  const LangModal = () => (
+  const renderLangModal = () => (
     <Modal
       transparent
       visible={langModalVisible}
@@ -209,8 +209,9 @@ const InicioSesion = (props) => {
     </Modal>
   );
 
-  const Content = () => (
-    <View style={[styles.root, isWeb && styles.rootWeb]}>
+
+const renderContent = () => (
+  <View style={[styles.root, isWeb && styles.rootWeb]}>
       <View style={[styles.blob, styles.blobTopRight]} />
       <View style={[styles.blob, styles.blobBottomLeft]} />
 
@@ -302,7 +303,7 @@ const InicioSesion = (props) => {
           </Text>
         </View>
 
-        <LangModal />
+    {renderLangModal()}
       </View>
     </View>
   );
@@ -312,8 +313,8 @@ const InicioSesion = (props) => {
       <View style={styles.page}>
         {isWeb ? (
           <View style={styles.webScroll}>
-            <Content />
-          </View>
+  {renderContent()}
+</View>
         ) : (
           <KeyboardAvoidingView
             behavior={Platform.OS === "ios" ? "padding" : "height"}
