@@ -38,7 +38,7 @@ const menuNoticias = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-    const fetchNews = async () => {
+  const fetchNews = async () => {
     setLoading(true);
     const data = await getData(API_URL, null);
 
@@ -215,7 +215,12 @@ const styles = StyleSheet.create({
     bottom: NAV_HEIGHT,
     overflowY: "auto",
     overflowX: "hidden",
+
+    // ✅ ocultar barrita (Firefox / IE-Edge antiguo)
+    scrollbarWidth: "none",
+    msOverflowStyle: "none",
   },
+
   navWrap: {
     left: 0,
     right: 0,
