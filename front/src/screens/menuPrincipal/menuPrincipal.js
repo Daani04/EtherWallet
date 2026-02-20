@@ -19,6 +19,7 @@ import Nav from "../../components/Nav";
 import common from "../../styles/common";
 import Context from '../../context/Context';
 import { useSettings } from "../../context/SettingsContext";
+import { useFocusEffect } from "@react-navigation/native";
 
 const { width } = Dimensions.get("window");
 const BASE_URL = "http://35.170.12.68:8080";
@@ -30,7 +31,36 @@ const CURRENCY_SYMBOLS = {
   EUR: "€",
   USD: "$",
   GBP: "£",
-  JPY: "¥"
+  JPY: "¥",
+  CHF: "CHF",
+  CNY: "¥",
+  AUD: "$",
+  CAD: "$",
+  NZD: "$",
+
+  MXN: "$",
+  BRL: "R$",
+  ARS: "$",
+  CLP: "$",
+  COP: "$",
+
+  INR: "₹",
+  KRW: "₩",
+  SGD: "$",
+  HKD: "$",
+  THB: "฿",
+
+  SEK: "kr",
+  NOK: "kr",
+  DKK: "kr",
+  PLN: "zł",
+
+  TRY: "₺",
+  RUB: "₽",
+  ZAR: "R",
+
+  AED: "د.إ",
+  SAR: "﷼",
 };
 
 export default function MenuPrincipal({ navigation }) {
@@ -44,25 +74,25 @@ export default function MenuPrincipal({ navigation }) {
   const [loading, setLoading] = useState(true);
   const [limit, setLimit] = useState(20);
   const [activeFilter, setActiveFilter] = useState("Todos");
-  const [userCurrency, setUserCurrency] = useState("EUR");
+  const [userCurrency, setUserCurrency] = useState("USD");
 
   const isFetching = useRef(false);
 
   const fetchUserSettings = async () => {
-    if (!user?.userId) return;
+    if (!user?.userId) return null;
     try {
       const response = await fetch(`${BASE_URL}/API/Settings/${user.userId}`);
       if (response.ok) {
         const settings = await response.json();
-        if (settings && settings.currency) {
-          setUserCurrency(settings.currency.toUpperCase());
-        }
+        const cur = settings?.currency ? settings.currency.toUpperCase() : "EUR";
+        setUserCurrency(cur);
+        return cur;
       }
     } catch (error) {
       console.error(error);
     }
+    return null;
   };
-
   const fetchFavorites = useCallback(async () => {
     if (!user?.userId) return;
     try {
@@ -115,6 +145,18 @@ export default function MenuPrincipal({ navigation }) {
       isFetching.current = false;
     }
   };
+
+  useFocusEffect(
+    useCallback(() => {
+      const refresh = async () => {
+        const cur = (await fetchUserSettings()) || userCurrency;
+        await fetchMarketData(limit, cur);
+        await fetchFavorites();
+      };
+
+      refresh();
+    }, [fetchUserSettings, fetchFavorites, limit, userCurrency])
+  );
 
   useEffect(() => {
     const init = async () => {
@@ -314,7 +356,7 @@ export default function MenuPrincipal({ navigation }) {
           </>
         ) : (
           <View style={styles.flex1}>
-              {MainContent()}
+            {MainContent()}
             <Nav />
           </View>
         )}

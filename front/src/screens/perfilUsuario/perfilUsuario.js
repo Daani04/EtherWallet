@@ -50,8 +50,41 @@ export default function PerfilUsuario(props) {
   const LANGUAGES = ["ES", "EN", "CA", "FR", "DE", "CH"];
 
   const [currencyModalVisible, setCurrencyModalVisible] = useState(false);
-  const CURRENCIES = ["USD", "EUR", "GBP", "MXN"];
+  const CURRENCIES = [
+    "EUR", // Euro
+    "USD", // US Dollar
+    "GBP", // British Pound
+    "JPY", // Japanese Yen
+    "CHF", // Swiss Franc
+    "CNY", // Chinese Yuan
+    "AUD", // Australian Dollar
+    "CAD", // Canadian Dollar
+    "NZD", // New Zealand Dollar
 
+    "MXN", // Mexican Peso
+    "BRL", // Brazilian Real
+    "ARS", // Argentine Peso
+    "CLP", // Chilean Peso
+    "COP", // Colombian Peso
+
+    "INR", // Indian Rupee
+    "KRW", // South Korean Won
+    "SGD", // Singapore Dollar
+    "HKD", // Hong Kong Dollar
+    "THB", // Thai Baht
+
+    "SEK", // Swedish Krona
+    "NOK", // Norwegian Krone
+    "DKK", // Danish Krone
+    "PLN", // Polish Zloty
+
+    "TRY", // Turkish Lira
+    "RUB", // Russian Ruble
+    "ZAR", // South African Rand
+
+    "AED", // UAE Dirham
+    "SAR", // Saudi Riyal
+  ];
   const loadUser = useCallback(async () => {
     if (!userId) return;
 
@@ -182,26 +215,12 @@ export default function PerfilUsuario(props) {
 
   const styles = useMemo(() => makeStyles(C), [C]);
 
-  // ✅ tu fix de scroll en web (sin liarla con Nav)
   const webScrollFix =
     Platform.OS === "web" ? { height: "100vh", overflowY: "auto" } : null;
 
   return (
     <SafeAreaView style={[common.safe, { backgroundColor: C.bg }]}>
       <View style={styles.header}>
-        {/* si quieres back, descomenta */}
-        {/*
-        <TouchableOpacity
-          onPress={() =>
-            props.navigation.canGoBack()
-              ? props.navigation.goBack()
-              : props.navigation.navigate("HomeNav")
-          }
-          activeOpacity={0.85}
-        >
-          <Icon name="arrow-back-ios-new" size={22} color={C.textMain || "#fff"} />
-        </TouchableOpacity>
-        */}
         <View style={{ width: 24 }} />
       </View>
 
@@ -342,24 +361,31 @@ export default function PerfilUsuario(props) {
       >
         <Pressable style={styles.modalOverlay} onPress={() => setLanguageModalVisible(false)}>
           <View style={styles.modalContent}>
-            {LANGUAGES.map((lang) => (
-              <TouchableOpacity
-                key={lang}
-                style={styles.modalItem}
-                onPress={() => {
-                  setLanguage(lang);
-                  i18n.changeLanguage(lang);
-                  setLanguageModalVisible(false);
-                  saveSettings({ language: lang });
-                }}
-                activeOpacity={0.85}
-              >
-                <Text style={[styles.modalText, lang === language && { color: C.primary }]}>
-                  {lang}
-                </Text>
-                {lang === language && <Icon name="check" size={20} color={C.primary} />}
-              </TouchableOpacity>
-            ))}
+            <ScrollView
+              showsVerticalScrollIndicator={false}
+              contentContainerStyle={{ paddingVertical: 4 }}
+            >
+              {LANGUAGES.map((lang) => (
+                <TouchableOpacity
+                  key={lang}
+                  style={styles.modalItem}
+                  onPress={() => {
+                    setLanguage(lang);
+                    i18n.changeLanguage(lang);
+                    setLanguageModalVisible(false);
+                    saveSettings({ language: lang });
+                  }}
+                  activeOpacity={0.85}
+                >
+                  <Text style={[styles.modalText, lang === language && { color: C.primary }]}>
+                    {lang}
+                  </Text>
+                  {lang === language && (
+                    <Icon name="check" size={20} color={C.primary} />
+                  )}
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
           </View>
         </Pressable>
       </Modal>
@@ -373,23 +399,28 @@ export default function PerfilUsuario(props) {
       >
         <Pressable style={styles.modalOverlay} onPress={() => setCurrencyModalVisible(false)}>
           <View style={styles.modalContent}>
-            {CURRENCIES.map((cur) => (
-              <TouchableOpacity
-                key={cur}
-                style={styles.modalItem}
-                onPress={() => {
-                  setCurrency(cur);
-                  setCurrencyModalVisible(false);
-                  saveSettings({ currency: cur });
-                }}
-                activeOpacity={0.85}
-              >
-                <Text style={[styles.modalText, cur === currency && { color: C.primary }]}>
-                  {cur}
-                </Text>
-                {cur === currency && <Icon name="check" size={20} color={C.primary} />}
-              </TouchableOpacity>
-            ))}
+            <ScrollView
+              showsVerticalScrollIndicator={false}
+              contentContainerStyle={{ paddingVertical: 4 }}
+            >
+              {CURRENCIES.map((cur) => (
+                <TouchableOpacity
+                  key={cur}
+                  style={styles.modalItem}
+                  onPress={() => {
+                    setCurrency(cur);
+                    setCurrencyModalVisible(false);
+                    saveSettings({ currency: cur });
+                  }}
+                  activeOpacity={0.85}
+                >
+                  <Text style={[styles.modalText, cur === currency && { color: C.primary }]}>
+                    {cur}
+                  </Text>
+                  {cur === currency && <Icon name="check" size={20} color={C.primary} />}
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
           </View>
         </Pressable>
       </Modal>
@@ -554,6 +585,7 @@ const makeStyles = (C) =>
       borderRadius: 16,
       paddingVertical: 10,
       width: 220,
+      maxHeight: 420,
       borderWidth: 1,
       shadowColor: C.shadow,
       shadowOpacity: 0.10,
