@@ -136,6 +136,7 @@ export default function MenuPrincipal({ navigation }) {
 
     const data = await response.json();
 
+    // ✅ WEB: parse CoinGecko (igual que antes)
     if (isWeb && Array.isArray(data)) {
       const formatted = data.map((coin) => ({
         id: coin.id,
