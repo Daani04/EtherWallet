@@ -24,3 +24,5 @@ npx expo install expo-secure-store
 //IMAGENES
 npx expo install expo-image-picker
 
+
+

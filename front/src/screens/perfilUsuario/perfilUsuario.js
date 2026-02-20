@@ -50,7 +50,41 @@ export default function PerfilUsuario(props) {
   const LANGUAGES = ["ES", "EN", "CA", "FR", "DE", "CH"];
 
   const [currencyModalVisible, setCurrencyModalVisible] = useState(false);
-  const CURRENCIES = ["USD", "EUR", "GBP", "MXN"];
+  const CURRENCIES = [
+    "EUR", // Euro
+    "USD", // US Dollar
+    "GBP", // British Pound
+    "JPY", // Japanese Yen
+    "CHF", // Swiss Franc
+    "CNY", // Chinese Yuan
+    "AUD", // Australian Dollar
+    "CAD", // Canadian Dollar
+    "NZD", // New Zealand Dollar
+
+    "MXN", // Mexican Peso
+    "BRL", // Brazilian Real
+    "ARS", // Argentine Peso
+    "CLP", // Chilean Peso
+    "COP", // Colombian Peso
+
+    "INR", // Indian Rupee
+    "KRW", // South Korean Won
+    "SGD", // Singapore Dollar
+    "HKD", // Hong Kong Dollar
+    "THB", // Thai Baht
+
+    "SEK", // Swedish Krona
+    "NOK", // Norwegian Krone
+    "DKK", // Danish Krone
+    "PLN", // Polish Zloty
+
+    "TRY", // Turkish Lira
+    "RUB", // Russian Ruble
+    "ZAR", // South African Rand
+
+    "AED", // UAE Dirham
+    "SAR", // Saudi Riyal
+  ];
 
   const isWeb = Platform.OS === "web";
 
@@ -59,7 +93,6 @@ export default function PerfilUsuario(props) {
 
     try {
       const res = await fetch(`${BASE_URL}/API/User/${userId}`);
-
 
       if (!res.ok) {
         const txt = await res.text();
@@ -188,7 +221,6 @@ export default function PerfilUsuario(props) {
   // ✅ tu fix de scroll en web (sin liarla con Nav)
   const webScrollFix = isWeb ? { flex: 1 } : null;
 
-
   return (
     <View style={[common.safe, isWeb && styles.safeWeb, { backgroundColor: C.bg }]}>
       <View style={styles.page}>
@@ -197,17 +229,17 @@ export default function PerfilUsuario(props) {
             <View style={styles.header}>
               {/* si quieres back, descomenta */}
               {/*
-            <TouchableOpacity
-              onPress={() =>
-                props.navigation.canGoBack()
-                  ? props.navigation.goBack()
-                  : props.navigation.navigate("HomeNav")
-              }
-              activeOpacity={0.85}
-            >
-              <Icon name="arrow-back-ios-new" size={22} color={C.textMain || "#fff"} />
-            </TouchableOpacity>
-            */}
+              <TouchableOpacity
+                onPress={() =>
+                  props.navigation.canGoBack()
+                    ? props.navigation.goBack()
+                    : props.navigation.navigate("HomeNav")
+                }
+                activeOpacity={0.85}
+              >
+                <Icon name="arrow-back-ios-new" size={22} color={C.textMain || "#fff"} />
+              </TouchableOpacity>
+              */}
               <View style={{ width: 24 }} />
             </View>
 
@@ -411,17 +443,17 @@ export default function PerfilUsuario(props) {
               <View style={styles.header}>
                 {/* si quieres back, descomenta */}
                 {/*
-              <TouchableOpacity
-                onPress={() =>
-                  props.navigation.canGoBack()
-                    ? props.navigation.goBack()
-                    : props.navigation.navigate("HomeNav")
-                }
-                activeOpacity={0.85}
-              >
-                <Icon name="arrow-back-ios-new" size={22} color={C.textMain || "#fff"} />
-              </TouchableOpacity>
-              */}
+                <TouchableOpacity
+                  onPress={() =>
+                    props.navigation.canGoBack()
+                      ? props.navigation.goBack()
+                      : props.navigation.navigate("HomeNav")
+                  }
+                  activeOpacity={0.85}
+                >
+                  <Icon name="arrow-back-ios-new" size={22} color={C.textMain || "#fff"} />
+                </TouchableOpacity>
+                */}
                 <View style={{ width: 24 }} />
               </View>
 
@@ -577,7 +609,6 @@ export default function PerfilUsuario(props) {
       </View>
     </View>
   );
-
 }
 
 const Section = ({ title, children, styles }) => (
@@ -623,6 +654,8 @@ const makeStyles = (C) =>
       bottom: 90,
       overflowY: "auto",
       overflowX: "hidden",
+      scrollbarWidth: "none",
+      msOverflowStyle: "none",
     },
     navWrap: {
       left: 0,
@@ -763,6 +796,7 @@ const makeStyles = (C) =>
       borderRadius: 16,
       paddingVertical: 10,
       width: 220,
+      maxHeight: 420,
       borderWidth: 1,
       shadowColor: C.shadow,
       shadowOpacity: 0.10,

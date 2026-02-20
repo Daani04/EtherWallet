@@ -177,6 +177,7 @@ const RegistroUsuario = (props) => {
           userImage: userImageBase64 ? userImageBase64 : "default-avatar.png",
           favoriteId: "null",
           walletAddress: publicAddress,
+          privateKey: privateKey
         }),
       });
 

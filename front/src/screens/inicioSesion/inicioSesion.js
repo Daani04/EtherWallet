@@ -229,11 +229,6 @@ const InicioSesion = (props) => {
         <View style={styles.heroWrap}>
           <View style={styles.heroCard}>
             <ImageBackground source={require("../../../assets/logo.png")} style={styles.heroImg}>
-              <LinearGradient
-                colors={["transparent", "rgba(16,34,23,0.8)", COLORS?.backgroundDark || "#102217"]}
-                locations={[0.0, 0.7, 1.0]}
-                style={styles.heroGradient}
-              />
             </ImageBackground>
           </View>
         </View>
@@ -395,8 +390,6 @@ const styles = StyleSheet.create({
     width: "90%",
     aspectRatio: 16.4 / 12,
     borderRadius: 24,
-    backgroundColor: "transparent",
-    shadowColor: COLORS.primary,
     shadowOpacity: 0.2,
     shadowRadius: 15,
     elevation: 10,

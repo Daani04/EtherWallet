@@ -19,6 +19,7 @@ import Nav from "../../components/Nav";
 import common from "../../styles/common";
 import Context from '../../context/Context';
 import { useSettings } from "../../context/SettingsContext";
+import { useFocusEffect } from "@react-navigation/native";
 
 const { width } = Dimensions.get("window");
 const BASE_URL = "http://35.170.12.68:8080";
@@ -30,7 +31,36 @@ const CURRENCY_SYMBOLS = {
   EUR: "€",
   USD: "$",
   GBP: "£",
-  JPY: "¥"
+  JPY: "¥",
+  CHF: "CHF",
+  CNY: "¥",
+  AUD: "$",
+  CAD: "$",
+  NZD: "$",
+
+  MXN: "$",
+  BRL: "R$",
+  ARS: "$",
+  CLP: "$",
+  COP: "$",
+
+  INR: "₹",
+  KRW: "₩",
+  SGD: "$",
+  HKD: "$",
+  THB: "฿",
+
+  SEK: "kr",
+  NOK: "kr",
+  DKK: "kr",
+  PLN: "zł",
+
+  TRY: "₺",
+  RUB: "₽",
+  ZAR: "R",
+
+  AED: "د.إ",
+  SAR: "﷼",
 };
 
 export default function MenuPrincipal({ navigation }) {
@@ -44,25 +74,25 @@ export default function MenuPrincipal({ navigation }) {
   const [loading, setLoading] = useState(true);
   const [limit, setLimit] = useState(20);
   const [activeFilter, setActiveFilter] = useState("Todos");
-  const [userCurrency, setUserCurrency] = useState("EUR");
+  const [userCurrency, setUserCurrency] = useState("USD");
 
   const isFetching = useRef(false);
 
   const fetchUserSettings = async () => {
-    if (!user?.userId) return;
+    if (!user?.userId) return null;
     try {
       const response = await fetch(`${BASE_URL}/API/Settings/${user.userId}`);
       if (response.ok) {
         const settings = await response.json();
-        if (settings && settings.currency) {
-          setUserCurrency(settings.currency.toUpperCase());
-        }
+        const cur = settings?.currency ? settings.currency.toUpperCase() : "EUR";
+        setUserCurrency(cur);
+        return cur;
       }
     } catch (error) {
       console.error(error);
     }
+    return null;
   };
-
   const fetchFavorites = useCallback(async () => {
     if (!user?.userId) return;
     try {
@@ -76,45 +106,78 @@ export default function MenuPrincipal({ navigation }) {
     }
   }, [user]);
 
+  const CMC_API_KEY = "82ecd83d0cd541108839042bd32f3a55";
+  
   const fetchMarketData = async (currentLimit, currency) => {
-    if (isFetching.current) return;
-    isFetching.current = true;
-    if (cryptos.length === 0) setLoading(true);
+  if (isFetching.current) return;
+  isFetching.current = true;
+  if (cryptos.length === 0) setLoading(true);
 
-    const vsCurrency = (currency || "EUR").toLowerCase();
+  const vsCurrency = (currency || "EUR").toUpperCase();
 
-    // Usamos CoinGecko para ambos, es más sencillo el mapeo
-    const url = `https://api.coingecko.com/api/v3/coins/markets?vs_currency=${vsCurrency}&order=market_cap_desc&per_page=${currentLimit}&page=1&sparkline=false`;
+  const geckoUrl = `https://api.coingecko.com/api/v3/coins/markets?vs_currency=${vsCurrency.toLowerCase()}&order=market_cap_desc&per_page=${currentLimit}&page=1&sparkline=false`;
 
-    try {
-      const response = await fetch(url, {
-        headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/json',
-          // Esto ayuda a evitar bloqueos en emuladores
-          'User-Agent': 'Mozilla/5.0'
-        }
-      });
-      const data = await response.json();
+  const cmcUrl = `https://pro-api.coinmarketcap.com/v1/cryptocurrency/listings/latest?start=1&limit=${currentLimit}&convert=${vsCurrency}`;
 
-      if (Array.isArray(data)) {
-        const formatted = data.map(coin => ({
-          id: coin.id,
-          name: coin.name,
-          symbol: coin.symbol,
-          image: coin.image,
-          current_price: coin.current_price,
-          price_change_percentage_24h: coin.price_change_percentage_24h,
-        }));
-        setCryptos(formatted);
-      }
-    } catch (error) {
-      console.error("Fetch Error:", error);
-    } finally {
-      setLoading(false);
-      isFetching.current = false;
+  try {
+    const response = await fetch(isWeb ? geckoUrl : cmcUrl, {
+      headers: isWeb
+        ? {
+            Accept: "application/json",
+            "Content-Type": "application/json",
+            "User-Agent": "Mozilla/5.0",
+          }
+        : {
+            Accept: "application/json",
+            "Content-Type": "application/json",
+            "X-CMC_PRO_API_KEY": CMC_API_KEY,
+          },
+    });
+
+    const data = await response.json();
+
+    if (isWeb && Array.isArray(data)) {
+      const formatted = data.map((coin) => ({
+        id: coin.id,
+        name: coin.name,
+        symbol: coin.symbol,
+        image: coin.image,
+        current_price: coin.current_price,
+        price_change_percentage_24h: coin.price_change_percentage_24h,
+      }));
+      setCryptos(formatted);
     }
-  };
+
+    if (!isWeb && Array.isArray(data?.data)) {
+      const formatted = data.data.map((coin) => ({
+        id: coin.slug, // string estable tipo "bitcoin"
+        name: coin.name,
+        symbol: (coin.symbol || "").toLowerCase(),
+        image: `https://s2.coinmarketcap.com/static/img/coins/64x64/${coin.id}.png`,
+        current_price: coin.quote?.[vsCurrency]?.price,
+        price_change_percentage_24h: coin.quote?.[vsCurrency]?.percent_change_24h,
+      }));
+      setCryptos(formatted);
+    }
+  } catch (error) {
+    console.error("Fetch Error:", error);
+  } finally {
+    setLoading(false);
+    isFetching.current = false;
+  }
+};
+
+  useFocusEffect(
+    useCallback(() => {
+      const refresh = async () => {
+        const cur = (await fetchUserSettings()) || userCurrency;
+        await fetchMarketData(limit, cur);
+        await fetchFavorites();
+      };
+
+      refresh();
+    }, [fetchUserSettings, fetchFavorites, limit, userCurrency])
+  );
 
   useEffect(() => {
     const init = async () => {
@@ -314,7 +377,7 @@ export default function MenuPrincipal({ navigation }) {
           </>
         ) : (
           <View style={styles.flex1}>
-              {MainContent()}
+            {MainContent()}
             <Nav />
           </View>
         )}
