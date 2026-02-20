@@ -113,19 +113,21 @@ const Billetera = (props) => {
   }, []);
 
   useEffect(() => {
-    const fetchBalance = async () => {
-      if (user && user.walletAddress && user.email) {
+
+const fetchBalance = async () => {
+      if (user && user.walletAddress) {
         try {
           const response = await fetch(
-            `http://localhost:8080/api/blockchain/balance/${user.walletAddress}`
+            `http://35.170.12.68:8080/api/blockchain/balance/${user.walletAddress}`
           );
+          
           if (!response.ok) throw new Error("Error en respuesta");
 
-          const data = await response.json();
-          setEthBalance(data.toString());
+          const data = await response.text();
+          setEthBalance(data); 
         } catch (error) {
           console.error("Error al obtener saldo:", error);
-          setEthBalance("N/A");
+          setEthBalance("0.00");
         }
       }
     };
