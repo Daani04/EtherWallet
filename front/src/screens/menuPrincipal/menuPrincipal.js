@@ -186,242 +186,121 @@ export default function MenuPrincipal({ navigation }) {
 
   const MainContent = () => (
     <View style={styles.flex1}>
-      {isWeb ? (
-        // ✅ WEB: scroll "real" del navegador (barrita derecha)
-        <View style={styles.webScroll}>
-          <View style={styles.mainTitleContainer}>
-            <Text style={styles.mainTitle}>Mercados</Text>
-          </View>
-
-          <View style={styles.searchContainer}>
-            <View style={styles.searchBox}>
-              <Search size={20} color={C.textMuted} style={styles.searchIcon} />
-              <TextInput
-                value={search}
-                onChangeText={setSearch}
-                placeholder="Buscar moneda..."
-                placeholderTextColor={C.textMuted}
-                style={styles.input}
-              />
-              {search !== "" && (
-                <TouchableOpacity onPress={() => setSearch("")}>
-                  <X size={18} color={C.textMuted} />
-                </TouchableOpacity>
-              )}
-            </View>
-          </View>
-
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.chipsScroll}
-          >
-            {["Todos", "Favoritos", "Ganadores", "Perdedores"].map((label) => (
-              <TouchableOpacity
-                key={label}
-                onPress={() => setActiveFilter(label)}
-                style={[styles.chip, activeFilter === label && styles.chipActive]}
-              >
-                <Text style={[styles.chipText, activeFilter === label && styles.chipTextActive]}>
-                  {label}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
-
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Tendencias</Text>
-          </View>
-
-          {loading && cryptos.length === 0 ? (
-            <ActivityIndicator color={C.primary} style={styles.loadingMargin} />
-          ) : (
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              snapToInterval={width * 0.75}
-              decelerationRate="fast"
-              contentContainerStyle={styles.trendingScroll}
-            >
-              {cryptos.slice(0, 5).map((item) => (
-                <TrendingCard
-                  key={item.id}
-                  item={item}
-                  C={C}
-                  styles={styles}
-                  currencySymbol={CURRENCY_SYMBOLS[userCurrency] || userCurrency}
-                />
-              ))}
-            </ScrollView>
-          )}
-
-          <View style={styles.marketSection}>
-            <View style={styles.sectionHeaderList}>
-              <Text style={styles.sectionTitle}>
-                {activeFilter === "Todos" ? "Criptomonedas" : `Top ${activeFilter}`}
-              </Text>
-            </View>
-
-            <View style={styles.marketList}>
-              {filteredCryptos.length > 0 ? (
-                filteredCryptos.map((item) => (
-                  <MarketItem
-                    key={item.id}
-                    item={item}
-                    isFav={favoritesIds.includes(item.id)}
-                    onFavPress={() => toggleFavorite(item)}
-                    C={C}
-                    styles={styles}
-                    currencySymbol={CURRENCY_SYMBOLS[userCurrency] || userCurrency}
-                  />
-                ))
-              ) : (
-                <View style={styles.emptyContainer}>
-                  {loading ? <ActivityIndicator color={C.primary} /> : <Text style={styles.emptyText}>No hay datos disponibles</Text>}
-                </View>
-              )}
-            </View>
-
-            {activeFilter === "Todos" && filteredCryptos.length > 0 && (
-              <TouchableOpacity
-                style={[styles.seeMoreBottom, loading && styles.opacity05]}
-                onPress={handleLoadMore}
-                disabled={loading}
-              >
-                {loading ? (
-                  <ActivityIndicator size="small" color={C.primary} />
-                ) : (
-                  <>
-                    <Text style={styles.seeMoreText}>Cargar más monedas</Text>
-                    <ArrowRight size={16} color={C.primary} />
-                  </>
-                )}
-              </TouchableOpacity>
-            )}
-          </View>
-
-          <View style={styles.bottomSpacer} />
+      <ScrollView showsVerticalScrollIndicator={false}>
+        <View style={styles.mainTitleContainer}>
+          <Text style={styles.mainTitle}>Mercados</Text>
         </View>
-      ) : (
-        // ✅ MÓVIL: tu ScrollView vertical como estaba
-        <ScrollView showsVerticalScrollIndicator={false}>
-          <View style={styles.mainTitleContainer}>
-            <Text style={styles.mainTitle}>Mercados</Text>
-          </View>
 
-          <View style={styles.searchContainer}>
-            <View style={styles.searchBox}>
-              <Search size={20} color={C.textMuted} style={styles.searchIcon} />
-              <TextInput
-                value={search}
-                onChangeText={setSearch}
-                placeholder="Buscar moneda..."
-                placeholderTextColor={C.textMuted}
-                style={styles.input}
-              />
-              {search !== "" && (
-                <TouchableOpacity onPress={() => setSearch("")}>
-                  <X size={18} color={C.textMuted} />
-                </TouchableOpacity>
-              )}
-            </View>
+        <View style={styles.searchContainer}>
+          <View style={styles.searchBox}>
+            <Search size={20} color={C.textMuted} style={styles.searchIcon} />
+            <TextInput
+              value={search}
+              onChangeText={setSearch}
+              placeholder="Buscar moneda..."
+              placeholderTextColor={C.textMuted}
+              style={styles.input}
+            />
+            {search !== "" && (
+              <TouchableOpacity onPress={() => setSearch("")}>
+                <X size={18} color={C.textMuted} />
+              </TouchableOpacity>
+            )}
           </View>
+        </View>
 
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chipsScroll}>
+          {["Todos", "Favoritos", "Ganadores", "Perdedores"].map((label) => (
+            <TouchableOpacity
+              key={label}
+              onPress={() => setActiveFilter(label)}
+              style={[styles.chip, activeFilter === label && styles.chipActive]}
+            >
+              <Text style={[styles.chipText, activeFilter === label && styles.chipTextActive]}>
+                {label}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>Tendencias</Text>
+        </View>
+
+        {loading && cryptos.length === 0 ? (
+          <ActivityIndicator color={C.primary} style={styles.loadingMargin} />
+        ) : (
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.chipsScroll}
+            snapToInterval={width * 0.75}
+            decelerationRate="fast"
+            contentContainerStyle={styles.trendingScroll}
           >
-            {["Todos", "Favoritos", "Ganadores", "Perdedores"].map((label) => (
-              <TouchableOpacity
-                key={label}
-                onPress={() => setActiveFilter(label)}
-                style={[styles.chip, activeFilter === label && styles.chipActive]}
-              >
-                <Text style={[styles.chipText, activeFilter === label && styles.chipTextActive]}>
-                  {label}
-                </Text>
-              </TouchableOpacity>
+            {cryptos.slice(0, 5).map((item) => (
+              <TrendingCard
+                key={item.id}
+                item={item}
+                C={C}
+                styles={styles}
+                currencySymbol={CURRENCY_SYMBOLS[userCurrency] || userCurrency}
+              />
             ))}
           </ScrollView>
+        )}
 
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Tendencias</Text>
+        <View style={styles.marketSection}>
+          <View style={styles.sectionHeaderList}>
+            <Text style={styles.sectionTitle}>
+              {activeFilter === "Todos" ? "Criptomonedas" : `Top ${activeFilter}`}
+            </Text>
           </View>
 
-          {loading && cryptos.length === 0 ? (
-            <ActivityIndicator color={C.primary} style={styles.loadingMargin} />
-          ) : (
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              snapToInterval={width * 0.75}
-              decelerationRate="fast"
-              contentContainerStyle={styles.trendingScroll}
-            >
-              {cryptos.slice(0, 5).map((item) => (
-                <TrendingCard
+          <View style={styles.marketList}>
+            {filteredCryptos.length > 0 ? (
+              filteredCryptos.map((item) => (
+                <MarketItem
                   key={item.id}
                   item={item}
+                  isFav={favoritesIds.includes(item.id)}
+                  onFavPress={() => toggleFavorite(item)}
                   C={C}
                   styles={styles}
                   currencySymbol={CURRENCY_SYMBOLS[userCurrency] || userCurrency}
                 />
-              ))}
-            </ScrollView>
-          )}
-
-          <View style={styles.marketSection}>
-            <View style={styles.sectionHeaderList}>
-              <Text style={styles.sectionTitle}>
-                {activeFilter === "Todos" ? "Criptomonedas" : `Top ${activeFilter}`}
-              </Text>
-            </View>
-
-            <View style={styles.marketList}>
-              {filteredCryptos.length > 0 ? (
-                filteredCryptos.map((item) => (
-                  <MarketItem
-                    key={item.id}
-                    item={item}
-                    isFav={favoritesIds.includes(item.id)}
-                    onFavPress={() => toggleFavorite(item)}
-                    C={C}
-                    styles={styles}
-                    currencySymbol={CURRENCY_SYMBOLS[userCurrency] || userCurrency}
-                  />
-                ))
-              ) : (
-                <View style={styles.emptyContainer}>
-                  {loading ? <ActivityIndicator color={C.primary} /> : <Text style={styles.emptyText}>No hay datos disponibles</Text>}
-                </View>
-              )}
-            </View>
-
-            {activeFilter === "Todos" && filteredCryptos.length > 0 && (
-              <TouchableOpacity
-                style={[styles.seeMoreBottom, loading && styles.opacity05]}
-                onPress={handleLoadMore}
-                disabled={loading}
-              >
+              ))
+            ) : (
+              <View style={styles.emptyContainer}>
                 {loading ? (
-                  <ActivityIndicator size="small" color={C.primary} />
+                  <ActivityIndicator color={C.primary} />
                 ) : (
-                  <>
-                    <Text style={styles.seeMoreText}>Cargar más monedas</Text>
-                    <ArrowRight size={16} color={C.primary} />
-                  </>
+                  <Text style={styles.emptyText}>No hay datos disponibles</Text>
                 )}
-              </TouchableOpacity>
+              </View>
             )}
           </View>
 
-          <View style={styles.bottomSpacer} />
-        </ScrollView>
-      )}
+          {activeFilter === "Todos" && filteredCryptos.length > 0 && (
+            <TouchableOpacity
+              style={[styles.seeMoreBottom, loading && styles.opacity05]}
+              onPress={handleLoadMore}
+              disabled={loading}
+            >
+              {loading ? (
+                <ActivityIndicator size="small" color={C.primary} />
+              ) : (
+                <>
+                  <Text style={styles.seeMoreText}>Cargar más monedas</Text>
+                  <ArrowRight size={16} color={C.primary} />
+                </>
+              )}
+            </TouchableOpacity>
+          )}
+        </View>
+        <View style={styles.bottomSpacer} />
+      </ScrollView>
     </View>
   );
-
 
   return (
     <SafeAreaView style={[common.safe, { backgroundColor: C.bg }, isWeb && styles.safeWeb]}>
@@ -516,10 +395,7 @@ const makeStyles = (C) => StyleSheet.create({
     left: 0,
     right: 0,
     bottom: NAV_HEIGHT,
-    overflowY: "auto",
-    overflowX: "hidden",
   },
-
   navWrap: {
     left: 0,
     right: 0,
