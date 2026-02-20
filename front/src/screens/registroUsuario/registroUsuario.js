@@ -90,21 +90,21 @@ const RegistroUsuario = (props) => {
   };
 
   const isAdult = (birthStr) => {
-  if (!birthStr) return false;
-  const parts = birthStr.split("/");
-  if (parts.length !== 3) return false;
+    if (!birthStr) return false;
+    const parts = birthStr.split("/");
+    if (parts.length !== 3) return false;
 
-  const [dd, mm, yyyy] = parts;
-  const birthDate = new Date(Number(yyyy), Number(mm) - 1, Number(dd));
-  if (Number.isNaN(birthDate.getTime())) return false;
+    const [dd, mm, yyyy] = parts;
+    const birthDate = new Date(Number(yyyy), Number(mm) - 1, Number(dd));
+    if (Number.isNaN(birthDate.getTime())) return false;
 
-  const today = new Date();
-  let age = today.getFullYear() - birthDate.getFullYear();
-  const m = today.getMonth() - birthDate.getMonth();
-  if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) age--;
+    const today = new Date();
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const m = today.getMonth() - birthDate.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) age--;
 
-  return age >= 18;
-};
+    return age >= 18;
+  };
 
   const onWebFileChange = (e) => {
     const file = e?.target?.files?.[0];
@@ -422,12 +422,15 @@ const RegistroUsuario = (props) => {
             </View>
 
             <View style={styles.footer}>
+              <View style={{ height: 120 }} />
+
               <Text style={styles.footerText}>{t("register.footer.haveAccount")} </Text>
               <Pressable onPress={() => props.navigation.navigate("InicioSesion")}>
                 <Text style={styles.footerLink}>{t("register.footer.login")}</Text>
               </Pressable>
             </View>
           </View>
+
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
@@ -437,9 +440,17 @@ const RegistroUsuario = (props) => {
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: COLORS.bg || COLORS.backgroundDark },
 
-  // ✅ web: bloquea el body, pero el ScrollView hace scroll
   safeWeb: { height: "100vh", overflow: "hidden" },
-  webScroll: { height: "100%", overflowY: "auto", overflowX: "hidden" },
+  webScroll: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    overflowY: "auto",
+    overflowX: "hidden",
+  },
+
 
   scroll: { flex: 1 },
   scrollContainer: { flexGrow: 1, paddingBottom: 40 },
