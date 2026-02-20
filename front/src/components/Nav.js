@@ -23,7 +23,7 @@ const BottomBar = () => {
       </Pressable>
 
       <TabItem icon="article" label="Noticias" active={isActive("MenuNoticias")} onPress={() => navigation.navigate("MenuNoticias")} C={C} />
-      <TabItem icon="settings" label="Ajustes" active={isActive("PerfilUsuario")} onPress={() => navigation.navigate("PerfilUsuario")} C={C} />
+      <TabItem icon="account-circle" label="Perfil" active={isActive("PerfilUsuario")} onPress={() => navigation.navigate("PerfilUsuario")} C={C} />
     </View>
   );
 };
