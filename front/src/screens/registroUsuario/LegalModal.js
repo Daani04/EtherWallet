@@ -79,13 +79,14 @@ const styles = StyleSheet.create({
     padding: 18,
   },
   card: {
-    width: "100%",
-    maxWidth: 520,
-    maxHeight: 560,
-    borderRadius: 18,
-    borderWidth: 1,
-    overflow: "hidden",
-  },
+  width: "100%",
+  maxWidth: 520,
+  maxHeight: 560,
+  borderRadius: 18,
+  borderWidth: 1,
+  overflow: "hidden",
+  flexDirection: "column", // ✅ importante (asegura header/body/footer en columna)
+},
   header: {
     paddingHorizontal: 16,
     paddingTop: 16,
@@ -96,8 +97,15 @@ const styles = StyleSheet.create({
   },
   title: { flex: 1, fontSize: 18, fontWeight: "900" },
   closeBtn: { padding: 6 },
-  body: { paddingHorizontal: 16, paddingTop: 6 },
-  content: { fontSize: 14, lineHeight: 20 },
+body: {
+  flex: 1,                 // ✅ esto hace que el ScrollView tenga espacio
+  paddingHorizontal: 16,
+  paddingTop: 6,
+},
+
+bodyContent: {
+  paddingBottom: 24,       // ✅ separación abajo para que no quede pegado al botón
+},  content: { fontSize: 14, lineHeight: 20 },
   footer: {
     padding: 16,
     borderTopWidth: 1,
