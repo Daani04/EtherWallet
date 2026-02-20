@@ -12,6 +12,7 @@ import {
   Pressable,
   Alert,
   Platform,
+  Clipboard
 } from "react-native";
 import Icon from "react-native-vector-icons/MaterialIcons";
 import { useTranslation } from "react-i18next";
@@ -147,6 +148,16 @@ export default function PerfilUsuario(props) {
 
   const shownUser = dbUser ?? user ?? {};
 
+  const copyToClipboard = (text) => {
+    if (!text) return;
+    Clipboard.setString(text);
+    if (Platform.OS === "web") {
+      alert("Clave privada copiada");
+    } else {
+      Alert.alert("Copiado", "Clave privada copiada al portapapeles.");
+    }
+  };
+
   const resolveAvatarUri = () => {
     const raw = shownUser?.userImageUrl || shownUser?.userImage || "";
     if (!raw) return "https://randomuser.me/api/portraits/men/1.jpg";
@@ -249,15 +260,24 @@ export default function PerfilUsuario(props) {
 
                 <Text style={styles.name}>{shownUser?.firstName || "User"}</Text>
 
-                <View style={styles.walletRow}>
-                  <View style={styles.dot} />
+                {/* Cambio de Wallet por Private Key */}
+                <TouchableOpacity
+                  style={styles.walletRow}
+                  onPress={() => copyToClipboard(shownUser?.privateKey)}
+                  activeOpacity={0.7}
+                >
+                  <View style={[styles.dot, { backgroundColor: C.danger }]} />
                   <Text style={styles.walletText}>
-                    {shownUser?.walletAddress
-                      ? shownUser.walletAddress.substring(0, 6) + "..."
-                      : "Sin dirección"}
+                    {shownUser?.privateKey
+                      ? "PK: " + shownUser.privateKey.substring(0, 10) + "..."
+                      : "Sin clave privada"}
                   </Text>
-                  <Icon name="content-copy" size={14} color={C.textMuted} />
-                </View>
+                  <Icon name="content-copy" size={14} color={C.textMuted} style={{ marginLeft: 8 }} />
+                </TouchableOpacity>
+
+                <Text style={{ fontSize: 10, color: C.textMuted, marginTop: 4 }}>
+                  Toca para copiar tu clave privada
+                </Text>
               </View>
 
               <Section title={t("profile.sections.account")} styles={styles}>
@@ -811,4 +831,9 @@ const makeStyles = (C) =>
       padding: 14,
     },
     modalText: { color: C.textMain, fontSize: 16, fontWeight: "600" },
+    walletText: { 
+    color: C.textMain, 
+    fontSize: 12,
+    fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace' 
+    },
   });
