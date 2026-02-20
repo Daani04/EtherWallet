@@ -16,6 +16,7 @@ import {
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
+import { useSettings } from "../../context/SettingsContext";
 
 import Nav from "../../components/Nav";
 import common from "../../styles/common";
@@ -29,31 +30,37 @@ const THEME = theme?.colors || theme?.COLORS || theme || {};
 const NAV_HEIGHT = 90;
 const isWeb = Platform.OS === "web";
 
-const COLORS = {
-  primary: THEME.primary || "#2bee79",
-  backgroundDark: THEME.bg || THEME.backgroundDark || "#102217",
-  inputBg: THEME.cardBg || THEME.inputBg || "#1c2720",
-  border: THEME.border || "#3b5445",
-  textMuted: THEME.textMuted || "#9db9a8",
-  textMutedSoft: THEME.textSoft || "rgba(255,255,255,0.6)",
-  danger: THEME.danger || "#ff5a7a",
-};
 
 export default function MenuTransacciones({ navigation }) {
   const { t } = useTranslation();
   const { user } = useContext(Context);
+  const { C } = useSettings();
+
+  const COLORS = useMemo(
+  () => ({
+    primary: C.primary,
+    bg: C.bg,
+    cardBg: C.cardBg,
+    inputBg: C.inputBg,
+    border: C.border,
+    textMain: C.textMain,
+    textMuted: C.textMuted,
+    textMutedSoft: C.isDark ? "rgba(255,255,255,0.6)" : "rgba(15,23,42,0.6)",
+    danger: C.danger,
+  }),
+  [C]
+);
+
+const styles = useMemo(() => createStyles(COLORS), [COLORS]);
 
   const { width } = useWindowDimensions();
   const isDesktop = width >= BREAKPOINT_MD;
 
-  // UI (tu parte)
   const [search, setSearch] = useState("");
 
-  // Datos (parte compañero)
   const [loading, setLoading] = useState(true);
   const [transactions, setTransactions] = useState([]);
 
-  // Modal transferencia (parte compañero)
   const [modalVisible, setModalVisible] = useState(false);
   const [walletAddress, setWalletAddress] = useState("");
   const [amount, setAmount] = useState("");
@@ -174,7 +181,7 @@ export default function MenuTransacciones({ navigation }) {
   const renderHeader = () => (
     <View style={[styles.header, isDesktop && styles.headerDesktop]}>
       <TouchableOpacity onPress={goBack} style={styles.iconBtn} activeOpacity={0.85}>
-        <MaterialIcons name="arrow-back" size={22} color="#fff" />
+        <MaterialIcons name="arrow-back" size={22} color={COLORS.textMain} />
       </TouchableOpacity>
 
       <Text style={[styles.headerTitle, isDesktop && styles.headerTitleDesktop]}>
@@ -186,7 +193,7 @@ export default function MenuTransacciones({ navigation }) {
         style={styles.iconBtn}
         activeOpacity={0.85}
       >
-        <MaterialIcons name="help-outline" size={22} color="#fff" />
+        <MaterialIcons name="help-outline" size={22} color={COLORS.textMain} />
       </TouchableOpacity>
     </View>
   );
@@ -354,11 +361,11 @@ export default function MenuTransacciones({ navigation }) {
         onRequestClose={() => setModalVisible(false)}
       >
         <Pressable style={styles.modalOverlay} onPress={() => setModalVisible(false)}>
-          <Pressable style={styles.modalContent} onPress={() => {}}>
+          <Pressable style={styles.modalContent} onPress={() => { }}>
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>Nueva Transferencia</Text>
               <TouchableOpacity onPress={() => setModalVisible(false)} activeOpacity={0.8}>
-                <MaterialIcons name="close" size={24} color="#fff" />
+                <MaterialIcons name="close" size={24} color={COLORS.textMain} />
               </TouchableOpacity>
             </View>
 
@@ -410,7 +417,6 @@ export default function MenuTransacciones({ navigation }) {
     </View>
   );
 
-  // ✅ Web: scroll con Nav fijo abajo (tu solución)
   if (isWeb) {
     return (
       <SafeAreaView style={[common.safe, styles.safe, styles.safeWeb]}>
@@ -425,7 +431,6 @@ export default function MenuTransacciones({ navigation }) {
     );
   }
 
-  // ✅ Native
   return (
     <SafeAreaView style={[common.safe, styles.safe]}>
       <ScrollView showsVerticalScrollIndicator={false}>
@@ -437,215 +442,224 @@ export default function MenuTransacciones({ navigation }) {
   );
 }
 
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: COLORS.backgroundDark },
+const createStyles = (COLORS) =>
+  StyleSheet.create({
+    safe: { flex: 1, backgroundColor: COLORS.bg },
 
-  // --- WEB SCROLL FIX (tu parte)
-  safeWeb: { height: "100vh", overflow: "hidden" },
-  page: { flex: 1, position: "relative" },
-  webScroll: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: NAV_HEIGHT,
-    overflowY: "auto",
-    overflowX: "hidden",
-  },
-  navWrap: {
-    left: 0,
-    right: 0,
-    bottom: 0,
-    height: NAV_HEIGHT,
-    zIndex: 9999,
-  },
-  navWrapWeb: { position: "fixed" },
+    // --- WEB SCROLL FIX
+    safeWeb: { height: "100vh", overflow: "hidden" },
+    page: { flex: 1, position: "relative" },
+    webScroll: {
+      position: "absolute",
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: NAV_HEIGHT,
+      overflowY: "auto",
+      overflowX: "hidden",
+    },
+    navWrap: {
+      left: 0,
+      right: 0,
+      bottom: 0,
+      height: NAV_HEIGHT,
+      zIndex: 9999,
+    },
+    navWrapWeb: { position: "fixed" },
 
-  // --- CONTENT
-  scroll: { paddingHorizontal: 16, paddingBottom: 20 },
-  scrollDesktop: { paddingHorizontal: 24 },
+    scroll: { paddingHorizontal: 16, paddingBottom: 20 },
+    scrollDesktop: { paddingHorizontal: 24 },
 
-  header: {
-    paddingTop: Platform.OS === "ios" ? 56 : 18,
-    paddingBottom: 10,
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 10,
-  },
-  headerDesktop: { paddingBottom: 20 },
-  headerTitle: { flex: 1, textAlign: "center", fontSize: 18, fontWeight: "900", color: "#fff" },
-  headerTitleDesktop: { fontSize: 22 },
-  iconBtn: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: COLORS.inputBg,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-  },
+    header: {
+      paddingTop: Platform.OS === "ios" ? 56 : 18,
+      paddingBottom: 10,
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 10,
+    },
+    headerDesktop: { paddingBottom: 20 },
+    headerTitle: {
+      flex: 1,
+      textAlign: "center",
+      fontSize: 18,
+      fontWeight: "900",
+      color: COLORS.textMain,
+    },
+    headerTitleDesktop: { fontSize: 22 },
 
-  container: { width: "100%" },
-  containerDesktop: { alignSelf: "center", maxWidth: 1100 },
+    iconBtn: {
+      width: 44,
+      height: 44,
+      borderRadius: 22,
+      alignItems: "center",
+      justifyContent: "center",
+      backgroundColor: COLORS.inputBg,
+      borderWidth: 1,
+      borderColor: COLORS.border,
+    },
 
-  searchWrap: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 10,
-    backgroundColor: COLORS.inputBg,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    borderRadius: 16,
-    paddingHorizontal: 14,
-    height: 56,
-    marginTop: 6,
-    marginBottom: 14,
-  },
-  searchInput: { flex: 1, color: "#fff", fontSize: 16 },
-  clearBtn: { padding: 6 },
+    container: { width: "100%" },
+    containerDesktop: { alignSelf: "center", maxWidth: 1100 },
 
-  layout: { marginTop: 6 },
-  layoutDesktop: { flexDirection: "row", gap: 20 },
+    searchWrap: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 10,
+      backgroundColor: COLORS.inputBg,
+      borderWidth: 1,
+      borderColor: COLORS.border,
+      borderRadius: 16,
+      paddingHorizontal: 14,
+      height: 56,
+      marginTop: 6,
+      marginBottom: 14,
+    },
+    searchInput: { flex: 1, color: COLORS.textMain, fontSize: 16 },
+    clearBtn: { padding: 6 },
 
-  col: {},
-  leftCol: { flex: 1.2 },
-  rightCol: { flex: 1 },
+    layout: { marginTop: 6 },
+    layoutDesktop: { flexDirection: "row", gap: 20 },
 
-  sectionRow: {
-    marginTop: 16,
-    marginBottom: 10,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-  },
-  sectionTitle: { marginTop: 16, marginBottom: 12, fontSize: 16, fontWeight: "900", color: "#fff" },
-  link: { color: COLORS.primary, fontWeight: "900" },
+    leftCol: { flex: 1.2 },
+    rightCol: { flex: 1 },
 
-  actionsGrid: { gap: 10 },
-  actionCard: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-    padding: 16,
-    borderRadius: 18,
-    backgroundColor: COLORS.inputBg,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-  },
-  actionIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 12,
-    backgroundColor: "rgba(43,238,121,0.10)",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  actionTitle: { fontSize: 15, fontWeight: "900", color: "#fff" },
-  actionSubtitle: { color: COLORS.textMutedSoft, fontSize: 13 },
+    sectionRow: {
+      marginTop: 16,
+      marginBottom: 10,
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+    },
+    sectionTitle: {
+      marginTop: 16,
+      marginBottom: 12,
+      fontSize: 16,
+      fontWeight: "900",
+      color: COLORS.textMain,
+    },
+    link: { color: COLORS.primary, fontWeight: "900" },
 
-  recipientsWrap: { gap: 10 },
-  recipientsWrapDesktop: { gap: 10 },
-  recipientCard: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    padding: 14,
-    borderRadius: 18,
-    backgroundColor: COLORS.inputBg,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-  },
-  recipientInfo: { flexDirection: "row", alignItems: "center", gap: 12, flex: 1 },
-  initialsCircle: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: "rgba(255,255,255,0.05)",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  initialsText: { color: "#fff", fontWeight: "900" },
-  recipientName: { color: "#fff", fontSize: 15, fontWeight: "700", flex: 1 },
+    actionsGrid: { gap: 10 },
+    actionCard: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 12,
+      padding: 16,
+      borderRadius: 18,
+      backgroundColor: COLORS.inputBg,
+      borderWidth: 1,
+      borderColor: COLORS.border,
+    },
+    actionIcon: {
+      width: 40,
+      height: 40,
+      borderRadius: 12,
+      backgroundColor: "rgba(43,238,121,0.10)",
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    actionTitle: { fontSize: 15, fontWeight: "900", color: COLORS.textMain },
+    actionSubtitle: { color: COLORS.textMutedSoft, fontSize: 13 },
 
-  listCard: {
-    backgroundColor: COLORS.inputBg,
-    borderRadius: 18,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    overflow: "hidden",
-  },
-  emptyText: { color: COLORS.textMutedSoft, padding: 16, textAlign: "center", fontWeight: "800" },
+    recipientsWrap: { gap: 10 },
+    recipientCard: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      padding: 14,
+      borderRadius: 18,
+      backgroundColor: COLORS.inputBg,
+      borderWidth: 1,
+      borderColor: COLORS.border,
+    },
+    recipientInfo: { flexDirection: "row", alignItems: "center", gap: 12, flex: 1 },
+    initialsCircle: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      backgroundColor: COLORS.isDark ? "rgba(255,255,255,0.05)" : "rgba(15,23,42,0.05)",
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    initialsText: { color: COLORS.textMain, fontWeight: "900" },
+    recipientName: { color: COLORS.textMain, fontSize: 15, fontWeight: "700", flex: 1 },
 
-  txRow: { flexDirection: "row", alignItems: "center", gap: 12, padding: 15 },
-  txRowBorder: { borderTopWidth: 1, borderTopColor: COLORS.border },
-  txIcon: {
-    width: 36,
-    height: 36,
-    borderRadius: 10,
-    backgroundColor: "rgba(43,238,121,0.05)",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  txTitle: { color: "#fff", fontWeight: "800" },
-  txSubtitle: { color: COLORS.textMutedSoft, fontSize: 12, marginTop: 2 },
-  txAmount: { fontWeight: "900" },
-  negative: { color: COLORS.danger },
-  positive: { color: COLORS.primary },
+    listCard: {
+      backgroundColor: COLORS.inputBg,
+      borderRadius: 18,
+      borderWidth: 1,
+      borderColor: COLORS.border,
+      overflow: "hidden",
+    },
+    emptyText: { color: COLORS.textMutedSoft, padding: 16, textAlign: "center", fontWeight: "800" },
 
-  primaryBtn: {
-    backgroundColor: COLORS.primary,
-    height: 58,
-    borderRadius: 29,
-    alignItems: "center",
-    justifyContent: "center",
-    marginTop: 16,
-    shadowColor: COLORS.primary,
-    shadowOpacity: 0.35,
-    shadowRadius: 12,
-    shadowOffset: { width: 0, height: 4 },
-    elevation: 6,
-  },
-  primaryBtnDesktop: { height: 60, borderRadius: 30 },
-  primaryBtnText: { color: COLORS.backgroundDark, fontSize: 16, fontWeight: "900", letterSpacing: 0.4 },
+    txRow: { flexDirection: "row", alignItems: "center", gap: 12, padding: 15 },
+    txRowBorder: { borderTopWidth: 1, borderTopColor: COLORS.border },
+    txIcon: {
+      width: 36,
+      height: 36,
+      borderRadius: 10,
+      backgroundColor: "rgba(43,238,121,0.05)",
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    txTitle: { color: COLORS.textMain, fontWeight: "800" },
+    txSubtitle: { color: COLORS.textMutedSoft, fontSize: 12, marginTop: 2 },
+    txAmount: { fontWeight: "900" },
+    negative: { color: COLORS.danger },
+    positive: { color: COLORS.primary },
 
-  // --- MODAL
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: "rgba(0,0,0,0.7)",
-    justifyContent: "center",
-    alignItems: "center",
-    paddingHorizontal: 18,
-  },
-  modalContent: {
-    width: "100%",
-    maxWidth: 420,
-    backgroundColor: COLORS.backgroundDark,
-    borderRadius: 24,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    overflow: "hidden",
-  },
-  modalHeader: {
-    padding: 18,
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.border,
-  },
-  modalTitle: { color: "#fff", fontSize: 18, fontWeight: "900" },
-  modalBody: { padding: 18 },
-  label: { color: COLORS.textMuted, fontSize: 13, marginBottom: 8, fontWeight: "700" },
-  modalInput: {
-    backgroundColor: COLORS.inputBg,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    borderRadius: 12,
-    padding: 12,
-    color: "#fff",
-    marginBottom: 16,
-  },
-  confirmBtn: { backgroundColor: COLORS.primary, padding: 16, borderRadius: 14, alignItems: "center" },
-  confirmBtnText: { color: COLORS.backgroundDark, fontWeight: "900", fontSize: 16 },
-});
+    primaryBtn: {
+      backgroundColor: COLORS.primary,
+      height: 58,
+      borderRadius: 29,
+      alignItems: "center",
+      justifyContent: "center",
+      marginTop: 16,
+      shadowColor: COLORS.primary,
+      shadowOpacity: 0.35,
+      shadowRadius: 12,
+      shadowOffset: { width: 0, height: 4 },
+      elevation: 6,
+    },
+    primaryBtnText: { color: COLORS.bg, fontSize: 16, fontWeight: "900", letterSpacing: 0.4 },
+
+    modalOverlay: {
+      flex: 1,
+      backgroundColor: "rgba(0,0,0,0.7)",
+      justifyContent: "center",
+      alignItems: "center",
+      paddingHorizontal: 18,
+    },
+    modalContent: {
+      width: "100%",
+      maxWidth: 420,
+      backgroundColor: COLORS.cardBg,
+      borderRadius: 24,
+      borderWidth: 1,
+      borderColor: COLORS.border,
+      overflow: "hidden",
+    },
+    modalHeader: {
+      padding: 18,
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      borderBottomWidth: 1,
+      borderBottomColor: COLORS.border,
+    },
+    modalTitle: { color: COLORS.textMain, fontSize: 18, fontWeight: "900" },
+    modalBody: { padding: 18 },
+    label: { color: COLORS.textMuted, fontSize: 13, marginBottom: 8, fontWeight: "700" },
+    modalInput: {
+      backgroundColor: COLORS.inputBg,
+      borderWidth: 1,
+      borderColor: COLORS.border,
+      borderRadius: 12,
+      padding: 12,
+      color: COLORS.textMain,
+      marginBottom: 16,
+    },
+    confirmBtn: { backgroundColor: COLORS.primary, padding: 16, borderRadius: 14, alignItems: "center" },
+    confirmBtnText: { color: COLORS.bg, fontWeight: "900", fontSize: 16 },
+  });
