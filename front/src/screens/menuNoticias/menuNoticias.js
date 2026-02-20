@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
   View,
@@ -57,22 +57,22 @@ const menuNoticias = () => {
   };
 
   return (
-    <View style={[common.safe, isWeb && styles.safeWeb]}>
+    <View style={[common.safe, { backgroundColor: C.bg }, isWeb && styles.safeWeb]}>
       <View style={styles.page}>
         {isWeb ? (
           <View style={styles.webScroll}>
             <View style={[common.headerRow, { paddingTop: Platform.OS === "ios" ? 60 : 40 }]}>
-              <Text style={common.headerTitle}>{t("news.headerTitle")}</Text>
+              <Text style={[common.headerTitle, { color: C.textMain }]}>{t("news.headerTitle")}</Text>
 
               <TouchableOpacity onPress={fetchNews}>
-                <MaterialIcons name="refresh" size={24} color={COLORS.primary} />
+                <MaterialIcons name="refresh" size={24} color={C.primary} />
               </TouchableOpacity>
             </View>
 
             {loading ? (
               <View style={common.center}>
-                <ActivityIndicator size="large" color={COLORS.primary} />
-                <Text style={common.loadingText}>{t("news.loading")}</Text>
+                <ActivityIndicator size="large" color={C.primary} />
+                <Text style={[common.loadingText, { color: C.textMuted }]}>{t("news.loading")}</Text>
               </View>
             ) : (
               <View style={common.scrollPadding}>
@@ -81,7 +81,10 @@ const menuNoticias = () => {
                   return (
                     <TouchableOpacity
                       key={index}
-                      style={common.newsCard}
+                      style={[
+                        common.newsCard,
+                        { backgroundColor: C.cardBg, borderColor: C.border },
+                      ]}
                       onPress={() => Linking.openURL(item.url)}
                     >
                       {item.banner_image && (
@@ -93,23 +96,29 @@ const menuNoticias = () => {
                           <Text style={[common.sentimentLabel, { color: sentiment.color }]}>
                             {sentiment.label}
                           </Text>
-                          <Text style={common.newsSource}>
+                          <Text style={[common.newsSource, { color: C.textMuted }]}>
                             {item.source} • {item.time_published.slice(0, 8)}
                           </Text>
                         </View>
 
-                        <Text style={common.newsTitle} numberOfLines={2}>
+                        <Text style={[common.newsTitle, { color: C.textMain }]} numberOfLines={2}>
                           {item.title}
                         </Text>
 
-                        <Text style={common.newsSummary} numberOfLines={3}>
+                        <Text style={[common.newsSummary, { color: C.textMuted }]} numberOfLines={3}>
                           {item.summary}
                         </Text>
 
                         <View style={common.topicContainer}>
                           {item.topics.slice(0, 2).map((t, i) => (
-                            <View key={i} style={common.topicTag}>
-                              <Text style={common.topicText}>{t.topic}</Text>
+                            <View
+                              key={i}
+                              style={[
+                                common.topicTag,
+                                { backgroundColor: C.pillBg, borderColor: C.border },
+                              ]}
+                            >
+                              <Text style={[common.topicText, { color: C.textMain }]}>{t.topic}</Text>
                             </View>
                           ))}
                         </View>
@@ -119,23 +128,22 @@ const menuNoticias = () => {
                 })}
                 <View style={{ height: 120 }} />
               </View>
-
             )}
           </View>
         ) : (
           <>
             <View style={[common.headerRow, { paddingTop: Platform.OS === "ios" ? 60 : 40 }]}>
-              <Text style={common.headerTitle}>{t("news.headerTitle")}</Text>
+              <Text style={[common.headerTitle, { color: C.textMain }]}>{t("news.headerTitle")}</Text>
 
               <TouchableOpacity onPress={fetchNews}>
-                <MaterialIcons name="refresh" size={24} color={COLORS.primary} />
+                <MaterialIcons name="refresh" size={24} color={C.primary} />
               </TouchableOpacity>
             </View>
 
             {loading ? (
               <View style={common.center}>
-                <ActivityIndicator size="large" color={COLORS.primary} />
-                <Text style={common.loadingText}>{t("news.loading")}</Text>
+                <ActivityIndicator size="large" color={C.primary} />
+                <Text style={[common.loadingText, { color: C.textMuted }]}>{t("news.loading")}</Text>
               </View>
             ) : (
               <ScrollView contentContainerStyle={common.scrollPadding}>
@@ -144,7 +152,10 @@ const menuNoticias = () => {
                   return (
                     <TouchableOpacity
                       key={index}
-                      style={common.newsCard}
+                      style={[
+                        common.newsCard,
+                        { backgroundColor: C.cardBg, borderColor: C.border },
+                      ]}
                       onPress={() => Linking.openURL(item.url)}
                     >
                       {item.banner_image && (
@@ -156,23 +167,29 @@ const menuNoticias = () => {
                           <Text style={[common.sentimentLabel, { color: sentiment.color }]}>
                             {sentiment.label}
                           </Text>
-                          <Text style={common.newsSource}>
+                          <Text style={[common.newsSource, { color: C.textMuted }]}>
                             {item.source} • {item.time_published.slice(0, 8)}
                           </Text>
                         </View>
 
-                        <Text style={common.newsTitle} numberOfLines={2}>
+                        <Text style={[common.newsTitle, { color: C.textMain }]} numberOfLines={2}>
                           {item.title}
                         </Text>
 
-                        <Text style={common.newsSummary} numberOfLines={3}>
+                        <Text style={[common.newsSummary, { color: C.textMuted }]} numberOfLines={3}>
                           {item.summary}
                         </Text>
 
                         <View style={common.topicContainer}>
                           {item.topics.slice(0, 2).map((t, i) => (
-                            <View key={i} style={common.topicTag}>
-                              <Text style={common.topicText}>{t.topic}</Text>
+                            <View
+                              key={i}
+                              style={[
+                                common.topicTag,
+                                { backgroundColor: C.pillBg, borderColor: C.border },
+                              ]}
+                            >
+                              <Text style={[common.topicText, { color: C.textMain }]}>{t.topic}</Text>
                             </View>
                           ))}
                         </View>
