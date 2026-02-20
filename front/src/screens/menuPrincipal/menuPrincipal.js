@@ -187,9 +187,6 @@ export default function MenuPrincipal({ navigation }) {
   const MainContent = () => (
     <View style={styles.flex1}>
       <ScrollView showsVerticalScrollIndicator={false}>
-        <View style={styles.mainTitleContainer}>
-          <Text style={styles.mainTitle}>Mercados</Text>
-        </View>
 
         <View style={styles.searchContainer}>
           <View style={styles.searchBox}>
@@ -308,7 +305,7 @@ export default function MenuPrincipal({ navigation }) {
         {isWeb ? (
           <>
             <View style={[styles.webScroll, { height: "100vh", overflow: "auto" }]}>
-              <MainContent />
+              {MainContent()}
             </View>
 
             <View style={[styles.navWrap, styles.navWrapWeb]}>
@@ -317,7 +314,7 @@ export default function MenuPrincipal({ navigation }) {
           </>
         ) : (
           <View style={styles.flex1}>
-            <MainContent />
+              {MainContent()}
             <Nav />
           </View>
         )}
