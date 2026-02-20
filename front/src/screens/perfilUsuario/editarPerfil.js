@@ -26,8 +26,10 @@ const COLORS = {
   muted: "rgba(255, 255, 255, 0.6)",
   danger: "#ff4444",
 };
+const isWeb = Platform.OS === "web";
 
-const API_BASE = "http://35.170.12.68:8080"; 
+
+const API_BASE = "http://35.170.12.68:8080";
 
 const pad2 = (n) => String(n).padStart(2, "0");
 
@@ -182,170 +184,346 @@ export default function EditarPerfil({ navigation, route }) {
     }
   };
 
-  // ✅ Web scroll fix (tu parte) + estilos del compañero (C)
-  const webScrollFix =
-    Platform.OS === "web" ? { height: "100vh", overflowY: "auto" } : null;
-
   return (
-    <ScrollView
-      style={[styles.screen, webScrollFix]}
-      contentContainerStyle={styles.content}
-      showsVerticalScrollIndicator={false}
-    >
-      <Text style={styles.title}>{t("editProfile.title")}</Text>
+    <View style={[styles.screen, isWeb && styles.safeWeb]}>
+      <View style={styles.page}>
+        {isWeb ? (
+          <View style={styles.webScroll}>
+            <View style={styles.content}>
+              <Text style={styles.title}>{t("editProfile.title")}</Text>
 
-      <View style={styles.avatarBox}>
-        <Image source={{ uri: userImage }} style={styles.avatar} />
-        <TouchableOpacity style={styles.pickBtn} onPress={pickImage} activeOpacity={0.85}>
-          <Text style={styles.pickBtnText}>Cambiar foto</Text>
-        </TouchableOpacity>
-        <Text style={styles.help}>{t("editProfile.help.imageUrl")}</Text>
-      </View>
-
-      <Text style={styles.label}>{t("editProfile.labels.image")}</Text>
-      <TextInput
-        value={userImage}
-        onChangeText={setUserImage}
-        style={styles.input}
-        placeholder="https://..."
-        placeholderTextColor={C.textMuted}
-      />
-
-      <Text style={styles.label}>{t("editProfile.labels.firstName")}</Text>
-      <TextInput
-        value={firstName}
-        onChangeText={setFirstName}
-        style={styles.input}
-        placeholder={t("editProfile.placeholders.firstName")}
-        placeholderTextColor={C.textMuted}
-      />
-
-      <Text style={styles.label}>{t("editProfile.labels.lastName")}</Text>
-      <TextInput
-        value={lastName}
-        onChangeText={setLastName}
-        style={styles.input}
-        placeholder={t("editProfile.placeholders.lastName")}
-        placeholderTextColor={C.textMuted}
-      />
-
-      <View style={styles.rowBetween}>
-        <Text style={styles.label}>{t("editProfile.labels.birthDate")}</Text>
-        <TouchableOpacity onPress={openDateModal} activeOpacity={0.85}>
-          <Text style={styles.link}>Abrir</Text>
-        </TouchableOpacity>
-      </View>
-
-      <TextInput
-        value={birthDate}
-        onChangeText={setBirthDate}
-        style={styles.input}
-        placeholder={t("editProfile.placeholders.birthDate")}
-        placeholderTextColor={C.textMuted}
-      />
-
-      <Text style={styles.label}>{t("editProfile.labels.newPassword")}</Text>
-      <TextInput
-        value={password}
-        onChangeText={setPassword}
-        style={styles.input}
-        placeholder={t("editProfile.placeholders.newPassword")}
-        placeholderTextColor={C.textMuted}
-        secureTextEntry
-      />
-
-      <TouchableOpacity
-        style={[styles.btn, { opacity: canSave ? 1 : 0.5 }]}
-        onPress={onSave}
-        disabled={!canSave}
-        activeOpacity={0.85}
-      >
-        <Text style={styles.btnText}>{t("editProfile.actions.save")}</Text>
-      </TouchableOpacity>
-
-      <TouchableOpacity
-        style={styles.btnGhost}
-        onPress={() =>
-          navigation?.canGoBack?.() ? navigation.goBack() : navigation.navigate("HomeNav")
-        }
-        activeOpacity={0.85}
-      >
-        <Text style={styles.btnGhostText}>{t("common.cancel")}</Text>
-      </TouchableOpacity>
-
-      {/* MODAL FECHA (compañero) */}
-      <Modal
-        transparent
-        visible={dateModalVisible}
-        animationType="fade"
-        onRequestClose={() => setDateModalVisible(false)}
-      >
-        <Pressable style={styles.modalOverlay} onPress={() => setDateModalVisible(false)}>
-          <Pressable style={styles.modalCard} onPress={() => {}}>
-            <Text style={styles.modalTitle}>Fecha de nacimiento</Text>
-
-            <View style={styles.dateRow}>
-              <View style={styles.dateCol}>
-                <Text style={styles.modalLabel}>Día</Text>
-                <TextInput
-                  value={dd}
-                  onChangeText={(v) => setDd(v.replace(/\D/g, "").slice(0, 2))}
-                  style={styles.dateInput}
-                  keyboardType="number-pad"
-                  placeholder="dd"
-                  placeholderTextColor={C.textMuted}
-                />
+              <View style={styles.avatarBox}>
+                <Image source={{ uri: userImage }} style={styles.avatar} />
+                <TouchableOpacity style={styles.pickBtn} onPress={pickImage} activeOpacity={0.85}>
+                  <Text style={styles.pickBtnText}>Cambiar foto</Text>
+                </TouchableOpacity>
+                <Text style={styles.help}>{t("editProfile.help.imageUrl")}</Text>
               </View>
 
-              <View style={styles.dateCol}>
-                <Text style={styles.modalLabel}>Mes</Text>
-                <TextInput
-                  value={mm}
-                  onChangeText={(v) => setMm(v.replace(/\D/g, "").slice(0, 2))}
-                  style={styles.dateInput}
-                  keyboardType="number-pad"
-                  placeholder="mm"
-                  placeholderTextColor={C.textMuted}
-                />
+              <Text style={styles.label}>{t("editProfile.labels.image")}</Text>
+              <TextInput
+                value={userImage}
+                onChangeText={setUserImage}
+                style={styles.input}
+                placeholder="https://..."
+                placeholderTextColor={C.textMuted}
+              />
+
+              <Text style={styles.label}>{t("editProfile.labels.firstName")}</Text>
+              <TextInput
+                value={firstName}
+                onChangeText={setFirstName}
+                style={styles.input}
+                placeholder={t("editProfile.placeholders.firstName")}
+                placeholderTextColor={C.textMuted}
+              />
+
+              <Text style={styles.label}>{t("editProfile.labels.lastName")}</Text>
+              <TextInput
+                value={lastName}
+                onChangeText={setLastName}
+                style={styles.input}
+                placeholder={t("editProfile.placeholders.lastName")}
+                placeholderTextColor={C.textMuted}
+              />
+
+              <View style={styles.rowBetween}>
+                <Text style={styles.label}>{t("editProfile.labels.birthDate")}</Text>
+                <TouchableOpacity onPress={openDateModal} activeOpacity={0.85}>
+                  <Text style={styles.link}>Abrir</Text>
+                </TouchableOpacity>
               </View>
 
-              <View style={styles.dateColWide}>
-                <Text style={styles.modalLabel}>Año</Text>
-                <TextInput
-                  value={yyyy}
-                  onChangeText={(v) => setYyyy(v.replace(/\D/g, "").slice(0, 4))}
-                  style={styles.dateInput}
-                  keyboardType="number-pad"
-                  placeholder="yyyy"
-                  placeholderTextColor={C.textMuted}
-                />
-              </View>
-            </View>
+              <TextInput
+                value={birthDate}
+                onChangeText={setBirthDate}
+                style={styles.input}
+                placeholder={t("editProfile.placeholders.birthDate")}
+                placeholderTextColor={C.textMuted}
+              />
 
-            <View style={styles.modalBtns}>
+              <Text style={styles.label}>{t("editProfile.labels.newPassword")}</Text>
+              <TextInput
+                value={password}
+                onChangeText={setPassword}
+                style={styles.input}
+                placeholder={t("editProfile.placeholders.newPassword")}
+                placeholderTextColor={C.textMuted}
+                secureTextEntry
+              />
+
               <TouchableOpacity
-                style={styles.modalBtnGhost}
-                onPress={() => setDateModalVisible(false)}
+                style={[styles.btn, { opacity: canSave ? 1 : 0.5 }]}
+                onPress={onSave}
+                disabled={!canSave}
                 activeOpacity={0.85}
               >
-                <Text style={styles.modalBtnGhostText}>Cancelar</Text>
+                <Text style={styles.btnText}>{t("editProfile.actions.save")}</Text>
               </TouchableOpacity>
 
-              <TouchableOpacity style={styles.modalBtn} onPress={applyDate} activeOpacity={0.85}>
-                <Text style={styles.modalBtnText}>Aplicar</Text>
+              <TouchableOpacity
+                style={styles.btnGhost}
+                onPress={() =>
+                  navigation?.canGoBack?.() ? navigation.goBack() : navigation.navigate("HomeNav")
+                }
+                activeOpacity={0.85}
+              >
+                <Text style={styles.btnGhostText}>{t("common.cancel")}</Text>
+              </TouchableOpacity>
+
+              {/* MODAL FECHA (compañero) */}
+              <Modal
+                transparent
+                visible={dateModalVisible}
+                animationType="fade"
+                onRequestClose={() => setDateModalVisible(false)}
+              >
+                <Pressable style={styles.modalOverlay} onPress={() => setDateModalVisible(false)}>
+                  <Pressable style={styles.modalCard} onPress={() => { }}>
+                    <Text style={styles.modalTitle}>Fecha de nacimiento</Text>
+
+                    <View style={styles.dateRow}>
+                      <View style={styles.dateCol}>
+                        <Text style={styles.modalLabel}>Día</Text>
+                        <TextInput
+                          value={dd}
+                          onChangeText={(v) => setDd(v.replace(/\D/g, "").slice(0, 2))}
+                          style={styles.dateInput}
+                          keyboardType="number-pad"
+                          placeholder="dd"
+                          placeholderTextColor={C.textMuted}
+                        />
+                      </View>
+
+                      <View style={styles.dateCol}>
+                        <Text style={styles.modalLabel}>Mes</Text>
+                        <TextInput
+                          value={mm}
+                          onChangeText={(v) => setMm(v.replace(/\D/g, "").slice(0, 2))}
+                          style={styles.dateInput}
+                          keyboardType="number-pad"
+                          placeholder="mm"
+                          placeholderTextColor={C.textMuted}
+                        />
+                      </View>
+
+                      <View style={styles.dateColWide}>
+                        <Text style={styles.modalLabel}>Año</Text>
+                        <TextInput
+                          value={yyyy}
+                          onChangeText={(v) => setYyyy(v.replace(/\D/g, "").slice(0, 4))}
+                          style={styles.dateInput}
+                          keyboardType="number-pad"
+                          placeholder="yyyy"
+                          placeholderTextColor={C.textMuted}
+                        />
+                      </View>
+                    </View>
+
+                    <View style={styles.modalBtns}>
+                      <TouchableOpacity
+                        style={styles.modalBtnGhost}
+                        onPress={() => setDateModalVisible(false)}
+                        activeOpacity={0.85}
+                      >
+                        <Text style={styles.modalBtnGhostText}>Cancelar</Text>
+                      </TouchableOpacity>
+
+                      <TouchableOpacity style={styles.modalBtn} onPress={applyDate} activeOpacity={0.85}>
+                        <Text style={styles.modalBtnText}>Aplicar</Text>
+                      </TouchableOpacity>
+                    </View>
+                  </Pressable>
+                </Pressable>
+              </Modal>
+
+              <View style={{ height: 40 }} />
+            </View>
+          </View>
+        ) : (
+          <ScrollView
+            style={styles.screen}
+            contentContainerStyle={styles.content}
+            showsVerticalScrollIndicator={false}
+          >
+            <Text style={styles.title}>{t("editProfile.title")}</Text>
+
+            <View style={styles.avatarBox}>
+              <Image source={{ uri: userImage }} style={styles.avatar} />
+              <TouchableOpacity style={styles.pickBtn} onPress={pickImage} activeOpacity={0.85}>
+                <Text style={styles.pickBtnText}>Cambiar foto</Text>
+              </TouchableOpacity>
+              <Text style={styles.help}>{t("editProfile.help.imageUrl")}</Text>
+            </View>
+
+            <Text style={styles.label}>{t("editProfile.labels.image")}</Text>
+            <TextInput
+              value={userImage}
+              onChangeText={setUserImage}
+              style={styles.input}
+              placeholder="https://..."
+              placeholderTextColor={C.textMuted}
+            />
+
+            <Text style={styles.label}>{t("editProfile.labels.firstName")}</Text>
+            <TextInput
+              value={firstName}
+              onChangeText={setFirstName}
+              style={styles.input}
+              placeholder={t("editProfile.placeholders.firstName")}
+              placeholderTextColor={C.textMuted}
+            />
+
+            <Text style={styles.label}>{t("editProfile.labels.lastName")}</Text>
+            <TextInput
+              value={lastName}
+              onChangeText={setLastName}
+              style={styles.input}
+              placeholder={t("editProfile.placeholders.lastName")}
+              placeholderTextColor={C.textMuted}
+            />
+
+            <View style={styles.rowBetween}>
+              <Text style={styles.label}>{t("editProfile.labels.birthDate")}</Text>
+              <TouchableOpacity onPress={openDateModal} activeOpacity={0.85}>
+                <Text style={styles.link}>Abrir</Text>
               </TouchableOpacity>
             </View>
-          </Pressable>
-        </Pressable>
-      </Modal>
 
-      <View style={{ height: 40 }} />
-    </ScrollView>
+            <TextInput
+              value={birthDate}
+              onChangeText={setBirthDate}
+              style={styles.input}
+              placeholder={t("editProfile.placeholders.birthDate")}
+              placeholderTextColor={C.textMuted}
+            />
+
+            <Text style={styles.label}>{t("editProfile.labels.newPassword")}</Text>
+            <TextInput
+              value={password}
+              onChangeText={setPassword}
+              style={styles.input}
+              placeholder={t("editProfile.placeholders.newPassword")}
+              placeholderTextColor={C.textMuted}
+              secureTextEntry
+            />
+
+            <TouchableOpacity
+              style={[styles.btn, { opacity: canSave ? 1 : 0.5 }]}
+              onPress={onSave}
+              disabled={!canSave}
+              activeOpacity={0.85}
+            >
+              <Text style={styles.btnText}>{t("editProfile.actions.save")}</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.btnGhost}
+              onPress={() =>
+                navigation?.canGoBack?.() ? navigation.goBack() : navigation.navigate("HomeNav")
+              }
+              activeOpacity={0.85}
+            >
+              <Text style={styles.btnGhostText}>{t("common.cancel")}</Text>
+            </TouchableOpacity>
+
+            {/* MODAL FECHA (compañero) */}
+            <Modal
+              transparent
+              visible={dateModalVisible}
+              animationType="fade"
+              onRequestClose={() => setDateModalVisible(false)}
+            >
+              <Pressable style={styles.modalOverlay} onPress={() => setDateModalVisible(false)}>
+                <Pressable style={styles.modalCard} onPress={() => { }}>
+                  <Text style={styles.modalTitle}>Fecha de nacimiento</Text>
+
+                  <View style={styles.dateRow}>
+                    <View style={styles.dateCol}>
+                      <Text style={styles.modalLabel}>Día</Text>
+                      <TextInput
+                        value={dd}
+                        onChangeText={(v) => setDd(v.replace(/\D/g, "").slice(0, 2))}
+                        style={styles.dateInput}
+                        keyboardType="number-pad"
+                        placeholder="dd"
+                        placeholderTextColor={C.textMuted}
+                      />
+                    </View>
+
+                    <View style={styles.dateCol}>
+                      <Text style={styles.modalLabel}>Mes</Text>
+                      <TextInput
+                        value={mm}
+                        onChangeText={(v) => setMm(v.replace(/\D/g, "").slice(0, 2))}
+                        style={styles.dateInput}
+                        keyboardType="number-pad"
+                        placeholder="mm"
+                        placeholderTextColor={C.textMuted}
+                      />
+                    </View>
+
+                    <View style={styles.dateColWide}>
+                      <Text style={styles.modalLabel}>Año</Text>
+                      <TextInput
+                        value={yyyy}
+                        onChangeText={(v) => setYyyy(v.replace(/\D/g, "").slice(0, 4))}
+                        style={styles.dateInput}
+                        keyboardType="number-pad"
+                        placeholder="yyyy"
+                        placeholderTextColor={C.textMuted}
+                      />
+                    </View>
+                  </View>
+
+                  <View style={styles.modalBtns}>
+                    <TouchableOpacity
+                      style={styles.modalBtnGhost}
+                      onPress={() => setDateModalVisible(false)}
+                      activeOpacity={0.85}
+                    >
+                      <Text style={styles.modalBtnGhostText}>Cancelar</Text>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity style={styles.modalBtn} onPress={applyDate} activeOpacity={0.85}>
+                      <Text style={styles.modalBtnText}>Aplicar</Text>
+                    </TouchableOpacity>
+                  </View>
+                </Pressable>
+              </Pressable>
+            </Modal>
+
+            <View style={{ height: 40 }} />
+          </ScrollView>
+        )}
+      </View>
+    </View>
   );
 }
 
 const makeStyles = (C) =>
   StyleSheet.create({
+    safeWeb: {
+      height: "100vh",
+      overflow: "hidden",
+    },
+    page: {
+      flex: 1,
+      position: "relative",
+    },
+    webScroll: {
+      position: "absolute",
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      overflowY: "auto",
+      overflowX: "hidden",
+      scrollbarWidth: "none",
+      msOverflowStyle: "none",
+      WebkitOverflowScrolling: "touch",
+    },
+
     screen: { flex: 1, backgroundColor: C.bg },
     content: { padding: 16, paddingBottom: 40 },
 
