@@ -106,7 +106,7 @@ export default function MenuPrincipal({ navigation }) {
     }
   }, [user]);
 
-  const CMC_API_KEY = "PON_AQUI_TU_API_KEY";
+  const CMC_API_KEY = "82ecd83d0cd541108839042bd32f3a55";
   
   const fetchMarketData = async (currentLimit, currency) => {
   if (isFetching.current) return;
@@ -115,10 +115,8 @@ export default function MenuPrincipal({ navigation }) {
 
   const vsCurrency = (currency || "EUR").toUpperCase();
 
-  // ✅ WEB -> CoinGecko (igual que ya tenías)
   const geckoUrl = `https://api.coingecko.com/api/v3/coins/markets?vs_currency=${vsCurrency.toLowerCase()}&order=market_cap_desc&per_page=${currentLimit}&page=1&sparkline=false`;
 
-  // ✅ MOBILE -> CoinMarketCap
   const cmcUrl = `https://pro-api.coinmarketcap.com/v1/cryptocurrency/listings/latest?start=1&limit=${currentLimit}&convert=${vsCurrency}`;
 
   try {
@@ -138,7 +136,6 @@ export default function MenuPrincipal({ navigation }) {
 
     const data = await response.json();
 
-    // ✅ WEB: parse CoinGecko (igual que antes)
     if (isWeb && Array.isArray(data)) {
       const formatted = data.map((coin) => ({
         id: coin.id,
@@ -151,7 +148,6 @@ export default function MenuPrincipal({ navigation }) {
       setCryptos(formatted);
     }
 
-    // ✅ MOBILE: parse CoinMarketCap
     if (!isWeb && Array.isArray(data?.data)) {
       const formatted = data.data.map((coin) => ({
         id: coin.slug, // string estable tipo "bitcoin"
