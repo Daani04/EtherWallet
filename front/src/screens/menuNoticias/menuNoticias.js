@@ -216,7 +216,6 @@ const styles = StyleSheet.create({
     overflowY: "auto",
     overflowX: "hidden",
 
-    // ✅ ocultar barrita (Firefox / IE-Edge antiguo)
     scrollbarWidth: "none",
     msOverflowStyle: "none",
   },

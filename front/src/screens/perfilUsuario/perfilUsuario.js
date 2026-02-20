@@ -52,11 +52,14 @@ export default function PerfilUsuario(props) {
   const [currencyModalVisible, setCurrencyModalVisible] = useState(false);
   const CURRENCIES = ["USD", "EUR", "GBP", "MXN"];
 
+  const isWeb = Platform.OS === "web";
+
   const loadUser = useCallback(async () => {
     if (!userId) return;
 
     try {
       const res = await fetch(`${BASE_URL}/API/User/${userId}`);
+
 
       if (!res.ok) {
         const txt = await res.text();
@@ -183,220 +186,398 @@ export default function PerfilUsuario(props) {
   const styles = useMemo(() => makeStyles(C), [C]);
 
   // ✅ tu fix de scroll en web (sin liarla con Nav)
-  const webScrollFix =
-    Platform.OS === "web" ? { height: "100vh", overflowY: "auto" } : null;
+  const webScrollFix = isWeb ? { flex: 1 } : null;
+
 
   return (
-    <SafeAreaView style={[common.safe, { backgroundColor: C.bg }]}>
-      <View style={styles.header}>
-        {/* si quieres back, descomenta */}
-        {/*
-        <TouchableOpacity
-          onPress={() =>
-            props.navigation.canGoBack()
-              ? props.navigation.goBack()
-              : props.navigation.navigate("HomeNav")
-          }
-          activeOpacity={0.85}
-        >
-          <Icon name="arrow-back-ios-new" size={22} color={C.textMain || "#fff"} />
-        </TouchableOpacity>
-        */}
-        <View style={{ width: 24 }} />
+    <View style={[common.safe, isWeb && styles.safeWeb, { backgroundColor: C.bg }]}>
+      <View style={styles.page}>
+        {isWeb ? (
+          <View style={styles.webScroll}>
+            <View style={styles.header}>
+              {/* si quieres back, descomenta */}
+              {/*
+            <TouchableOpacity
+              onPress={() =>
+                props.navigation.canGoBack()
+                  ? props.navigation.goBack()
+                  : props.navigation.navigate("HomeNav")
+              }
+              activeOpacity={0.85}
+            >
+              <Icon name="arrow-back-ios-new" size={22} color={C.textMain || "#fff"} />
+            </TouchableOpacity>
+            */}
+              <View style={{ width: 24 }} />
+            </View>
+
+            <View style={{ paddingBottom: 90 + 40 }}>
+              <View style={styles.profileContainer}>
+                <Image source={{ uri: resolveAvatarUri() }} style={styles.avatar} />
+
+                <Text style={styles.name}>{shownUser?.firstName || "User"}</Text>
+
+                <View style={styles.walletRow}>
+                  <View style={styles.dot} />
+                  <Text style={styles.walletText}>
+                    {shownUser?.walletAddress
+                      ? shownUser.walletAddress.substring(0, 6) + "..."
+                      : "Sin dirección"}
+                  </Text>
+                  <Icon name="content-copy" size={14} color={C.textMuted} />
+                </View>
+              </View>
+
+              <Section title={t("profile.sections.account")} styles={styles}>
+                <Item
+                  icon="person"
+                  label={t("profile.items.editProfile")}
+                  onPress={() =>
+                    props.navigation.navigate("EditarPerfil", {
+                      user:
+                        shownUser ?? {
+                          id: "",
+                          firstName: "",
+                          lastName: "",
+                          birthDate: "",
+                          userImage: "",
+                          email: "",
+                          dni: "",
+                          password: "",
+                          favoriteId: "",
+                        },
+                    })
+                  }
+                  C={C}
+                  styles={styles}
+                />
+
+                <Item icon="dark-mode" label={t("profile.items.lightDark")} C={C} styles={styles}>
+                  <Switch
+                    value={!!isDarkMode}
+                    onValueChange={(val) => {
+                      setIsDarkMode(val);
+                      saveSettings({ theme: val });
+                    }}
+                    trackColor={{ false: "#cbd5e1", true: C.primary }}
+                    thumbColor="#fff"
+                  />
+                </Item>
+              </Section>
+
+              <Section title={t("profile.sections.security")} styles={styles}>
+                <Item icon="face" label={t("profile.items.faceId")} C={C} styles={styles}>
+                  <Switch
+                    value={!!faceId}
+                    onValueChange={(val) => {
+                      setFaceId(val);
+                      saveSettings({ faceId: val });
+                    }}
+                    trackColor={{ false: "#cbd5e1", true: C.primary }}
+                    thumbColor="#fff"
+                  />
+                </Item>
+
+                <Item
+                  icon="shield"
+                  label={t("profile.items.twoFA")}
+                  rightText={t("profile.status.enabled")}
+                  C={C}
+                  styles={styles}
+                />
+
+                <Item
+                  icon="badge"
+                  label={t("profile.items.kyc")}
+                  subLabel={t("profile.status.kycLevel2")}
+                  C={C}
+                  styles={styles}
+                />
+              </Section>
+
+              <Section title={t("profile.sections.preferences")} styles={styles}>
+                <Item
+                  icon="notifications"
+                  label={t("profile.items.notifications")}
+                  C={C}
+                  styles={styles}
+                />
+
+                <Item
+                  icon="currency-exchange"
+                  label={t("profile.items.localCurrency")}
+                  rightText={currency}
+                  onPress={() => setCurrencyModalVisible(true)}
+                  C={C}
+                  styles={styles}
+                />
+
+                <Item
+                  icon="language"
+                  label={t("profile.items.language")}
+                  rightText={language}
+                  onPress={() => setLanguageModalVisible(true)}
+                  C={C}
+                  styles={styles}
+                />
+              </Section>
+
+              <TouchableOpacity
+                style={styles.logoutBtn}
+                onPress={async () => {
+                  await logoutUser();
+                  props.navigation.replace("InicioSesion");
+                }}
+                activeOpacity={0.85}
+              >
+                <Icon name="logout" size={20} color={C.danger} />
+                <Text style={styles.logoutText}>{t("profile.items.logout")}</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.deleteBtn}
+                onPress={handleDeleteAccount}
+                activeOpacity={0.85}
+              >
+                <Icon name="delete-forever" size={20} color={C.danger} />
+                <Text style={styles.deleteText}>Eliminar Cuenta</Text>
+              </TouchableOpacity>
+
+              {/* MODAL IDIOMA */}
+              <Modal
+                transparent
+                visible={languageModalVisible}
+                animationType="fade"
+                onRequestClose={() => setLanguageModalVisible(false)}
+              >
+                <Pressable style={styles.modalOverlay} onPress={() => setLanguageModalVisible(false)}>
+                  <View style={styles.modalContent}>
+                    {LANGUAGES.map((lang) => (
+                      <TouchableOpacity
+                        key={lang}
+                        style={styles.modalItem}
+                        onPress={() => {
+                          setLanguage(lang);
+                          i18n.changeLanguage(lang);
+                          setLanguageModalVisible(false);
+                          saveSettings({ language: lang });
+                        }}
+                        activeOpacity={0.85}
+                      >
+                        <Text style={[styles.modalText, lang === language && { color: C.primary }]}>
+                          {lang}
+                        </Text>
+                        {lang === language && <Icon name="check" size={20} color={C.primary} />}
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                </Pressable>
+              </Modal>
+
+              {/* MODAL DIVISA */}
+              <Modal
+                transparent
+                visible={currencyModalVisible}
+                animationType="fade"
+                onRequestClose={() => setCurrencyModalVisible(false)}
+              >
+                <Pressable style={styles.modalOverlay} onPress={() => setCurrencyModalVisible(false)}>
+                  <View style={styles.modalContent}>
+                    {CURRENCIES.map((cur) => (
+                      <TouchableOpacity
+                        key={cur}
+                        style={styles.modalItem}
+                        onPress={() => {
+                          setCurrency(cur);
+                          setCurrencyModalVisible(false);
+                          saveSettings({ currency: cur });
+                        }}
+                        activeOpacity={0.85}
+                      >
+                        <Text style={[styles.modalText, cur === currency && { color: C.primary }]}>
+                          {cur}
+                        </Text>
+                        {cur === currency && <Icon name="check" size={20} color={C.primary} />}
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                </Pressable>
+              </Modal>
+            </View>
+          </View>
+        ) : (
+          <>
+            <SafeAreaView style={[common.safe, { backgroundColor: C.bg }]}>
+              <View style={styles.header}>
+                {/* si quieres back, descomenta */}
+                {/*
+              <TouchableOpacity
+                onPress={() =>
+                  props.navigation.canGoBack()
+                    ? props.navigation.goBack()
+                    : props.navigation.navigate("HomeNav")
+                }
+                activeOpacity={0.85}
+              >
+                <Icon name="arrow-back-ios-new" size={22} color={C.textMain || "#fff"} />
+              </TouchableOpacity>
+              */}
+                <View style={{ width: 24 }} />
+              </View>
+
+              <ScrollView
+                style={[{ backgroundColor: C.bg }, webScrollFix]}
+                contentContainerStyle={{
+                  paddingBottom: 90 + 40,
+                }}
+                showsVerticalScrollIndicator={false}
+              >
+                <View style={styles.profileContainer}>
+                  <Image source={{ uri: resolveAvatarUri() }} style={styles.avatar} />
+
+                  <Text style={styles.name}>{shownUser?.firstName || "User"}</Text>
+
+                  <View style={styles.walletRow}>
+                    <View style={styles.dot} />
+                    <Text style={styles.walletText}>
+                      {shownUser?.walletAddress
+                        ? shownUser.walletAddress.substring(0, 6) + "..."
+                        : "Sin dirección"}
+                    </Text>
+                    <Icon name="content-copy" size={14} color={C.textMuted} />
+                  </View>
+                </View>
+
+                <Section title={t("profile.sections.account")} styles={styles}>
+                  <Item
+                    icon="person"
+                    label={t("profile.items.editProfile")}
+                    onPress={() =>
+                      props.navigation.navigate("EditarPerfil", {
+                        user:
+                          shownUser ?? {
+                            id: "",
+                            firstName: "",
+                            lastName: "",
+                            birthDate: "",
+                            userImage: "",
+                            email: "",
+                            dni: "",
+                            password: "",
+                            favoriteId: "",
+                          },
+                      })
+                    }
+                    C={C}
+                    styles={styles}
+                  />
+
+                  <Item icon="dark-mode" label={t("profile.items.lightDark")} C={C} styles={styles}>
+                    <Switch
+                      value={!!isDarkMode}
+                      onValueChange={(val) => {
+                        setIsDarkMode(val);
+                        saveSettings({ theme: val });
+                      }}
+                      trackColor={{ false: "#cbd5e1", true: C.primary }}
+                      thumbColor="#fff"
+                    />
+                  </Item>
+                </Section>
+
+                <Section title={t("profile.sections.security")} styles={styles}>
+                  <Item icon="face" label={t("profile.items.faceId")} C={C} styles={styles}>
+                    <Switch
+                      value={!!faceId}
+                      onValueChange={(val) => {
+                        setFaceId(val);
+                        saveSettings({ faceId: val });
+                      }}
+                      trackColor={{ false: "#cbd5e1", true: C.primary }}
+                      thumbColor="#fff"
+                    />
+                  </Item>
+
+                  <Item
+                    icon="shield"
+                    label={t("profile.items.twoFA")}
+                    rightText={t("profile.status.enabled")}
+                    C={C}
+                    styles={styles}
+                  />
+
+                  <Item
+                    icon="badge"
+                    label={t("profile.items.kyc")}
+                    subLabel={t("profile.status.kycLevel2")}
+                    C={C}
+                    styles={styles}
+                  />
+                </Section>
+
+                <Section title={t("profile.sections.preferences")} styles={styles}>
+                  <Item
+                    icon="notifications"
+                    label={t("profile.items.notifications")}
+                    C={C}
+                    styles={styles}
+                  />
+
+                  <Item
+                    icon="currency-exchange"
+                    label={t("profile.items.localCurrency")}
+                    rightText={currency}
+                    onPress={() => setCurrencyModalVisible(true)}
+                    C={C}
+                    styles={styles}
+                  />
+
+                  <Item
+                    icon="language"
+                    label={t("profile.items.language")}
+                    rightText={language}
+                    onPress={() => setLanguageModalVisible(true)}
+                    C={C}
+                    styles={styles}
+                  />
+                </Section>
+
+                <TouchableOpacity
+                  style={styles.logoutBtn}
+                  onPress={async () => {
+                    await logoutUser();
+                    props.navigation.replace("InicioSesion");
+                  }}
+                  activeOpacity={0.85}
+                >
+                  <Icon name="logout" size={20} color={C.danger} />
+                  <Text style={styles.logoutText}>{t("profile.items.logout")}</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={styles.deleteBtn}
+                  onPress={handleDeleteAccount}
+                  activeOpacity={0.85}
+                >
+                  <Icon name="delete-forever" size={20} color={C.danger} />
+                  <Text style={styles.deleteText}>Eliminar Cuenta</Text>
+                </TouchableOpacity>
+              </ScrollView>
+
+              <Nav />
+            </SafeAreaView>
+          </>
+        )}
+
+        {isWeb && (
+          <View style={[styles.navWrap, styles.navWrapWeb]}>
+            <Nav />
+          </View>
+        )}
       </View>
-
-      <ScrollView
-        style={[{ backgroundColor: C.bg }, webScrollFix]}
-        contentContainerStyle={{ paddingBottom: 120 }}
-        showsVerticalScrollIndicator={false}
-      >
-        <View style={styles.profileContainer}>
-          <Image source={{ uri: resolveAvatarUri() }} style={styles.avatar} />
-
-          <Text style={styles.name}>{shownUser?.firstName || "User"}</Text>
-
-          <View style={styles.walletRow}>
-            <View style={styles.dot} />
-            <Text style={styles.walletText}>
-              {shownUser?.walletAddress
-                ? shownUser.walletAddress.substring(0, 6) + "..."
-                : "Sin dirección"}
-            </Text>
-            <Icon name="content-copy" size={14} color={C.textMuted} />
-          </View>
-        </View>
-
-        <Section title={t("profile.sections.account")} styles={styles}>
-          <Item
-            icon="person"
-            label={t("profile.items.editProfile")}
-            onPress={() =>
-              props.navigation.navigate("EditarPerfil", {
-                user:
-                  shownUser ?? {
-                    id: "",
-                    firstName: "",
-                    lastName: "",
-                    birthDate: "",
-                    userImage: "",
-                    email: "",
-                    dni: "",
-                    password: "",
-                    favoriteId: "",
-                  },
-              })
-            }
-            C={C}
-            styles={styles}
-          />
-
-          <Item icon="dark-mode" label={t("profile.items.lightDark")} C={C} styles={styles}>
-            <Switch
-              value={!!isDarkMode}
-              onValueChange={(val) => {
-                setIsDarkMode(val);
-                saveSettings({ theme: val });
-              }}
-              trackColor={{ false: "#cbd5e1", true: C.primary }}
-              thumbColor="#fff"
-            />
-          </Item>
-        </Section>
-
-        <Section title={t("profile.sections.security")} styles={styles}>
-          <Item icon="face" label={t("profile.items.faceId")} C={C} styles={styles}>
-            <Switch
-              value={!!faceId}
-              onValueChange={(val) => {
-                setFaceId(val);
-                saveSettings({ faceId: val });
-              }}
-              trackColor={{ false: "#cbd5e1", true: C.primary }}
-              thumbColor="#fff"
-            />
-          </Item>
-
-          <Item
-            icon="shield"
-            label={t("profile.items.twoFA")}
-            rightText={t("profile.status.enabled")}
-            C={C}
-            styles={styles}
-          />
-
-          <Item
-            icon="badge"
-            label={t("profile.items.kyc")}
-            subLabel={t("profile.status.kycLevel2")}
-            C={C}
-            styles={styles}
-          />
-        </Section>
-
-        <Section title={t("profile.sections.preferences")} styles={styles}>
-          <Item icon="notifications" label={t("profile.items.notifications")} C={C} styles={styles} />
-
-          <Item
-            icon="currency-exchange"
-            label={t("profile.items.localCurrency")}
-            rightText={currency}
-            onPress={() => setCurrencyModalVisible(true)}
-            C={C}
-            styles={styles}
-          />
-
-          <Item
-            icon="language"
-            label={t("profile.items.language")}
-            rightText={language}
-            onPress={() => setLanguageModalVisible(true)}
-            C={C}
-            styles={styles}
-          />
-        </Section>
-
-        <TouchableOpacity
-          style={styles.logoutBtn}
-          onPress={async () => {
-            await logoutUser();
-            props.navigation.replace("InicioSesion");
-          }}
-          activeOpacity={0.85}
-        >
-          <Icon name="logout" size={20} color={C.danger} />
-          <Text style={styles.logoutText}>{t("profile.items.logout")}</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity style={styles.deleteBtn} onPress={handleDeleteAccount} activeOpacity={0.85}>
-          <Icon name="delete-forever" size={20} color={C.danger} />
-          <Text style={styles.deleteText}>Eliminar Cuenta</Text>
-        </TouchableOpacity>
-      </ScrollView>
-
-      {/* MODAL IDIOMA */}
-      <Modal
-        transparent
-        visible={languageModalVisible}
-        animationType="fade"
-        onRequestClose={() => setLanguageModalVisible(false)}
-      >
-        <Pressable style={styles.modalOverlay} onPress={() => setLanguageModalVisible(false)}>
-          <View style={styles.modalContent}>
-            {LANGUAGES.map((lang) => (
-              <TouchableOpacity
-                key={lang}
-                style={styles.modalItem}
-                onPress={() => {
-                  setLanguage(lang);
-                  i18n.changeLanguage(lang);
-                  setLanguageModalVisible(false);
-                  saveSettings({ language: lang });
-                }}
-                activeOpacity={0.85}
-              >
-                <Text style={[styles.modalText, lang === language && { color: C.primary }]}>
-                  {lang}
-                </Text>
-                {lang === language && <Icon name="check" size={20} color={C.primary} />}
-              </TouchableOpacity>
-            ))}
-          </View>
-        </Pressable>
-      </Modal>
-
-      {/* MODAL DIVISA */}
-      <Modal
-        transparent
-        visible={currencyModalVisible}
-        animationType="fade"
-        onRequestClose={() => setCurrencyModalVisible(false)}
-      >
-        <Pressable style={styles.modalOverlay} onPress={() => setCurrencyModalVisible(false)}>
-          <View style={styles.modalContent}>
-            {CURRENCIES.map((cur) => (
-              <TouchableOpacity
-                key={cur}
-                style={styles.modalItem}
-                onPress={() => {
-                  setCurrency(cur);
-                  setCurrencyModalVisible(false);
-                  saveSettings({ currency: cur });
-                }}
-                activeOpacity={0.85}
-              >
-                <Text style={[styles.modalText, cur === currency && { color: C.primary }]}>
-                  {cur}
-                </Text>
-                {cur === currency && <Icon name="check" size={20} color={C.primary} />}
-              </TouchableOpacity>
-            ))}
-          </View>
-        </Pressable>
-      </Modal>
-
-      <Nav />
-    </SafeAreaView>
+    </View>
   );
+
 }
 
 const Section = ({ title, children, styles }) => (
@@ -426,6 +607,34 @@ const Item = ({ icon, label, subLabel, rightText, children, onPress, C, styles }
 
 const makeStyles = (C) =>
   StyleSheet.create({
+    safeWeb: {
+      height: "100vh",
+      overflow: "hidden",
+    },
+    page: {
+      flex: 1,
+      position: "relative",
+    },
+    webScroll: {
+      position: "absolute",
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 90,
+      overflowY: "auto",
+      overflowX: "hidden",
+    },
+    navWrap: {
+      left: 0,
+      right: 0,
+      bottom: 0,
+      height: 90,
+      zIndex: 9999,
+    },
+    navWrapWeb: {
+      position: "fixed",
+    },
+
     header: {
       flexDirection: "row",
       alignItems: "center",
