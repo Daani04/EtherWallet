@@ -323,8 +323,11 @@ const InicioSesion = (props) => {
             <ScrollView
               contentContainerStyle={common.container || styles.scrollContainer}
               bounces={false}
+              showsVerticalScrollIndicator={false}
+              showsHorizontalScrollIndicator={false}
             >
-              {renderContent()}            
+
+              {renderContent()}
             </ScrollView>
           </KeyboardAvoidingView>
         )}
@@ -337,15 +340,6 @@ const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: COLORS?.backgroundDark || "#102217" },
   scrollContainer: { flexGrow: 1 },
 
-  // ✅ WEB scroll como tú querías
-  safeWeb: {
-    height: "100vh",
-    overflow: "hidden",
-  },
-  page: {
-    flex: 1,
-    position: "relative",
-  },
   webScroll: {
     position: "absolute",
     top: 0,
@@ -354,6 +348,18 @@ const styles = StyleSheet.create({
     bottom: 0,
     overflowY: "auto",
     overflowX: "hidden",
+
+    scrollbarWidth: "none",
+    msOverflowStyle: "none",
+  },
+
+  safeWeb: {
+    height: "100vh",
+    overflow: "hidden",
+  },
+  page: {
+    flex: 1,
+    position: "relative",
   },
   rootWeb: {
     justifyContent: "flex-start",
