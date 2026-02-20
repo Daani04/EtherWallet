@@ -27,6 +27,9 @@ import { useTranslation } from "react-i18next";
 import common from "../../styles/common";
 import theme from "../../styles/theme";
 
+// ✅ AÑADIDO: importa tu modal (ajusta la ruta)
+import LegalModal from "./LegalModal";
+
 const COLORS = theme?.colors || theme?.COLORS || theme;
 const isWeb = Platform.OS === "web";
 
@@ -52,6 +55,65 @@ const RegistroUsuario = (props) => {
   const [userImageBase64, setUserImageBase64] = useState("");
   const [userImagePreview, setUserImagePreview] = useState("");
   const webFileInputRef = useRef(null);
+
+  // ✅ YA LOS TIENES: estado del modal
+  const [legalOpen, setLegalOpen] = useState(false);
+  const [legalType, setLegalType] = useState(null);
+
+  // ✅ AÑADIDO: textos del modal (puedes moverlos a i18n cuando quieras)
+  const TERMS_TEXT = `
+Última actualización: 20/02/2026
+
+1. Uso del servicio
+- Debes ser mayor de edad y facilitar información veraz.
+- No uses el servicio para actividades ilícitas o dañinas.
+
+2. Cuenta y seguridad
+- Eres responsable de mantener la confidencialidad de tus credenciales.
+- Podemos suspender cuentas por uso indebido.
+
+3. Limitación de responsabilidad
+- El servicio se ofrece "tal cual" y puede contener errores.
+- En la medida permitida por la ley, no nos hacemos responsables de daños indirectos.
+
+4. Contacto
+- Para soporte o consultas: soporte@tuapp.com
+`.trim();
+
+  const PRIVACY_TEXT = `
+Última actualización: 20/02/2026
+
+1. Datos que recopilamos
+- Identificación (nombre, apellidos, DNI) y contacto (email).
+- Fecha de nacimiento (para verificación de edad).
+- Imagen de perfil (si la aportas).
+- Dirección de wallet (si aplica).
+
+2. Finalidad
+- Crear y gestionar tu cuenta.
+- Prevenir fraude y mejorar seguridad.
+- Comunicaciones esenciales del servicio.
+
+3. Conservación
+- Conservamos los datos el tiempo necesario para la prestación del servicio y obligaciones legales.
+
+4. Tus derechos
+- Acceso, rectificación, supresión, oposición y portabilidad, según normativa aplicable.
+
+5. Contacto
+- privacidad@tuapp.com
+`.trim();
+
+  // ✅ AÑADIDO: helpers abrir/cerrar
+  const openLegal = (type) => {
+    setLegalType(type);
+    setLegalOpen(true);
+  };
+
+  const closeLegal = () => {
+    setLegalOpen(false);
+    setLegalType(null);
+  };
 
   const pickImage = async () => {
     try {
@@ -145,7 +207,7 @@ const RegistroUsuario = (props) => {
     // ✅ Validación de mayoría de edad
     if (!isAdult(fNac)) {
       Alert.alert(
-        t("register.alerts.errorTitle"), 
+        t("register.alerts.errorTitle"),
         "Debes ser mayor de edad (18 años) para registrarte."
       );
       return;
@@ -404,25 +466,36 @@ const RegistroUsuario = (props) => {
                   </View>
                 )}
 
-                <TouchableOpacity
-                  style={styles.termsRow}
-                  activeOpacity={0.8}
-                  onPress={() => setAcceptedTerms((v) => !v)}
-                >
-                  <View style={[styles.checkbox, acceptedTerms && styles.checkboxChecked]}>
-                    {acceptedTerms && (
-                      <MaterialIcons name="check" size={16} color={COLORS.bg || COLORS.backgroundDark} />
-                    )}
-                  </View>
+                {/* ✅ MODIFICADO: solo la parte de términos para que los links abran el modal */}
+                <View style={styles.termsRow}>
+                  <Pressable onPress={() => setAcceptedTerms((v) => !v)} style={{ paddingTop: 2 }}>
+                    <View style={[styles.checkbox, acceptedTerms && styles.checkboxChecked]}>
+                      {acceptedTerms && (
+                        <MaterialIcons name="check" size={16} color={COLORS.bg || COLORS.backgroundDark} />
+                      )}
+                    </View>
+                  </Pressable>
 
                   <Text style={styles.termsText}>
                     {t("register.terms.textPrefix")}{" "}
-                    <Text style={styles.termsLink}>{t("register.terms.termsOfService")}</Text>{" "}
+                    <Text
+                      style={styles.termsLink}
+                      onPress={() => openLegal("terms")}
+                      suppressHighlighting
+                    >
+                      {t("register.terms.termsOfService")}
+                    </Text>{" "}
                     {t("register.terms.and")}{" "}
-                    <Text style={styles.termsLink}>{t("register.terms.privacyPolicy")}</Text>
+                    <Text
+                      style={styles.termsLink}
+                      onPress={() => openLegal("privacy")}
+                      suppressHighlighting
+                    >
+                      {t("register.terms.privacyPolicy")}
+                    </Text>
                     {t("register.terms.textSuffix")}
                   </Text>
-                </TouchableOpacity>
+                </View>
 
                 <TouchableOpacity style={styles.primaryBtn} activeOpacity={0.85} onPress={handleRegister}>
                   <Text style={styles.primaryBtnText}>{t("register.buttons.register")}</Text>
@@ -439,6 +512,26 @@ const RegistroUsuario = (props) => {
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
+
+      <LegalModal
+        visible={legalOpen}
+        onClose={closeLegal}
+        title={
+          legalType === "terms"
+            ? t("register.terms.termsOfService")
+            : legalType === "privacy"
+              ? t("register.terms.privacyPolicy")
+              : ""
+        }
+        content={
+          legalType === "terms"
+            ? TERMS_TEXT
+            : legalType === "privacy"
+              ? PRIVACY_TEXT
+              : ""
+        }
+        colors={COLORS}
+      />
     </SafeAreaView>
   );
 };
@@ -504,6 +597,8 @@ const styles = StyleSheet.create({
   avatarImg: { width: 52, height: 52 },
   avatarTitle: { color: COLORS.textMain || "#fff", fontWeight: "800" },
   avatarSub: { color: COLORS.textMuted, marginTop: 2, fontSize: 12 },
+
+  // ✅ SIN CAMBIOS de estilo (solo quitamos el TouchableOpacity por View arriba)
   termsRow: { flexDirection: "row", alignItems: "flex-start", gap: 12, marginTop: 32 },
   checkbox: {
     width: 20,
@@ -519,6 +614,7 @@ const styles = StyleSheet.create({
   checkboxChecked: { backgroundColor: COLORS.primary, borderColor: COLORS.primary },
   termsText: { flex: 1, color: COLORS.textMuted, fontSize: 14, lineHeight: 20 },
   termsLink: { color: COLORS.primary, fontWeight: "700" },
+
   primaryBtn: {
     backgroundColor: COLORS.primary,
     height: 56,
