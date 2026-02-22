@@ -104,6 +104,21 @@
       "birthDate": "Fecha nacimiento (birthDate)",
       "newPassword": "Nueva contraseña (opcional)"
     },
+    "dateModal": {
+      "title": "Fecha de nacimiento",
+      "labels": {
+        "day": "Día",
+        "month": "Mes",
+        "year": "Año"
+      },
+      "actions": {
+        "apply": "Aplicar"
+      },
+      "alerts": {
+        "invalidDateTitle": "Fecha inválida",
+        "invalidDateMessage": "Usa un formato válido dd/mm/yyyy."
+      }
+    },
     "placeholders": {
       "imageUrl": "https://...",
       "firstName": "Nombre",
@@ -114,10 +129,12 @@
     },
     "buttons": {
       "save": "Guardar cambios",
-      "cancel": "Cancelar"
+      "cancel": "Cancelar",
+      "changePhoto": "Cambiar foto"
     },
     "actions": {
-      "save": "Guardar cambios"
+      "save": "Guardar cambios",
+      "openDateModal": "Abrir"
     },
     "alerts": {
       "errorTitle": "Error",
@@ -125,7 +142,10 @@
       "missingId": "No tengo el id del usuario (falta user.id).",
       "fillFields": "Rellena firstName, lastName, birthDate y userImage.",
       "updated": "Perfil actualizado",
-      "serverError": "No se pudo conectar con el servidor"
+      "serverError": "No se pudo conectar con el servidor",
+      "permissionDeniedTitle": "Permiso denegado",
+      "permissionDeniedMsg": "Necesito permiso para acceder a tus fotos.",
+      "imageLoadError": "No se pudo cargar la imagen."
     },
     "errors": {
       "missingUserId": "No tengo el id del usuario (falta user.id).",
@@ -259,6 +279,23 @@
     }
   },
   "profile": {
+    "fallbackUser": "Usuario",
+    "privateKey": {
+      "prefix": "PK:",
+      "noKey": "Sin clave"
+    },
+    "deleteAccount": {
+      "button": "Eliminar cuenta",
+      "title": "Eliminar",
+      "confirmMessage": "¿Seguro?",
+      "actions": {
+        "no": "No",
+        "yes": "Sí"
+      },
+      "alerts": {
+        "connectionError": "No se pudo conectar"
+      }
+    },
     "settingsTitle": "Configuración",
     "versionPrefix": "Versión",
     "sections": {

@@ -104,6 +104,21 @@
       "birthDate": "Data de naixement (birthDate)",
       "newPassword": "Nova contrasenya (opcional)"
     },
+    "dateModal": {
+      "title": "Data de naixement",
+      "labels": {
+        "day": "Dia",
+        "month": "Mes",
+        "year": "Any"
+      },
+      "actions": {
+        "apply": "Aplicar"
+      },
+      "alerts": {
+        "invalidDateTitle": "Data no vàlida",
+        "invalidDateMessage": "Usa un format vàlid dd/mm/aaaa."
+      }
+    },
     "placeholders": {
       "imageUrl": "https://...",
       "firstName": "Nom",
@@ -114,10 +129,12 @@
     },
     "buttons": {
       "save": "Guardar canvis",
-      "cancel": "Cancel·lar"
+      "cancel": "Cancel·lar",
+      "changePhoto": "Canviar foto"
     },
     "actions": {
-      "save": "Guardar canvis"
+      "save": "Guardar canvis",
+      "openDateModal": "Obrir"
     },
     "alerts": {
       "errorTitle": "Error",
@@ -125,7 +142,10 @@
       "missingId": "No tinc l'id de l'usuari (falta user.id).",
       "fillFields": "Ompli firstName, lastName, birthDate i userImage.",
       "updated": "Perfil actualitzat",
-      "serverError": "No s'ha pogut connectar amb el servidor"
+      "serverError": "No s'ha pogut connectar amb el servidor",
+      "permissionDeniedTitle": "Permís denegat",
+      "permissionDeniedMsg": "Necessite permís per a accedir a les teues fotos.",
+      "imageLoadError": "No s'ha pogut carregar la imatge."
     },
     "errors": {
       "missingUserId": "No tinc l'id de l'usuari (falta user.id).",
@@ -259,6 +279,23 @@
     }
   },
   "profile": {
+    "fallbackUser": "Usuari",
+    "privateKey": {
+      "prefix": "PK:",
+      "noKey": "Sense clau"
+    },
+    "deleteAccount": {
+      "button": "Eliminar compte",
+      "title": "Eliminar",
+      "confirmMessage": "Segur?",
+      "actions": {
+        "no": "No",
+        "yes": "Sí"
+      },
+      "alerts": {
+        "connectionError": "No s'ha pogut connectar"
+      }
+    },
     "settingsTitle": "Configuració",
     "versionPrefix": "Versió",
     "sections": {

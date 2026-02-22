@@ -107,13 +107,20 @@ export default function PerfilUsuario(props) {
           });
         }
       } catch (e) {
-        Alert.alert("Error", "No se pudo conectar");
+        Alert.alert(t("common.error"), t("profile.deleteAccount.alerts.connectionError"));
       }
     };
     if (isWeb) {
-      if (window.confirm("¿Seguro?")) await doDelete();
+      if (window.confirm(t("profile.deleteAccount.confirmMessage"))) await doDelete();
     } else {
-      Alert.alert("Eliminar", "¿Seguro?", [{ text: "No" }, { text: "Sí", onPress: doDelete }]);
+      Alert.alert(
+        t("profile.deleteAccount.title"),
+        t("profile.deleteAccount.confirmMessage"),
+        [
+          { text: t("profile.deleteAccount.actions.no") },
+          { text: t("profile.deleteAccount.actions.yes"), onPress: doDelete }
+        ]
+      );
     }
   };
 
@@ -122,22 +129,22 @@ export default function PerfilUsuario(props) {
   const renderModals = () => (
     <>
       {/* MODAL IDIOMA */}
-      <Modal 
-        transparent 
-        visible={languageModalVisible} 
-        animationType="fade" 
+      <Modal
+        transparent
+        visible={languageModalVisible}
+        animationType="fade"
         onRequestClose={() => setLanguageModalVisible(false)}
       >
-        <Pressable 
-          style={styles.modalOverlay} 
+        <Pressable
+          style={styles.modalOverlay}
           onPress={() => setLanguageModalVisible(false)}
         >
           <View style={styles.modalContent}>
             <ScrollView showsVerticalScrollIndicator={false}>
               {LANGUAGES.map((lang) => (
-                <TouchableOpacity 
-                  key={lang} 
-                  style={styles.modalItem} 
+                <TouchableOpacity
+                  key={lang}
+                  style={styles.modalItem}
                   onPress={() => {
                     setLanguage(lang);
                     i18n.changeLanguage(lang.toLowerCase());
@@ -157,22 +164,22 @@ export default function PerfilUsuario(props) {
       </Modal>
 
       {/* MODAL DIVISA */}
-      <Modal 
-        transparent 
-        visible={currencyModalVisible} 
-        animationType="fade" 
+      <Modal
+        transparent
+        visible={currencyModalVisible}
+        animationType="fade"
         onRequestClose={() => setCurrencyModalVisible(false)}
       >
-        <Pressable 
-          style={styles.modalOverlay} 
+        <Pressable
+          style={styles.modalOverlay}
           onPress={() => setCurrencyModalVisible(false)}
         >
           <View style={styles.modalContent}>
             <ScrollView showsVerticalScrollIndicator={false}>
               {CURRENCIES.map((cur) => (
-                <TouchableOpacity 
-                  key={cur} 
-                  style={styles.modalItem} 
+                <TouchableOpacity
+                  key={cur}
+                  style={styles.modalItem}
                   onPress={() => {
                     setCurrency(cur);
                     setCurrencyModalVisible(false);
@@ -196,48 +203,48 @@ export default function PerfilUsuario(props) {
     <>
       <View style={styles.profileContainer}>
         <Image source={{ uri: resolveAvatarUri() }} style={styles.avatar} />
-        <Text style={styles.name}>{shownUser?.firstName || "User"}</Text>
-        
+        <Text style={styles.name}>{shownUser?.firstName || t("profile.fallbackUser")}</Text>
+
         {/* ✅ Fila de la Private Key sin el punto rojo */}
-        <TouchableOpacity 
-          style={styles.walletRow} 
-          onPress={() => copyToClipboard(shownUser?.privateKey)} 
+        <TouchableOpacity
+          style={styles.walletRow}
+          onPress={() => copyToClipboard(shownUser?.privateKey)}
           activeOpacity={0.7}
         >
           <Text style={styles.walletText}>
-            {shownUser?.privateKey 
-              ? "PK: " + shownUser.privateKey.substring(0, 10) + "..." 
-              : "Sin clave"}
+            {shownUser?.privateKey
+              ? `${t("profile.privateKey.prefix")} ${shownUser.privateKey.substring(0, 10)}...`
+              : t("profile.privateKey.noKey")}
           </Text>
           <Icon name="content-copy" size={14} color={C.textMuted} style={styles.copyIcon} />
         </TouchableOpacity>
       </View>
 
       <Section title={t("profile.sections.account")} styles={styles}>
-        <Item 
-          icon="person" 
-          label={t("profile.items.editProfile")} 
-          onPress={() => props.navigation.navigate("EditarPerfil", { user: shownUser })} 
-          C={C} 
-          styles={styles} 
+        <Item
+          icon="person"
+          label={t("profile.items.editProfile")}
+          onPress={() => props.navigation.navigate("EditarPerfil", { user: shownUser })}
+          C={C}
+          styles={styles}
         />
         <Item icon="dark-mode" label={t("profile.items.lightDark")} C={C} styles={styles}>
-          <Switch 
-            value={!!isDarkMode} 
-            onValueChange={(val) => { setIsDarkMode(val); saveSettings({ theme: val }); }} 
-            trackColor={{ false: "#cbd5e1", true: C.primary }} 
-            thumbColor="#fff" 
+          <Switch
+            value={!!isDarkMode}
+            onValueChange={(val) => { setIsDarkMode(val); saveSettings({ theme: val }); }}
+            trackColor={{ false: "#cbd5e1", true: C.primary }}
+            thumbColor="#fff"
           />
         </Item>
       </Section>
 
       <Section title={t("profile.sections.security")} styles={styles}>
         <Item icon="face" label={t("profile.items.faceId")} C={C} styles={styles}>
-          <Switch 
-            value={!!faceId} 
-            onValueChange={(val) => { setFaceId(val); saveSettings({ faceId: val }); }} 
-            trackColor={{ false: "#cbd5e1", true: C.primary }} 
-            thumbColor="#fff" 
+          <Switch
+            value={!!faceId}
+            onValueChange={(val) => { setFaceId(val); saveSettings({ faceId: val }); }}
+            trackColor={{ false: "#cbd5e1", true: C.primary }}
+            thumbColor="#fff"
           />
         </Item>
         <Item icon="shield" label={t("profile.items.twoFA")} rightText={t("profile.status.enabled")} C={C} styles={styles} />
@@ -248,20 +255,20 @@ export default function PerfilUsuario(props) {
         <Item icon="language" label={t("profile.items.language")} rightText={language} onPress={() => setLanguageModalVisible(true)} C={C} styles={styles} />
       </Section>
 
-      <TouchableOpacity 
-        style={styles.logoutBtn} 
+      <TouchableOpacity
+        style={styles.logoutBtn}
         onPress={async () => { await logoutUser(); props.navigation.replace("InicioSesion"); }}
       >
         <Icon name="logout" size={20} color={C.danger} />
         <Text style={styles.logoutText}>{t("profile.items.logout")}</Text>
       </TouchableOpacity>
 
-      <TouchableOpacity 
-        style={styles.deleteBtn} 
+      <TouchableOpacity
+        style={styles.deleteBtn}
         onPress={handleDeleteAccount}
       >
         <Icon name="delete-forever" size={20} color={C.danger} />
-        <Text style={styles.deleteText}>Eliminar Cuenta</Text>
+        <Text style={styles.deleteText}>{t("profile.deleteAccount.button")}</Text>
       </TouchableOpacity>
     </>
   );
@@ -275,8 +282,8 @@ export default function PerfilUsuario(props) {
           </View>
         ) : (
           <SafeAreaView style={styles.flex1}>
-            <ScrollView 
-              showsVerticalScrollIndicator={false} 
+            <ScrollView
+              showsVerticalScrollIndicator={false}
               contentContainerStyle={styles.scrollPadding}
             >
               {renderProfileContent()}
@@ -303,10 +310,10 @@ const Section = ({ title, children, styles }) => (
 );
 
 const Item = ({ icon, label, subLabel, rightText, children, onPress, C, styles }) => (
-  <TouchableOpacity 
-    style={styles.item} 
-    disabled={!!children} 
-    onPress={onPress} 
+  <TouchableOpacity
+    style={styles.item}
+    disabled={!!children}
+    onPress={onPress}
     activeOpacity={0.85}
   >
     <View style={styles.row}>
@@ -333,166 +340,166 @@ const makeStyles = (C) =>
     scrollPadding: {
       paddingBottom: 100
     },
-    safeWeb: { 
-      height: "100vh", 
-      overflow: "hidden" 
+    safeWeb: {
+      height: "100vh",
+      overflow: "hidden"
     },
-    page: { 
-      flex: 1, 
-      position: "relative" 
+    page: {
+      flex: 1,
+      position: "relative"
     },
-    webScroll: { 
-      position: "absolute", 
-      top: 0, 
-      left: 0, 
-      right: 0, 
-      bottom: 90, 
-      overflowY: "auto" 
+    webScroll: {
+      position: "absolute",
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 90,
+      overflowY: "auto"
     },
-    navWrap: { 
-      left: 0, 
-      right: 0, 
-      bottom: 0, 
-      height: 90, 
-      zIndex: 9999 
+    navWrap: {
+      left: 0,
+      right: 0,
+      bottom: 0,
+      height: 90,
+      zIndex: 9999
     },
-    navWrapWeb: { 
-      position: "fixed" 
+    navWrapWeb: {
+      position: "fixed"
     },
-    profileContainer: { 
-      alignItems: "center", 
-      paddingVertical: 20 
+    profileContainer: {
+      alignItems: "center",
+      paddingVertical: 20
     },
-    avatar: { 
-      width: 90, 
-      height: 90, 
-      borderRadius: 45, 
-      borderWidth: 2, 
-      borderColor: C.primary 
+    avatar: {
+      width: 90,
+      height: 90,
+      borderRadius: 45,
+      borderWidth: 2,
+      borderColor: C.primary
     },
-    name: { 
-      fontSize: 22, 
-      fontWeight: "700", 
-      marginTop: 10, 
-      color: C.textMain 
+    name: {
+      fontSize: 22,
+      fontWeight: "700",
+      marginTop: 10,
+      color: C.textMain
     },
-    walletRow: { 
-      flexDirection: "row", 
-      alignItems: "center", 
-      backgroundColor: C.pillBg, 
-      paddingHorizontal: 16, 
-      paddingVertical: 10, 
-      borderRadius: 24, 
-      marginTop: 10, 
-      borderWidth: 1, 
-      borderColor: C.border 
+    walletRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      backgroundColor: C.pillBg,
+      paddingHorizontal: 16,
+      paddingVertical: 10,
+      borderRadius: 24,
+      marginTop: 10,
+      borderWidth: 1,
+      borderColor: C.border
     },
-    walletText: { 
-      color: C.textMain, 
-      fontSize: 12, 
-      fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace' 
+    walletText: {
+      color: C.textMain,
+      fontSize: 12,
+      fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace'
     },
     copyIcon: {
       marginLeft: 10
     },
-    section: { 
-      paddingHorizontal: 16, 
-      marginTop: 14 
+    section: {
+      paddingHorizontal: 16,
+      marginTop: 14
     },
-    sectionTitle: { 
-      fontSize: 12, 
-      color: C.textMuted, 
-      marginBottom: 8, 
-      textTransform: "uppercase", 
-      fontWeight: "700" 
+    sectionTitle: {
+      fontSize: 12,
+      color: C.textMuted,
+      marginBottom: 8,
+      textTransform: "uppercase",
+      fontWeight: "700"
     },
-    cardBox: { 
-      backgroundColor: C.cardBg, 
-      borderRadius: 20, 
-      overflow: "hidden", 
-      borderWidth: 1, 
-      borderColor: C.border 
+    cardBox: {
+      backgroundColor: C.cardBg,
+      borderRadius: 20,
+      overflow: "hidden",
+      borderWidth: 1,
+      borderColor: C.border
     },
-    row: { 
-      flexDirection: "row", 
-      alignItems: "center" 
+    row: {
+      flexDirection: "row",
+      alignItems: "center"
     },
     marginLeft12: {
       marginLeft: 12
     },
-    item: { 
-      flexDirection: "row", 
-      alignItems: "center", 
-      justifyContent: "space-between", 
-      padding: 16, 
-      borderBottomWidth: 1, 
-      borderColor: C.border 
+    item: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      padding: 16,
+      borderBottomWidth: 1,
+      borderColor: C.border
     },
-    itemText: { 
-      fontSize: 16, 
-      color: C.textMain, 
-      fontWeight: "600" 
+    itemText: {
+      fontSize: 16,
+      color: C.textMain,
+      fontWeight: "600"
     },
-    subLabel: { 
-      fontSize: 12, 
-      color: C.primary, 
-      marginTop: 2, 
-      fontWeight: "700" 
+    subLabel: {
+      fontSize: 12,
+      color: C.primary,
+      marginTop: 2,
+      fontWeight: "700"
     },
-    rightText: { 
-      color: C.textMuted, 
-      marginRight: 6, 
-      fontWeight: "600" 
+    rightText: {
+      color: C.textMuted,
+      marginRight: 6,
+      fontWeight: "600"
     },
-    logoutBtn: { 
-      flexDirection: "row", 
-      justifyContent: "center", 
-      padding: 16, 
-      borderRadius: 16, 
-      margin: 20, 
-      backgroundColor: C.dangerSoft 
+    logoutBtn: {
+      flexDirection: "row",
+      justifyContent: "center",
+      padding: 16,
+      borderRadius: 16,
+      margin: 20,
+      backgroundColor: C.dangerSoft
     },
-    logoutText: { 
-      color: C.danger, 
-      fontWeight: "700" 
+    logoutText: {
+      color: C.danger,
+      fontWeight: "700"
     },
-    deleteBtn: { 
-      flexDirection: "row", 
-      justifyContent: "center", 
-      padding: 16, 
-      borderRadius: 16, 
-      marginHorizontal: 20, 
-      backgroundColor: "rgba(255, 70, 70, 0.10)" 
+    deleteBtn: {
+      flexDirection: "row",
+      justifyContent: "center",
+      padding: 16,
+      borderRadius: 16,
+      marginHorizontal: 20,
+      backgroundColor: "rgba(255, 70, 70, 0.10)"
     },
-    deleteText: { 
-      color: C.danger, 
-      fontWeight: "800" 
+    deleteText: {
+      color: C.danger,
+      fontWeight: "800"
     },
-    modalOverlay: { 
-      flex: 1, 
-      backgroundColor: "rgba(0,0,0,0.35)", 
-      justifyContent: "center", 
-      alignItems: "center" 
+    modalOverlay: {
+      flex: 1,
+      backgroundColor: "rgba(0,0,0,0.35)",
+      justifyContent: "center",
+      alignItems: "center"
     },
-    modalContent: { 
-      backgroundColor: C.modalBg || C.cardBg, 
-      borderRadius: 16, 
-      width: 250, 
-      maxHeight: 400, 
-      padding: 10, 
-      borderWidth: 1, 
-      borderColor: C.border 
+    modalContent: {
+      backgroundColor: C.modalBg || C.cardBg,
+      borderRadius: 16,
+      width: 250,
+      maxHeight: 400,
+      padding: 10,
+      borderWidth: 1,
+      borderColor: C.border
     },
-    modalItem: { 
-      flexDirection: "row", 
-      justifyContent: "space-between", 
-      padding: 15, 
-      borderBottomWidth: 0.5, 
-      borderBottomColor: C.border 
+    modalItem: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      padding: 15,
+      borderBottomWidth: 0.5,
+      borderBottomColor: C.border
     },
-    modalText: { 
-      color: C.textMain, 
-      fontSize: 16, 
-      fontWeight: "600" 
+    modalText: {
+      color: C.textMain,
+      fontSize: 16,
+      fontWeight: "600"
     }
   });

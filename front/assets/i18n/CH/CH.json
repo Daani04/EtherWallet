@@ -91,51 +91,71 @@
       "bank": "银行"
     }
   },
-  "editProfile": {
-    "title": "编辑个人资料",
-    "helpImageUrl": "粘贴图片URL ",
-    "help": {
-      "imageUrl": "粘贴图片URL "
-    },
+"editProfile": {
+  "title": "编辑个人资料",
+  "helpImageUrl": "粘贴图片网址 ",
+  "help": {
+    "imageUrl": "粘贴图片网址 "
+  },
+  "labels": {
+    "image": "图片 (userImage)",
+    "firstName": "名字 (firstName)",
+    "lastName": "姓氏 (lastName)",
+    "birthDate": "出生日期 (birthDate)",
+    "newPassword": "新密码（可选）"
+  },
+  "dateModal": {
+    "title": "出生日期",
     "labels": {
-      "image": "图片 (userImage)",
-      "firstName": "名字 (firstName)",
-      "lastName": "姓氏 (lastName)",
-      "birthDate": "出生日期 (birthDate)",
-      "newPassword": "新密码（可选）"
-    },
-    "placeholders": {
-      "imageUrl": "https://...",
-      "firstName": "名字",
-      "lastName": "姓氏",
-      "birthDate": "dd/mm/yyyy",
-      "passwordOptional": "留空以保留当前密码",
-      "newPassword": "留空以保留当前密码"
-    },
-    "buttons": {
-      "save": "保存更改",
-      "cancel": "取消"
+      "day": "日",
+      "month": "月",
+      "year": "年"
     },
     "actions": {
-      "save": "保存更改"
+      "apply": "应用"
     },
     "alerts": {
-      "errorTitle": "错误",
-      "okTitle": "确定",
-      "missingId": "缺少用户ID (user.id 缺失)。",
-      "fillFields": "请填写 firstName、lastName、birthDate 和 userImage。",
-      "updated": "资料已更新",
-      "serverError": "无法连接服务器"
-    },
-    "errors": {
-      "missingUserId": "缺少用户ID (user.id 缺失)。",
-      "fillAllRequired": "请填写 firstName、lastName、birthDate 和 userImage。",
-      "serverConnection": "无法连接服务器"
-    },
-    "success": {
-      "updated": "资料已更新"
+      "invalidDateTitle": "日期无效",
+      "invalidDateMessage": "请使用有效格式 dd/mm/yyyy。"
     }
   },
+  "placeholders": {
+    "imageUrl": "https://...",
+    "firstName": "名字",
+    "lastName": "姓氏",
+    "birthDate": "dd/mm/yyyy",
+    "passwordOptional": "留空则不修改",
+    "newPassword": "留空则不修改"
+  },
+  "buttons": {
+    "save": "保存更改",
+    "cancel": "取消",
+    "changePhoto": "更换照片"
+  },
+  "actions": {
+    "save": "保存更改",
+    "openDateModal": "打开"
+  },
+  "alerts": {
+    "errorTitle": "错误",
+    "okTitle": "确定",
+    "missingId": "我没有用户ID（缺少 user.id）。",
+    "fillFields": "请填写 firstName、lastName、birthDate 和 userImage。",
+    "updated": "个人资料已更新",
+    "serverError": "无法连接到服务器",
+    "permissionDeniedTitle": "权限被拒绝",
+    "permissionDeniedMsg": "我需要权限才能访问你的照片。",
+    "imageLoadError": "无法加载图片。"
+  },
+  "errors": {
+    "missingUserId": "我没有用户ID（缺少 user.id）。",
+    "fillAllRequired": "请填写 firstName、lastName、birthDate 和 userImage。",
+    "serverConnection": "无法连接到服务器"
+  },
+  "success": {
+    "updated": "个人资料已更新"
+  }
+},
   "home": {
     "searchPlaceholder": "搜索货币...",
     "filters": {
@@ -259,6 +279,23 @@
     }
   },
   "profile": {
+    "fallbackUser": "用户",
+    "privateKey": {
+      "prefix": "PK:",
+      "noKey": "无密钥"
+    },
+    "deleteAccount": {
+      "button": "删除账户",
+      "title": "删除",
+      "confirmMessage": "确定吗？",
+      "actions": {
+        "no": "否",
+        "yes": "是"
+      },
+      "alerts": {
+        "connectionError": "无法连接"
+      }
+    },
     "settingsTitle": "设置",
     "versionPrefix": "版本",
     "sections": {

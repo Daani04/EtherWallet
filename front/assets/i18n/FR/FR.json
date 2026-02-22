@@ -100,36 +100,56 @@
     "labels": {
       "image": "Image (userImage)",
       "firstName": "Prénom (firstName)",
-      "lastName": "Nom (lastName)",
+      "lastName": "Nom de famille (lastName)",
       "birthDate": "Date de naissance (birthDate)",
       "newPassword": "Nouveau mot de passe (optionnel)"
+    },
+    "dateModal": {
+      "title": "Date de naissance",
+      "labels": {
+        "day": "Jour",
+        "month": "Mois",
+        "year": "Année"
+      },
+      "actions": {
+        "apply": "Appliquer"
+      },
+      "alerts": {
+        "invalidDateTitle": "Date invalide",
+        "invalidDateMessage": "Utilisez un format valide jj/mm/aaaa."
+      }
     },
     "placeholders": {
       "imageUrl": "https://...",
       "firstName": "Prénom",
-      "lastName": "Nom",
+      "lastName": "Nom de famille",
       "birthDate": "jj/mm/aaaa",
-      "passwordOptional": "Laissez vide pour conserver l'actuel",
-      "newPassword": "Laissez vide pour conserver l'actuel"
+      "passwordOptional": "Laissez vide pour ne pas modifier",
+      "newPassword": "Laissez vide pour ne pas modifier"
     },
     "buttons": {
       "save": "Enregistrer les modifications",
-      "cancel": "Annuler"
+      "cancel": "Annuler",
+      "changePhoto": "Changer la photo"
     },
     "actions": {
-      "save": "Enregistrer les modifications"
+      "save": "Enregistrer les modifications",
+      "openDateModal": "Ouvrir"
     },
     "alerts": {
       "errorTitle": "Erreur",
       "okTitle": "OK",
-      "missingId": "Je n'ai pas l'identifiant utilisateur (user.id manquant).",
-      "fillFields": "Renseignez firstName, lastName, birthDate et userImage.",
+      "missingId": "Je n'ai pas l'identifiant de l'utilisateur (user.id manquant).",
+      "fillFields": "Remplissez firstName, lastName, birthDate et userImage.",
       "updated": "Profil mis à jour",
-      "serverError": "Impossible de se connecter au serveur"
+      "serverError": "Impossible de se connecter au serveur",
+      "permissionDeniedTitle": "Permission refusée",
+      "permissionDeniedMsg": "J'ai besoin de l'autorisation pour accéder à vos photos.",
+      "imageLoadError": "Impossible de charger l'image."
     },
     "errors": {
-      "missingUserId": "Je n'ai pas l'identifiant utilisateur (user.id manquant).",
-      "fillAllRequired": "Renseignez firstName, lastName, birthDate et userImage.",
+      "missingUserId": "Je n'ai pas l'identifiant de l'utilisateur (user.id manquant).",
+      "fillAllRequired": "Remplissez firstName, lastName, birthDate et userImage.",
       "serverConnection": "Impossible de se connecter au serveur"
     },
     "success": {
@@ -259,6 +279,23 @@
     }
   },
   "profile": {
+    "fallbackUser": "Utilisateur",
+    "privateKey": {
+      "prefix": "PK :",
+      "noKey": "Pas de clé"
+    },
+    "deleteAccount": {
+      "button": "Supprimer le compte",
+      "title": "Supprimer",
+      "confirmMessage": "Êtes-vous sûr ?",
+      "actions": {
+        "no": "Non",
+        "yes": "Oui"
+      },
+      "alerts": {
+        "connectionError": "Impossible de se connecter"
+      }
+    },
     "settingsTitle": "Paramètres",
     "versionPrefix": "Version",
     "sections": {

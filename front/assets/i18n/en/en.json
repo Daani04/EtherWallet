@@ -92,50 +92,70 @@
     }
   },
   "editProfile": {
-    "title": "Edit profile",
-    "helpImageUrl": "Paste an image URL ",
-    "help": {
-      "imageUrl": "Paste an image URL "
-    },
+  "title": "Edit profile",
+  "helpImageUrl": "Paste an image URL ",
+  "help": {
+    "imageUrl": "Paste an image URL "
+  },
+  "labels": {
+    "image": "Image (userImage)",
+    "firstName": "First name (firstName)",
+    "lastName": "Last name (lastName)",
+    "birthDate": "Birth date (birthDate)",
+    "newPassword": "New password (optional)"
+  },
+  "dateModal": {
+    "title": "Birth date",
     "labels": {
-      "image": "Image (userImage)",
-      "firstName": "First name (firstName)",
-      "lastName": "Last name (lastName)",
-      "birthDate": "Birth date (birthDate)",
-      "newPassword": "New password (optional)"
-    },
-    "placeholders": {
-      "imageUrl": "https://...",
-      "firstName": "First name",
-      "lastName": "Last name",
-      "birthDate": "dd/mm/yyyy",
-      "passwordOptional": "Leave empty to keep current",
-      "newPassword": "Leave empty to keep current"
-    },
-    "buttons": {
-      "save": "Save changes",
-      "cancel": "Cancel"
+      "day": "Day",
+      "month": "Month",
+      "year": "Year"
     },
     "actions": {
-      "save": "Save changes"
+      "apply": "Apply"
     },
     "alerts": {
-      "errorTitle": "Error",
-      "okTitle": "OK",
-      "missingId": "I don't have the user id (missing user.id).",
-      "fillFields": "Fill firstName, lastName, birthDate and userImage.",
-      "updated": "Profile updated",
-      "serverError": "Could not connect to the server"
-    },
-    "errors": {
-      "missingUserId": "I don't have the user id (missing user.id).",
-      "fillAllRequired": "Fill firstName, lastName, birthDate and userImage.",
-      "serverConnection": "Could not connect to the server"
-    },
-    "success": {
-      "updated": "Profile updated"
+      "invalidDateTitle": "Invalid date",
+      "invalidDateMessage": "Use a valid format dd/mm/yyyy."
     }
   },
+  "placeholders": {
+    "imageUrl": "https://...",
+    "firstName": "First name",
+    "lastName": "Last name",
+    "birthDate": "dd/mm/yyyy",
+    "passwordOptional": "Leave empty to keep it unchanged",
+    "newPassword": "Leave empty to keep it unchanged"
+  },
+  "buttons": {
+    "save": "Save changes",
+    "cancel": "Cancel",
+    "changePhoto": "Change photo"
+  },
+  "actions": {
+    "save": "Save changes",
+    "openDateModal": "Open"
+  },
+  "alerts": {
+    "errorTitle": "Error",
+    "okTitle": "OK",
+    "missingId": "I don't have the user ID (missing user.id).",
+    "fillFields": "Fill in firstName, lastName, birthDate and userImage.",
+    "updated": "Profile updated",
+    "serverError": "Could not connect to the server",
+    "permissionDeniedTitle": "Permission denied",
+    "permissionDeniedMsg": "I need permission to access your photos.",
+    "imageLoadError": "Could not load the image."
+  },
+  "errors": {
+    "missingUserId": "I don't have the user ID (missing user.id).",
+    "fillAllRequired": "Fill in firstName, lastName, birthDate and userImage.",
+    "serverConnection": "Could not connect to the server"
+  },
+  "success": {
+    "updated": "Profile updated"
+  }
+},
   "home": {
     "searchPlaceholder": "Search coin...",
     "filters": {
@@ -259,6 +279,23 @@
     }
   },
   "profile": {
+    "fallbackUser": "User",
+    "privateKey": {
+      "prefix": "PK:",
+      "noKey": "No key"
+    },
+    "deleteAccount": {
+      "button": "Delete account",
+      "title": "Delete",
+      "confirmMessage": "Are you sure?",
+      "actions": {
+        "no": "No",
+        "yes": "Yes"
+      },
+      "alerts": {
+        "connectionError": "Could not connect"
+      }
+    },
     "settingsTitle": "Settings",
     "versionPrefix": "Version",
     "sections": {

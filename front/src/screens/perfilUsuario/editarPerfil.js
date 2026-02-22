@@ -17,15 +17,6 @@ import * as ImagePicker from "expo-image-picker";
 import { useTranslation } from "react-i18next";
 import { useSettings } from "../../context/SettingsContext";
 
-const COLORS = {
-  primary: "#2bee79",
-  bg: "#0d1a12",
-  card: "rgba(255, 255, 255, 0.08)",
-  border: "rgba(255, 255, 255, 0.15)",
-  white: "#ffffff",
-  muted: "rgba(255, 255, 255, 0.6)",
-  danger: "#ff4444",
-};
 const isWeb = Platform.OS === "web";
 
 
@@ -96,7 +87,10 @@ export default function EditarPerfil({ navigation, route }) {
   const applyDate = () => {
     const value = `${pad2(dd)}/${pad2(mm)}/${yyyy}`;
     if (!isValidDateStr(value)) {
-      Alert.alert("Fecha inválida", "Usa un formato válido dd/mm/yyyy.");
+      Alert.alert(
+  t("editProfile.dateModal.alerts.invalidDateTitle"),
+  t("editProfile.dateModal.alerts.invalidDateMessage")
+);
       return;
     }
     setBirthDate(value);
@@ -108,7 +102,10 @@ export default function EditarPerfil({ navigation, route }) {
       if (Platform.OS !== "web") {
         const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
         if (status !== "granted") {
-          Alert.alert("Permiso denegado", "Necesito permiso para acceder a tus fotos.");
+          Alert.alert(
+  t("editProfile.alerts.permissionDeniedTitle"),
+  t("editProfile.alerts.permissionDeniedMsg")
+);
           return;
         }
       }
@@ -133,7 +130,7 @@ export default function EditarPerfil({ navigation, route }) {
       }
     } catch (e) {
       console.log("PICK IMAGE ERROR", e);
-      Alert.alert("Error", "No se pudo cargar la imagen.");
+      Alert.alert(t("common.error"), t("editProfile.alerts.imageLoadError"));
     }
   };
 
@@ -195,7 +192,7 @@ export default function EditarPerfil({ navigation, route }) {
               <View style={styles.avatarBox}>
                 <Image source={{ uri: userImage }} style={styles.avatar} />
                 <TouchableOpacity style={styles.pickBtn} onPress={pickImage} activeOpacity={0.85}>
-                  <Text style={styles.pickBtnText}>Cambiar foto</Text>
+                  <Text style={styles.pickBtnText}>{t("editProfile.buttons.changePhoto")}</Text>
                 </TouchableOpacity>
                 <Text style={styles.help}>{t("editProfile.help.imageUrl")}</Text>
               </View>
@@ -230,7 +227,7 @@ export default function EditarPerfil({ navigation, route }) {
               <View style={styles.rowBetween}>
                 <Text style={styles.label}>{t("editProfile.labels.birthDate")}</Text>
                 <TouchableOpacity onPress={openDateModal} activeOpacity={0.85}>
-                  <Text style={styles.link}>Abrir</Text>
+                  <Text style={styles.link}>{t("editProfile.actions.openDateModal")}</Text>
                 </TouchableOpacity>
               </View>
 
@@ -280,11 +277,11 @@ export default function EditarPerfil({ navigation, route }) {
               >
                 <Pressable style={styles.modalOverlay} onPress={() => setDateModalVisible(false)}>
                   <Pressable style={styles.modalCard} onPress={() => { }}>
-                    <Text style={styles.modalTitle}>Fecha de nacimiento</Text>
+                    <Text style={styles.modalTitle}>{t("editProfile.dateModal.title")}</Text>
 
                     <View style={styles.dateRow}>
                       <View style={styles.dateCol}>
-                        <Text style={styles.modalLabel}>Día</Text>
+                        <Text style={styles.modalLabel}>{t("editProfile.dateModal.labels.day")}</Text>
                         <TextInput
                           value={dd}
                           onChangeText={(v) => setDd(v.replace(/\D/g, "").slice(0, 2))}
@@ -296,7 +293,7 @@ export default function EditarPerfil({ navigation, route }) {
                       </View>
 
                       <View style={styles.dateCol}>
-                        <Text style={styles.modalLabel}>Mes</Text>
+                        <Text style={styles.modalLabel}>{t("editProfile.dateModal.labels.month")}</Text>
                         <TextInput
                           value={mm}
                           onChangeText={(v) => setMm(v.replace(/\D/g, "").slice(0, 2))}
@@ -308,7 +305,7 @@ export default function EditarPerfil({ navigation, route }) {
                       </View>
 
                       <View style={styles.dateColWide}>
-                        <Text style={styles.modalLabel}>Año</Text>
+                        <Text style={styles.modalLabel}>{t("editProfile.dateModal.labels.year")}</Text>
                         <TextInput
                           value={yyyy}
                           onChangeText={(v) => setYyyy(v.replace(/\D/g, "").slice(0, 4))}
@@ -326,11 +323,11 @@ export default function EditarPerfil({ navigation, route }) {
                         onPress={() => setDateModalVisible(false)}
                         activeOpacity={0.85}
                       >
-                        <Text style={styles.modalBtnGhostText}>Cancelar</Text>
+                        <Text style={styles.modalBtnGhostText}>{t("common.cancel")}</Text>
                       </TouchableOpacity>
 
                       <TouchableOpacity style={styles.modalBtn} onPress={applyDate} activeOpacity={0.85}>
-                        <Text style={styles.modalBtnText}>Aplicar</Text>
+                        <Text style={styles.modalBtnText}>{t("editProfile.dateModal.actions.apply")}</Text>
                       </TouchableOpacity>
                     </View>
                   </Pressable>
@@ -351,7 +348,7 @@ export default function EditarPerfil({ navigation, route }) {
             <View style={styles.avatarBox}>
               <Image source={{ uri: userImage }} style={styles.avatar} />
               <TouchableOpacity style={styles.pickBtn} onPress={pickImage} activeOpacity={0.85}>
-                <Text style={styles.pickBtnText}>Cambiar foto</Text>
+                <Text style={styles.pickBtnText}>{t("editProfile.buttons.changePhoto")}</Text>
               </TouchableOpacity>
               <Text style={styles.help}>{t("editProfile.help.imageUrl")}</Text>
             </View>
@@ -386,7 +383,7 @@ export default function EditarPerfil({ navigation, route }) {
             <View style={styles.rowBetween}>
               <Text style={styles.label}>{t("editProfile.labels.birthDate")}</Text>
               <TouchableOpacity onPress={openDateModal} activeOpacity={0.85}>
-                <Text style={styles.link}>Abrir</Text>
+                <Text style={styles.link}>{t("editProfile.actions.openDateModal")}</Text>
               </TouchableOpacity>
             </View>
 
@@ -436,11 +433,11 @@ export default function EditarPerfil({ navigation, route }) {
             >
               <Pressable style={styles.modalOverlay} onPress={() => setDateModalVisible(false)}>
                 <Pressable style={styles.modalCard} onPress={() => { }}>
-                  <Text style={styles.modalTitle}>Fecha de nacimiento</Text>
+                  <Text style={styles.modalTitle}>{t("editProfile.dateModal.title")}</Text>
 
                   <View style={styles.dateRow}>
                     <View style={styles.dateCol}>
-                      <Text style={styles.modalLabel}>Día</Text>
+                      <Text style={styles.modalLabel}>{t("editProfile.dateModal.labels.day")}</Text>
                       <TextInput
                         value={dd}
                         onChangeText={(v) => setDd(v.replace(/\D/g, "").slice(0, 2))}
@@ -452,7 +449,7 @@ export default function EditarPerfil({ navigation, route }) {
                     </View>
 
                     <View style={styles.dateCol}>
-                      <Text style={styles.modalLabel}>Mes</Text>
+                      <Text style={styles.modalLabel}>{t("editProfile.dateModal.labels.month")}</Text>
                       <TextInput
                         value={mm}
                         onChangeText={(v) => setMm(v.replace(/\D/g, "").slice(0, 2))}
@@ -464,7 +461,7 @@ export default function EditarPerfil({ navigation, route }) {
                     </View>
 
                     <View style={styles.dateColWide}>
-                      <Text style={styles.modalLabel}>Año</Text>
+                      <Text style={styles.modalLabel}>{t("editProfile.dateModal.labels.year")}</Text>
                       <TextInput
                         value={yyyy}
                         onChangeText={(v) => setYyyy(v.replace(/\D/g, "").slice(0, 4))}
@@ -482,11 +479,11 @@ export default function EditarPerfil({ navigation, route }) {
                       onPress={() => setDateModalVisible(false)}
                       activeOpacity={0.85}
                     >
-                      <Text style={styles.modalBtnGhostText}>Cancelar</Text>
+                      <Text style={styles.modalBtnGhostText}>{t("common.cancel")}</Text>
                     </TouchableOpacity>
 
                     <TouchableOpacity style={styles.modalBtn} onPress={applyDate} activeOpacity={0.85}>
-                      <Text style={styles.modalBtnText}>Aplicar</Text>
+                      <Text style={styles.modalBtnText}>{t("editProfile.dateModal.actions.apply")}</Text>
                     </TouchableOpacity>
                   </View>
                 </Pressable>

@@ -91,51 +91,71 @@
       "bank": "Bank"
     }
   },
-  "editProfile": {
-    "title": "Profil bearbeiten",
-    "helpImageUrl": "Bild-URL einfügen ",
-    "help": {
-      "imageUrl": "Bild-URL einfügen "
-    },
+"editProfile": {
+  "title": "Profil bearbeiten",
+  "helpImageUrl": "Füge eine Bild-URL ein ",
+  "help": {
+    "imageUrl": "Füge eine Bild-URL ein "
+  },
+  "labels": {
+    "image": "Bild (userImage)",
+    "firstName": "Vorname (firstName)",
+    "lastName": "Nachname (lastName)",
+    "birthDate": "Geburtsdatum (birthDate)",
+    "newPassword": "Neues Passwort (optional)"
+  },
+  "dateModal": {
+    "title": "Geburtsdatum",
     "labels": {
-      "image": "Bild (userImage)",
-      "firstName": "Vorname (firstName)",
-      "lastName": "Nachname (lastName)",
-      "birthDate": "Geburtsdatum (birthDate)",
-      "newPassword": "Neues Passwort (optional)"
-    },
-    "placeholders": {
-      "imageUrl": "https://...",
-      "firstName": "Vorname",
-      "lastName": "Nachname",
-      "birthDate": "tt/mm/jjjj",
-      "passwordOptional": "Leer lassen, um das aktuelle zu behalten",
-      "newPassword": "Leer lassen, um das aktuelle zu behalten"
-    },
-    "buttons": {
-      "save": "Änderungen speichern",
-      "cancel": "Abbrechen"
+      "day": "Tag",
+      "month": "Monat",
+      "year": "Jahr"
     },
     "actions": {
-      "save": "Änderungen speichern"
+      "apply": "Übernehmen"
     },
     "alerts": {
-      "errorTitle": "Fehler",
-      "okTitle": "OK",
-      "missingId": "Benutzer-ID fehlt (user.id fehlt).",
-      "fillFields": "Bitte firstName, lastName, birthDate und userImage ausfüllen.",
-      "updated": "Profil aktualisiert",
-      "serverError": "Verbindung zum Server nicht möglich"
-    },
-    "errors": {
-      "missingUserId": "Benutzer-ID fehlt (user.id fehlt).",
-      "fillAllRequired": "Bitte firstName, lastName, birthDate und userImage ausfüllen.",
-      "serverConnection": "Verbindung zum Server nicht möglich"
-    },
-    "success": {
-      "updated": "Profil aktualisiert"
+      "invalidDateTitle": "Ungültiges Datum",
+      "invalidDateMessage": "Verwende ein gültiges Format TT/MM/JJJJ."
     }
   },
+  "placeholders": {
+    "imageUrl": "https://...",
+    "firstName": "Vorname",
+    "lastName": "Nachname",
+    "birthDate": "tt/mm/jjjj",
+    "passwordOptional": "Leer lassen, um es nicht zu ändern",
+    "newPassword": "Leer lassen, um es nicht zu ändern"
+  },
+  "buttons": {
+    "save": "Änderungen speichern",
+    "cancel": "Abbrechen",
+    "changePhoto": "Foto ändern"
+  },
+  "actions": {
+    "save": "Änderungen speichern",
+    "openDateModal": "Öffnen"
+  },
+  "alerts": {
+    "errorTitle": "Fehler",
+    "okTitle": "OK",
+    "missingId": "Ich habe keine Benutzer-ID (user.id fehlt).",
+    "fillFields": "Fülle firstName, lastName, birthDate und userImage aus.",
+    "updated": "Profil aktualisiert",
+    "serverError": "Verbindung zum Server nicht möglich",
+    "permissionDeniedTitle": "Berechtigung verweigert",
+    "permissionDeniedMsg": "Ich brauche die Berechtigung, um auf deine Fotos zuzugreifen.",
+    "imageLoadError": "Das Bild konnte nicht geladen werden."
+  },
+  "errors": {
+    "missingUserId": "Ich habe keine Benutzer-ID (user.id fehlt).",
+    "fillAllRequired": "Fülle firstName, lastName, birthDate und userImage aus.",
+    "serverConnection": "Verbindung zum Server nicht möglich"
+  },
+  "success": {
+    "updated": "Profil aktualisiert"
+  }
+},
   "home": {
     "searchPlaceholder": "Währung suchen...",
     "filters": {
@@ -259,6 +279,23 @@
     }
   },
   "profile": {
+    "fallbackUser": "Benutzer",
+    "privateKey": {
+      "prefix": "PK:",
+      "noKey": "Kein Schlüssel"
+    },
+    "deleteAccount": {
+      "button": "Konto löschen",
+      "title": "Löschen",
+      "confirmMessage": "Bist du sicher?",
+      "actions": {
+        "no": "Nein",
+        "yes": "Ja"
+      },
+      "alerts": {
+        "connectionError": "Verbindung nicht möglich"
+      }
+    },
     "settingsTitle": "Einstellungen",
     "versionPrefix": "Version",
     "sections": {
