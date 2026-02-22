@@ -18,6 +18,43 @@
     }
   },
   "transactions": {
+    "sendFunds": {
+      "title": "发送资金",
+      "subtitle": "以太坊 Sepolia 网络"
+    },
+    "movement": {
+      "sent": "已发送资金",
+      "received": "已接收资金",
+      "to": "至",
+      "from": "来自",
+      "recent": "最近"
+    },
+    "empty": {
+      "noTransactions": "暂无交易记录"
+    },
+    "modal": {
+      "title": "新转账",
+      "destinationAddress": "目标地址",
+      "amount": "金额 (ETH)",
+      "privateKey": "你的私钥",
+      "confirm": "签名并发送",
+      "close": "关闭",
+      "placeholders": {
+        "destination": "0x...",
+        "amount": "0.00",
+        "privateKey": "用于签名的私钥"
+      }
+    },
+    "alerts": {
+      "fillAllFields": "请填写所有字段",
+      "successTitle": "成功",
+      "transferOk": "转账成功完成",
+      "transactionError": "交易错误",
+      "serverError": "无法连接到服务器"
+    },
+    "errors": {
+      "fetchTransactions": "加载交易时出错："
+    },
     "headerTitle": "交易",
     "searchPlaceholder": "搜索收款人或交易…",
     "sections": {
@@ -121,6 +158,17 @@
     "alerts": {
       "couldNotSaveFavorite": "无法保存收藏",
       "couldNotRemoveFavorite": "无法删除收藏"
+    }
+  },
+  "wallet": {
+    "greeting": "你好，{{name}}",
+    "live": "实时",
+    "totalBalance": "总余额",
+    "noWallet": "没有钱包",
+    "yourAssets": "你的资产",
+    "errors": {
+      "server": "服务器错误",
+      "fetchPortfolio": "获取投资组合时出错"
     }
   },
   "register": {

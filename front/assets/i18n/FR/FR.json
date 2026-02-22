@@ -18,6 +18,43 @@
     }
   },
   "transactions": {
+    "sendFunds": {
+      "title": "Envoyer des fonds",
+      "subtitle": "Réseau Ethereum Sepolia"
+    },
+    "movement": {
+      "sent": "Argent envoyé",
+      "received": "Argent reçu",
+      "to": "À",
+      "from": "De",
+      "recent": "Récent"
+    },
+    "empty": {
+      "noTransactions": "Aucune transaction enregistrée"
+    },
+    "modal": {
+      "title": "Nouveau virement",
+      "destinationAddress": "Adresse de destination",
+      "amount": "Montant (ETH)",
+      "privateKey": "Votre clé privée",
+      "confirm": "Signer et envoyer",
+      "close": "Fermer",
+      "placeholders": {
+        "destination": "0x...",
+        "amount": "0.00",
+        "privateKey": "Clé pour signer"
+      }
+    },
+    "alerts": {
+      "fillAllFields": "Veuillez remplir tous les champs",
+      "successTitle": "Succès",
+      "transferOk": "Virement effectué avec succès",
+      "transactionError": "Erreur de transaction",
+      "serverError": "Impossible de se connecter au serveur"
+    },
+    "errors": {
+      "fetchTransactions": "Erreur lors du chargement des transactions :"
+    },
     "headerTitle": "Transactions",
     "searchPlaceholder": "Rechercher un destinataire ou un mouvement…",
     "sections": {
@@ -121,6 +158,17 @@
     "alerts": {
       "couldNotSaveFavorite": "Impossible d'enregistrer",
       "couldNotRemoveFavorite": "Impossible de supprimer"
+    }
+  },
+  "wallet": {
+    "greeting": "Bonjour, {{name}}",
+    "live": "En direct",
+    "totalBalance": "Solde total",
+    "noWallet": "Pas de wallet",
+    "yourAssets": "Vos actifs",
+    "errors": {
+      "server": "Erreur du serveur",
+      "fetchPortfolio": "Erreur lors de la récupération du portefeuille"
     }
   },
   "register": {

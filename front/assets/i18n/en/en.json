@@ -18,6 +18,43 @@
     }
   },
   "transactions": {
+    "sendFunds": {
+      "title": "Send funds",
+      "subtitle": "Ethereum Sepolia Network"
+    },
+    "movement": {
+      "sent": "Money sent",
+      "received": "Money received",
+      "to": "To",
+      "from": "From",
+      "recent": "Recent"
+    },
+    "empty": {
+      "noTransactions": "No transactions found"
+    },
+    "modal": {
+      "title": "New transfer",
+      "destinationAddress": "Destination address",
+      "amount": "Amount (ETH)",
+      "privateKey": "Your private key",
+      "confirm": "Sign and send",
+      "close": "Close",
+      "placeholders": {
+        "destination": "0x...",
+        "amount": "0.00",
+        "privateKey": "Key to sign"
+      }
+    },
+    "alerts": {
+      "fillAllFields": "Please fill in all fields",
+      "successTitle": "Success",
+      "transferOk": "Transfer completed successfully",
+      "transactionError": "Transaction error",
+      "serverError": "Could not connect to the server"
+    },
+    "errors": {
+      "fetchTransactions": "Error loading transactions:"
+    },
     "headerTitle": "Transactions",
     "searchPlaceholder": "Search recipient or movement…",
     "sections": {
@@ -121,6 +158,17 @@
     "alerts": {
       "couldNotSaveFavorite": "Could not save",
       "couldNotRemoveFavorite": "Could not remove"
+    }
+  },
+  "wallet": {
+    "greeting": "Hello, {{name}}",
+    "live": "Live",
+    "totalBalance": "Total Balance",
+    "noWallet": "No wallet",
+    "yourAssets": "Your Assets",
+    "errors": {
+      "server": "Server error",
+      "fetchPortfolio": "Error fetching portfolio"
     }
   },
   "register": {

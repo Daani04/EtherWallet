@@ -7,7 +7,6 @@ import {
   ScrollView,
   TextInput,
   Platform,
-  useWindowDimensions,
   Modal,
   Alert,
   ActivityIndicator,
@@ -22,7 +21,6 @@ import common from "../../styles/common";
 import Context from "../../context/Context";
 
 const BASE_URL = "http://35.170.12.68:8080";
-const NAV_HEIGHT = 90;
 
 export default function MenuTransacciones({ navigation }) {
   const { t } = useTranslation();
@@ -36,7 +34,7 @@ export default function MenuTransacciones({ navigation }) {
   const [sending, setSending] = useState(false); // Estado para la carga del envío
   const [transactions, setTransactions] = useState([]);
   const [modalVisible, setModalVisible] = useState(false);
-  
+
   const [walletAddress, setWalletAddress] = useState("");
   const [amount, setAmount] = useState("");
   const [senderPrivKey, setSenderPrivKey] = useState("");
@@ -54,11 +52,11 @@ export default function MenuTransacciones({ navigation }) {
         setTransactions(sorted);
       }
     } catch (error) {
-      console.warn("Error cargando transacciones:", error);
+      console.warn(t("transactions.errors.fetchTransactions"), error);
     } finally {
       setLoading(false);
     }
-  }, [user?.userId, isLogged]);
+  }, [user?.userId, isLogged, t]);
 
   useEffect(() => {
     fetchTransactions();
@@ -67,15 +65,15 @@ export default function MenuTransacciones({ navigation }) {
   const filteredTransactions = useMemo(() => {
     const q = search.toLowerCase().trim();
     if (!q) return transactions;
-    return transactions.filter(tx => 
-      tx.receiverId?.toLowerCase().includes(q) || 
+    return transactions.filter(tx =>
+      tx.receiverId?.toLowerCase().includes(q) ||
       tx.senderId?.toLowerCase().includes(q)
     );
   }, [search, transactions]);
 
   const handleTransfer = async () => {
     if (!walletAddress || !amount || !senderPrivKey) {
-      Alert.alert("Error", "Rellena todos los campos");
+      Alert.alert(t("common.error"), t("transactions.alerts.fillAllFields"));
       return;
     }
 
@@ -97,7 +95,7 @@ export default function MenuTransacciones({ navigation }) {
       });
 
       if (res.ok) {
-        Alert.alert("Éxito", "Transferencia realizada correctamente");
+        Alert.alert(t("transactions.alerts.successTitle"), t("transactions.alerts.transferOk"));
         setModalVisible(false);
         setWalletAddress("");
         setAmount("");
@@ -105,10 +103,10 @@ export default function MenuTransacciones({ navigation }) {
         fetchTransactions();
       } else {
         const msg = await res.text();
-        Alert.alert("Error", msg || "Error en la transacción");
+        Alert.alert(t("common.error"), msg || t("transactions.alerts.transactionError"));
       }
     } catch (e) {
-      Alert.alert("Error", "No se pudo conectar con el servidor");
+      Alert.alert(t("common.error"), t("transactions.alerts.serverError"));
     } finally {
       setSending(false); // Finalizamos carga
     }
@@ -121,7 +119,7 @@ export default function MenuTransacciones({ navigation }) {
           <MaterialIcons name="arrow-back" size={22} color={C.textMain} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>{t("transactions.headerTitle")}</Text>
-        <View style={styles.headerSpacer} /> 
+        <View style={styles.headerSpacer} />
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
@@ -130,52 +128,58 @@ export default function MenuTransacciones({ navigation }) {
           <TextInput
             value={search}
             onChangeText={setSearch}
-            placeholder="Buscar transacciones..."
+            placeholder={t("transactions.searchPlaceholder")}
             placeholderTextColor={C.textMuted}
             style={styles.searchInput}
           />
         </View>
 
-        <Text style={styles.sectionTitle}>Acciones rápidas</Text>
-        <TouchableOpacity 
-          style={styles.actionCard} 
-          onPress={() => setModalVisible(true)} 
+        <Text style={styles.sectionTitle}>{t("transactions.sections.quickActions")}</Text>
+        <TouchableOpacity
+          style={styles.actionCard}
+          onPress={() => setModalVisible(true)}
           activeOpacity={0.8}
         >
-           <View style={styles.actionIcon}>
-             <MaterialIcons name="send" size={20} color={C.primary} />
-           </View>
-           <View style={styles.flex1}>
-              <Text style={styles.actionTitle}>Enviar fondos</Text>
-              <Text style={styles.actionSub}>Red Ethereum Sepolia</Text>
-           </View>
-           <MaterialIcons name="chevron-right" size={24} color={C.textMuted} />
+          <View style={styles.actionIcon}>
+            <MaterialIcons name="send" size={20} color={C.primary} />
+          </View>
+          <View style={styles.flex1}>
+            <Text style={styles.actionTitle}>{t("transactions.sendFunds.title")}</Text>
+            <Text style={styles.actionSub}>{t("transactions.sendFunds.subtitle")}</Text>
+          </View>
+          <MaterialIcons name="chevron-right" size={24} color={C.textMuted} />
         </TouchableOpacity>
 
-        <Text style={styles.sectionTitle}>Movimientos recientes</Text>
+        <Text style={styles.sectionTitle}>{t("transactions.sections.recentMovements")}</Text>
         <View style={styles.listCard}>
           {loading ? (
             <ActivityIndicator color={C.primary} style={styles.loader} />
           ) : filteredTransactions.length === 0 ? (
-            <Text style={styles.emptyText}>Sin transacciones registradas</Text>
+            <Text style={styles.emptyText}>{t("transactions.empty.noTransactions")}</Text>
           ) : (
             filteredTransactions.map((tx, idx) => {
               const isSend = tx.senderId === user?.userId;
               return (
                 <View key={idx} style={[styles.txRow, idx !== 0 && styles.txBorder]}>
                   <View style={[styles.txIconCircle, { backgroundColor: isSend ? 'rgba(255,51,51,0.1)' : 'rgba(0,255,136,0.1)' }]}>
-                    <MaterialIcons 
-                      name={isSend ? "north-east" : "south-west"} 
-                      size={20} 
-                      color={isSend ? C.danger : C.primary} 
+                    <MaterialIcons
+                      name={isSend ? "north-east" : "south-west"}
+                      size={20}
+                      color={isSend ? C.danger : C.primary}
                     />
                   </View>
                   <View style={styles.txInfo}>
-                    <Text style={styles.txTitle}>{isSend ? "Dinero enviado" : "Dinero recibido"}</Text>
-                    <Text style={styles.txWallet} numberOfLines={1}>
-                        {isSend ? `A: ${tx.receiverId}` : `De: ${tx.senderId}`}
+                    <Text style={styles.txTitle}>
+                      {isSend ? t("transactions.movement.sent") : t("transactions.movement.received")}
                     </Text>
-                    <Text style={styles.txDate}>{tx.date ? new Date(tx.date).toLocaleDateString() : "Reciente"}</Text>
+                    <Text style={styles.txWallet} numberOfLines={1}>
+                      {isSend
+                        ? `${t("transactions.movement.to")}: ${tx.receiverId}`
+                        : `${t("transactions.movement.from")}: ${tx.senderId}`}
+                    </Text>
+                    <Text style={styles.txDate}>
+                      {tx.date ? new Date(tx.date).toLocaleDateString() : t("transactions.movement.recent")}
+                    </Text>
                   </View>
                   <Text style={[styles.txAmount, { color: isSend ? C.danger : C.primary }]}>
                     {isSend ? "-" : "+"}{tx.amount} ETH
@@ -190,56 +194,56 @@ export default function MenuTransacciones({ navigation }) {
       <Modal visible={modalVisible} animationType="slide" transparent>
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Nueva Transferencia</Text>
-            
-            <Text style={styles.modalLabel}>Dirección de destino</Text>
-            <TextInput 
-              placeholder="0x..." 
-              style={styles.modalInput} 
-              value={walletAddress} 
-              onChangeText={setWalletAddress} 
+            <Text style={styles.modalTitle}>{t("transactions.modal.title")}</Text>
+
+            <Text style={styles.modalLabel}>{t("transactions.modal.destinationAddress")}</Text>
+            <TextInput
+              placeholder={t("transactions.modal.placeholders.destination")}
+              style={styles.modalInput}
+              value={walletAddress}
+              onChangeText={setWalletAddress}
               placeholderTextColor={C.textMuted}
               autoCapitalize="none"
               editable={!sending}
             />
 
-            <Text style={styles.modalLabel}>Cantidad (ETH)</Text>
-            <TextInput 
-              placeholder="0.00" 
-              keyboardType="numeric" 
-              style={styles.modalInput} 
-              value={amount} 
+            <Text style={styles.modalLabel}>{t("transactions.modal.amount")}</Text>
+            <TextInput
+              placeholder={t("transactions.modal.placeholders.amount")}
+              keyboardType="numeric"
+              style={styles.modalInput}
+              value={amount}
               onChangeText={setAmount}
               placeholderTextColor={C.textMuted}
               editable={!sending}
             />
 
-            <Text style={styles.modalLabel}>Tu Clave Privada</Text>
-            <TextInput 
-              placeholder="Clave para firmar" 
-              secureTextEntry 
-              style={styles.modalInput} 
-              value={senderPrivKey} 
+            <Text style={styles.modalLabel}>{t("transactions.modal.privateKey")}</Text>
+            <TextInput
+              placeholder={t("transactions.modal.placeholders.privateKey")}
+              secureTextEntry
+              style={styles.modalInput}
+              value={senderPrivKey}
               onChangeText={setSenderPrivKey}
               placeholderTextColor={C.textMuted}
               editable={!sending}
             />
 
-            <TouchableOpacity 
-              style={[styles.confirmBtn, sending && styles.btnDisabled]} 
+            <TouchableOpacity
+              style={[styles.confirmBtn, sending && styles.btnDisabled]}
               onPress={handleTransfer}
               disabled={sending}
             >
               {sending ? (
                 <ActivityIndicator color="#000" />
               ) : (
-                <Text style={styles.confirmBtnText}>Firmar y Enviar</Text>
+                <Text style={styles.confirmBtnText}>{t("transactions.modal.confirm")}</Text>
               )}
             </TouchableOpacity>
-            
+
             {!sending && (
               <TouchableOpacity onPress={() => setModalVisible(false)} style={styles.cancelBtn}>
-                <Text style={styles.cancelBtnText}>Cerrar</Text>
+                <Text style={styles.cancelBtnText}>{t("transactions.modal.close")}</Text>
               </TouchableOpacity>
             )}
           </View>

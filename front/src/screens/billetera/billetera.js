@@ -18,17 +18,18 @@ import Nav from "../../components/Nav";
 import common from "../../styles/common";
 import Context from "../../context/Context";
 import { useSettings } from "../../context/SettingsContext";
+import { useTranslation } from "react-i18next";
 
 const NAV_HEIGHT = 90;
 
 const Billetera = (props) => {
+  const { t } = useTranslation();
   const { C } = useSettings();
   const styles = useMemo(() => makeStyles(C), [C]);
 
   const { user, isLogged, isLoading } = useContext(Context);
 
   const [hideBalance, setHideBalance] = useState(false);
-  const [screenW, setScreenW] = useState(Dimensions.get("window").width);
   const [lastUpdate, setLastUpdate] = useState("");
   const [loadingBalance, setLoadingBalance] = useState(true);
 
@@ -58,7 +59,7 @@ const Billetera = (props) => {
     try {
       const url = `http://35.170.12.68:8080/api/blockchain/portfolio/${user.walletAddress}`;
       const response = await fetch(url);
-      if (!response.ok) throw new Error("Error en el servidor");
+      if (!response.ok) throw new Error(t("wallet.errors.server"));
       const data = await response.json();
 
       const newTotal = Number(data.totalBalanceEur || 0);
@@ -81,7 +82,7 @@ const Billetera = (props) => {
         String(d.getSeconds()).padStart(2, "0")
       );
     } catch (error) {
-      console.error("Error al obtener portfolio:", error);
+      console.error(t("wallet.errors.fetchPortfolio"), error);
     } finally {
       setLoadingBalance(false);
     }
@@ -100,7 +101,7 @@ const Billetera = (props) => {
     } else {
       setLoadingBalance(false);
     }
-  }, [user?.walletAddress, isLogged]);
+  }, [user?.walletAddress, isLogged, t]);
 
   const trendStyle = useMemo(() => {
     if (trend === "up") return { color: "#00ff88", icon: "trending-up" };
@@ -120,8 +121,10 @@ const Billetera = (props) => {
     <>
       <View style={styles.topRow}>
         <View>
-          <Text style={styles.welcome}>Hola, {user?.firstName || ""}</Text>
-          <Text style={styles.miniInfo}>Live • {lastUpdate}</Text>
+          <Text style={styles.welcome}>
+  {t("wallet.greeting", { name: user?.firstName || "" })}
+</Text>
+          <Text style={styles.miniInfo}>{t("wallet.live")} • {lastUpdate}</Text>
         </View>
 
         <Pressable onPress={() => setHideBalance(!hideBalance)} style={styles.iconBtn}>
@@ -142,7 +145,7 @@ const Billetera = (props) => {
           style={styles.balanceGlow}
         />
 
-        <Text style={styles.balanceLabel}>Balance Total</Text>
+        <Text style={styles.balanceLabel}>{t("wallet.totalBalance")}</Text>
 
         <View style={styles.balanceRowTop}>
           <Text
@@ -165,13 +168,13 @@ const Billetera = (props) => {
         </View>
 
         <Text style={styles.addressSub}>
-          {user?.walletAddress ? user.walletAddress : "Sin wallet"}
+          {user?.walletAddress ? user.walletAddress : t("wallet.noWallet")}
         </Text>
       </View>
 
       <View style={styles.card}>
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Tus Activos</Text>
+          <Text style={styles.sectionTitle}>{t("wallet.yourAssets")}</Text>
           <View style={styles.liveIndicator} />
         </View>
 

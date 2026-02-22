@@ -18,6 +18,43 @@
     }
   },
   "transactions": {
+    "sendFunds": {
+      "title": "Enviar fons",
+      "subtitle": "Xarxa Ethereum Sepolia"
+    },
+    "movement": {
+      "sent": "Diners enviats",
+      "received": "Diners rebuts",
+      "to": "A",
+      "from": "De",
+      "recent": "Recent"
+    },
+    "empty": {
+      "noTransactions": "No hi ha transaccions registrades"
+    },
+    "modal": {
+      "title": "Nova transferència",
+      "destinationAddress": "Adreça de destí",
+      "amount": "Quantitat (ETH)",
+      "privateKey": "La teua clau privada",
+      "confirm": "Signar i enviar",
+      "close": "Tancar",
+      "placeholders": {
+        "destination": "0x...",
+        "amount": "0.00",
+        "privateKey": "Clau per a signar"
+      }
+    },
+    "alerts": {
+      "fillAllFields": "Ompli tots els camps",
+      "successTitle": "Èxit",
+      "transferOk": "Transferència realitzada correctament",
+      "transactionError": "Error en la transacció",
+      "serverError": "No s'ha pogut connectar amb el servidor"
+    },
+    "errors": {
+      "fetchTransactions": "Error carregant transaccions:"
+    },
     "headerTitle": "Transaccions",
     "searchPlaceholder": "Buscar destinatari o moviment…",
     "sections": {
@@ -121,6 +158,17 @@
     "alerts": {
       "couldNotSaveFavorite": "No s'ha pogut guardar",
       "couldNotRemoveFavorite": "No s'ha pogut eliminar"
+    }
+  },
+  "wallet": {
+    "greeting": "Hola, {{name}}",
+    "live": "En viu",
+    "totalBalance": "Balance total",
+    "noWallet": "Sense wallet",
+    "yourAssets": "Els teus actius",
+    "errors": {
+      "server": "Error en el servidor",
+      "fetchPortfolio": "Error en obtindre el portafolis"
     }
   },
   "register": {

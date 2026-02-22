@@ -18,6 +18,43 @@
     }
   },
   "transactions": {
+    "sendFunds": {
+      "title": "Enviar fondos",
+      "subtitle": "Red Ethereum Sepolia"
+    },
+    "movement": {
+      "sent": "Dinero enviado",
+      "received": "Dinero recibido",
+      "to": "A",
+      "from": "De",
+      "recent": "Reciente"
+    },
+    "empty": {
+      "noTransactions": "No hay transacciones registradas"
+    },
+    "modal": {
+      "title": "Nueva transferencia",
+      "destinationAddress": "Dirección de destino",
+      "amount": "Cantidad (ETH)",
+      "privateKey": "Tu clave privada",
+      "confirm": "Firmar y enviar",
+      "close": "Cerrar",
+      "placeholders": {
+        "destination": "0x...",
+        "amount": "0.00",
+        "privateKey": "Clave para firmar"
+      }
+    },
+    "alerts": {
+      "fillAllFields": "Rellena todos los campos",
+      "successTitle": "Éxito",
+      "transferOk": "Transferencia realizada correctamente",
+      "transactionError": "Error en la transacción",
+      "serverError": "No se pudo conectar con el servidor"
+    },
+    "errors": {
+      "fetchTransactions": "Error cargando transacciones:"
+    },
     "headerTitle": "Transacciones",
     "searchPlaceholder": "Buscar destinatario o movimiento…",
     "sections": {
@@ -121,6 +158,17 @@
     "alerts": {
       "couldNotSaveFavorite": "No se pudo guardar",
       "couldNotRemoveFavorite": "No se pudo eliminar"
+    }
+  },
+  "wallet": {
+    "greeting": "Hola, {{name}}",
+    "live": "En vivo",
+    "totalBalance": "Balance total",
+    "noWallet": "Sin wallet",
+    "yourAssets": "Tus activos",
+    "errors": {
+      "server": "Error en el servidor",
+      "fetchPortfolio": "Error al obtener el portfolio"
     }
   },
   "register": {
