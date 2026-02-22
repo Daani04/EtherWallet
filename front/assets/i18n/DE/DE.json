@@ -99,6 +99,30 @@
       "updated": "Profil aktualisiert"
     }
   },
+  "home": {
+    "searchPlaceholder": "Währung suchen...",
+    "filters": {
+      "all": "Alle",
+      "favorites": "Favoriten",
+      "gainers": "Gewinner",
+      "losers": "Verlierer"
+    },
+    "sections": {
+      "trending": "Trends",
+      "cryptos": "Kryptowährungen",
+      "topFilter": "Top {{filter}}"
+    },
+    "actions": {
+      "loadMore": "Mehr Coins laden"
+    },
+    "empty": {
+      "noData": "Keine Daten verfügbar"
+    },
+    "alerts": {
+      "couldNotSaveFavorite": "Konnte nicht gespeichert werden",
+      "couldNotRemoveFavorite": "Konnte nicht gelöscht werden"
+    }
+  },
   "register": {
     "title": "Erstellen Sie Ihr Konto",
     "subtitle": "Treten Sie noch heute der Zukunft der Kryptowährung bei.\nRegistrieren Sie sich, um mit dem Handel zu beginnen.",
@@ -174,12 +198,16 @@
       "successMsg": "Willkommen",
       "notAuthTitle": "Nicht authentifiziert",
       "cancelled": "Abgebrochen",
-      "criticalTitle": "Kritischer Fehler"
+      "criticalTitle": "Kritischer Fehler",
+      "reason": "Grund: {{reason}}"
     },
     "alerts": {
       "errorTitle": "Fehler",
       "fillAllFields": "Bitte alle Felder ausfüllen",
-      "connectionError": "Verbindungsfehler. Bitte später erneut versuchen."
+      "connectionError": "Verbindungsfehler. Bitte später erneut versuchen.",
+      "loginOkNoId": "Anmeldung erfolgreich, aber die Benutzer-ID konnte nicht abgerufen werden.",
+      "invalidIdResponse": "Anmeldung erfolgreich, aber die Antwort enthält keine gültige ID.",
+      "profileDataError": "Die Profildaten konnten nicht abgerufen werden."
     }
   },
   "profile": {

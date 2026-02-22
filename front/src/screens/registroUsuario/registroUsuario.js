@@ -292,12 +292,13 @@ const RegistroUsuario = (props) => {
         style={{ flex: 1 }}
       >
         <ScrollView
-          style={[styles.scroll, isWeb && styles.webScroll]}
-          contentContainerStyle={styles.scrollContainer}
-          bounces={false}
-          showsVerticalScrollIndicator={!isWeb}
-          keyboardShouldPersistTaps="handled"
-        >
+  style={[styles.scroll, isWeb && styles.webScroll]}
+  contentContainerStyle={styles.scrollContainer}
+  bounces={false}
+  showsVerticalScrollIndicator={!isWeb}
+  showsHorizontalScrollIndicator={false}
+  keyboardShouldPersistTaps="handled"
+>
           <View style={styles.root}>
             <View style={[styles.blob, styles.blobTopRight]} />
             <View style={[styles.blob, styles.blobBottomLeft]} />
@@ -508,6 +509,7 @@ const RegistroUsuario = (props) => {
                   <Text style={styles.footerLink}>{t("register.footer.login")}</Text>
                 </Pressable>
               </View>
+              <View style={{ height: 40 }} />
             </View>
           </View>
         </ScrollView>
@@ -539,9 +541,19 @@ const RegistroUsuario = (props) => {
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: COLORS.bg || COLORS.backgroundDark },
   safeWeb: { height: "100vh", overflow: "hidden" },
-  webScroll: { height: "100%", overflowY: "auto", overflowX: "hidden" },
+  webScroll: {
+  position: "absolute",
+  top: 0,
+  left: 0,
+  right: 0,
+  bottom: 0,
+  overflowY: "auto",
+  overflowX: "hidden",
+  scrollbarWidth: "none",
+  msOverflowStyle: "none",
+},
   scroll: { flex: 1 },
-  scrollContainer: { flexGrow: 1, paddingBottom: 40 },
+  scrollContainer: { flexGrow: 1, paddingBottom: 120 },
   root: { alignItems: "center" },
   blob: { position: "absolute", backgroundColor: "rgba(43,238,121,0.08)", borderRadius: 999 },
   blobTopRight: { width: 400, height: 400, top: -110, right: -120 },

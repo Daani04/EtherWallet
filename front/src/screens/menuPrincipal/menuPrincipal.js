@@ -20,6 +20,7 @@ import common from "../../styles/common";
 import Context from '../../context/Context';
 import { useSettings } from "../../context/SettingsContext";
 import { useFocusEffect } from "@react-navigation/native";
+import { useTranslation } from "react-i18next";
 
 const { width } = Dimensions.get("window");
 const BASE_URL = "http://35.170.12.68:8080";
@@ -64,6 +65,7 @@ const CURRENCY_SYMBOLS = {
 };
 
 export default function MenuPrincipal({ navigation }) {
+  const { t } = useTranslation();
   const { user } = useContext(Context);
   const { C } = useSettings();
   const styles = useMemo(() => makeStyles(C), [C]);
@@ -73,7 +75,7 @@ export default function MenuPrincipal({ navigation }) {
   const [favoritesIds, setFavoritesIds] = useState([]);
   const [loading, setLoading] = useState(true);
   const [limit, setLimit] = useState(20);
-  const [activeFilter, setActiveFilter] = useState("Todos");
+  const [activeFilter, setActiveFilter] = useState("all");
   const [userCurrency, setUserCurrency] = useState("USD");
 
   const isFetching = useRef(false);
@@ -107,66 +109,66 @@ export default function MenuPrincipal({ navigation }) {
   }, [user]);
 
   const CMC_API_KEY = "82ecd83d0cd541108839042bd32f3a55";
-  
+
   const fetchMarketData = async (currentLimit, currency) => {
-  if (isFetching.current) return;
-  isFetching.current = true;
-  if (cryptos.length === 0) setLoading(true);
+    if (isFetching.current) return;
+    isFetching.current = true;
+    if (cryptos.length === 0) setLoading(true);
 
-  const vsCurrency = (currency || "EUR").toUpperCase();
+    const vsCurrency = (currency || "EUR").toUpperCase();
 
-  const geckoUrl = `https://api.coingecko.com/api/v3/coins/markets?vs_currency=${vsCurrency.toLowerCase()}&order=market_cap_desc&per_page=${currentLimit}&page=1&sparkline=false`;
+    const geckoUrl = `https://api.coingecko.com/api/v3/coins/markets?vs_currency=${vsCurrency.toLowerCase()}&order=market_cap_desc&per_page=${currentLimit}&page=1&sparkline=false`;
 
-  const cmcUrl = `https://pro-api.coinmarketcap.com/v1/cryptocurrency/listings/latest?start=1&limit=${currentLimit}&convert=${vsCurrency}`;
+    const cmcUrl = `https://pro-api.coinmarketcap.com/v1/cryptocurrency/listings/latest?start=1&limit=${currentLimit}&convert=${vsCurrency}`;
 
-  try {
-    const response = await fetch(isWeb ? geckoUrl : cmcUrl, {
-      headers: isWeb
-        ? {
+    try {
+      const response = await fetch(isWeb ? geckoUrl : cmcUrl, {
+        headers: isWeb
+          ? {
             Accept: "application/json",
             "Content-Type": "application/json",
             "User-Agent": "Mozilla/5.0",
           }
-        : {
+          : {
             Accept: "application/json",
             "Content-Type": "application/json",
             "X-CMC_PRO_API_KEY": CMC_API_KEY,
           },
-    });
+      });
 
-    const data = await response.json();
+      const data = await response.json();
 
-    // ✅ WEB: parse CoinGecko (igual que antes)
-    if (isWeb && Array.isArray(data)) {
-      const formatted = data.map((coin) => ({
-        id: coin.id,
-        name: coin.name,
-        symbol: coin.symbol,
-        image: coin.image,
-        current_price: coin.current_price,
-        price_change_percentage_24h: coin.price_change_percentage_24h,
-      }));
-      setCryptos(formatted);
+      // ✅ WEB: parse CoinGecko (igual que antes)
+      if (isWeb && Array.isArray(data)) {
+        const formatted = data.map((coin) => ({
+          id: coin.id,
+          name: coin.name,
+          symbol: coin.symbol,
+          image: coin.image,
+          current_price: coin.current_price,
+          price_change_percentage_24h: coin.price_change_percentage_24h,
+        }));
+        setCryptos(formatted);
+      }
+
+      if (!isWeb && Array.isArray(data?.data)) {
+        const formatted = data.data.map((coin) => ({
+          id: coin.slug, // string estable tipo "bitcoin"
+          name: coin.name,
+          symbol: (coin.symbol || "").toLowerCase(),
+          image: `https://s2.coinmarketcap.com/static/img/coins/64x64/${coin.id}.png`,
+          current_price: coin.quote?.[vsCurrency]?.price,
+          price_change_percentage_24h: coin.quote?.[vsCurrency]?.percent_change_24h,
+        }));
+        setCryptos(formatted);
+      }
+    } catch (error) {
+      console.error("Fetch Error:", error);
+    } finally {
+      setLoading(false);
+      isFetching.current = false;
     }
-
-    if (!isWeb && Array.isArray(data?.data)) {
-      const formatted = data.data.map((coin) => ({
-        id: coin.slug, // string estable tipo "bitcoin"
-        name: coin.name,
-        symbol: (coin.symbol || "").toLowerCase(),
-        image: `https://s2.coinmarketcap.com/static/img/coins/64x64/${coin.id}.png`,
-        current_price: coin.quote?.[vsCurrency]?.price,
-        price_change_percentage_24h: coin.quote?.[vsCurrency]?.percent_change_24h,
-      }));
-      setCryptos(formatted);
-    }
-  } catch (error) {
-    console.error("Fetch Error:", error);
-  } finally {
-    setLoading(false);
-    isFetching.current = false;
-  }
-};
+  };
 
   useFocusEffect(
     useCallback(() => {
@@ -212,7 +214,7 @@ export default function MenuPrincipal({ navigation }) {
         });
         if (res.ok) setFavoritesIds((prev) => [...prev, crypto.id]);
       } catch (error) {
-        Alert.alert("Error", "No se pudo guardar");
+        Alert.alert(t("common.error"), t("home.alerts.couldNotSaveFavorite"));
       }
     } else {
       try {
@@ -222,7 +224,7 @@ export default function MenuPrincipal({ navigation }) {
         );
         if (res.ok) setFavoritesIds((prev) => prev.filter((id) => id !== crypto.id));
       } catch (error) {
-        Alert.alert("Error", "No se pudo eliminar");
+        Alert.alert(t("common.error"), t("home.alerts.couldNotRemoveFavorite"));
       }
     }
   };
@@ -235,12 +237,12 @@ export default function MenuPrincipal({ navigation }) {
         (c) => c.name?.toLowerCase().includes(s) || c.symbol?.toLowerCase().includes(s)
       );
     }
-    if (activeFilter === "Favoritos") result = result.filter((c) => favoritesIds.includes(c.id));
-    else if (activeFilter === "Ganadores") {
+    if (activeFilter === "favorites") result = result.filter((c) => favoritesIds.includes(c.id));
+    else if (activeFilter === "gainers") {
       result = result
         .filter((c) => (c.price_change_percentage_24h || 0) > 0)
         .sort((a, b) => b.price_change_percentage_24h - a.price_change_percentage_24h);
-    } else if (activeFilter === "Perdedores") {
+    } else if (activeFilter === "losers") {
       result = result
         .filter((c) => (c.price_change_percentage_24h || 0) < 0)
         .sort((a, b) => a.price_change_percentage_24h - b.price_change_percentage_24h);
@@ -258,7 +260,7 @@ export default function MenuPrincipal({ navigation }) {
             <TextInput
               value={search}
               onChangeText={setSearch}
-              placeholder="Buscar moneda..."
+              placeholder={t("home.searchPlaceholder")}
               placeholderTextColor={C.textMuted}
               style={styles.input}
             />
@@ -271,21 +273,21 @@ export default function MenuPrincipal({ navigation }) {
         </View>
 
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chipsScroll}>
-          {["Todos", "Favoritos", "Ganadores", "Perdedores"].map((label) => (
+          {["all", "favorites", "gainers", "losers"].map((filterKey) => (
             <TouchableOpacity
-              key={label}
-              onPress={() => setActiveFilter(label)}
-              style={[styles.chip, activeFilter === label && styles.chipActive]}
+              key={filterKey}
+              onPress={() => setActiveFilter(filterKey)}
+              style={[styles.chip, activeFilter === filterKey && styles.chipActive]}
             >
-              <Text style={[styles.chipText, activeFilter === label && styles.chipTextActive]}>
-                {label}
+              <Text style={[styles.chipText, activeFilter === filterKey && styles.chipTextActive]}>
+                {t(`home.filters.${filterKey}`)}
               </Text>
             </TouchableOpacity>
           ))}
         </ScrollView>
 
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Tendencias</Text>
+          <Text style={styles.sectionTitle}>{t("home.sections.trending")}</Text>
         </View>
 
         {loading && cryptos.length === 0 ? (
@@ -313,7 +315,9 @@ export default function MenuPrincipal({ navigation }) {
         <View style={styles.marketSection}>
           <View style={styles.sectionHeaderList}>
             <Text style={styles.sectionTitle}>
-              {activeFilter === "Todos" ? "Criptomonedas" : `Top ${activeFilter}`}
+              {activeFilter === "all"
+                ? t("home.sections.cryptos")
+                : t("home.sections.topFilter", { filter: t(`home.filters.${activeFilter}`) })}
             </Text>
           </View>
 
@@ -335,13 +339,13 @@ export default function MenuPrincipal({ navigation }) {
                 {loading ? (
                   <ActivityIndicator color={C.primary} />
                 ) : (
-                  <Text style={styles.emptyText}>No hay datos disponibles</Text>
+                  <Text style={styles.emptyText}>{t("home.empty.noData")}</Text>
                 )}
               </View>
             )}
           </View>
 
-          {activeFilter === "Todos" && filteredCryptos.length > 0 && (
+          {activeFilter === "all" && filteredCryptos.length > 0 && (
             <TouchableOpacity
               style={[styles.seeMoreBottom, loading && styles.opacity05]}
               onPress={handleLoadMore}
@@ -351,7 +355,7 @@ export default function MenuPrincipal({ navigation }) {
                 <ActivityIndicator size="small" color={C.primary} />
               ) : (
                 <>
-                  <Text style={styles.seeMoreText}>Cargar más monedas</Text>
+                  <Text style={styles.seeMoreText}>{t("home.actions.loadMore")}</Text>
                   <ArrowRight size={16} color={C.primary} />
                 </>
               )}

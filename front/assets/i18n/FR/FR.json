@@ -99,6 +99,30 @@
       "updated": "Profil mis à jour"
     }
   },
+  "home": {
+    "searchPlaceholder": "Rechercher une monnaie...",
+    "filters": {
+      "all": "Toutes",
+      "favorites": "Favoris",
+      "gainers": "Gagnantes",
+      "losers": "Perdantes"
+    },
+    "sections": {
+      "trending": "Tendances",
+      "cryptos": "Cryptomonnaies",
+      "topFilter": "Top {{filter}}"
+    },
+    "actions": {
+      "loadMore": "Charger plus de monnaies"
+    },
+    "empty": {
+      "noData": "Aucune donnée disponible"
+    },
+    "alerts": {
+      "couldNotSaveFavorite": "Impossible d'enregistrer",
+      "couldNotRemoveFavorite": "Impossible de supprimer"
+    }
+  },
   "register": {
     "title": "Créez votre compte",
     "subtitle": "Rejoignez dès aujourd'hui l'avenir de la finance crypto.\nInscrivez-vous pour commencer à trader.",
@@ -174,12 +198,16 @@
       "successMsg": "Bienvenue",
       "notAuthTitle": "Non authentifié",
       "cancelled": "Annulé",
-      "criticalTitle": "Erreur critique"
+      "criticalTitle": "Erreur critique",
+      "reason": "Motif : {{reason}}"
     },
     "alerts": {
       "errorTitle": "Erreur",
       "fillAllFields": "Veuillez remplir tous les champs",
-      "connectionError": "Erreur de connexion. Veuillez réessayer plus tard."
+      "connectionError": "Erreur de connexion. Veuillez réessayer plus tard.",
+      "loginOkNoId": "Connexion OK, mais impossible de récupérer l'ID.",
+      "invalidIdResponse": "Connexion OK, mais la réponse ne contient pas d'ID valide.",
+      "profileDataError": "Impossible de récupérer les données du profil."
     }
   },
   "profile": {

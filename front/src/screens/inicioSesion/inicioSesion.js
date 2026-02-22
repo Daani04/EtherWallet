@@ -25,7 +25,6 @@ import CryptoJS from "crypto-js";
 import common from "../../styles/common";
 import theme from "../../styles/theme";
 import Context from "../../context/Context";
-import i18n from "../../../assets/i18n";
 
 const COLORS = theme?.colors || theme?.COLORS || theme;
 const { width } = Dimensions.get("window");
@@ -35,7 +34,7 @@ const BASE_URL = "http://35.170.12.68:8080";
 
 const InicioSesion = (props) => {
   const [isBiometricSupported, setIsBiometricSupported] = useState(false);
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false); // ✅ Estado para controlar la carga
 
@@ -49,7 +48,7 @@ const InicioSesion = (props) => {
     lng.toUpperCase()
   );
 
-  const currentLng = String(i18n.language || "ES")
+  const currentLng = String(i18n.language || "EN")
     .split("-")[0]
     .toUpperCase();
 
@@ -100,11 +99,16 @@ const InicioSesion = (props) => {
       } else {
         Alert.alert(
           t("login.biometric.notAuthTitle"),
-          result.error ? `Motivo: ${result.error}` : t("login.biometric.cancelled")
+          result.error
+            ? t("login.biometric.reason", { reason: result.error })
+            : t("login.biometric.cancelled")
         );
       }
     } catch (error) {
-      Alert.alert(t("login.biometric.criticalTitle"), error.message);
+      Alert.alert(
+        t("login.biometric.criticalTitle"),
+        error?.message || t("login.alerts.connectionError")
+      );
     }
   };
 
@@ -140,7 +144,7 @@ const InicioSesion = (props) => {
 
       if (!idRes.ok) {
         setLoading(false);
-        Alert.alert(t("login.alerts.errorTitle"), "Login OK, pero no se pudo obtener el ID.");
+        Alert.alert(t("login.alerts.errorTitle"), t("login.alerts.loginOkNoId"));
         return;
       }
 
@@ -149,7 +153,7 @@ const InicioSesion = (props) => {
 
       if (!fetchedId) {
         setLoading(false);
-        Alert.alert(t("login.alerts.errorTitle"), "Login OK, pero no hay ID válido.");
+        Alert.alert(t("login.alerts.errorTitle"), t("login.alerts.invalidIdResponse"));
         return;
       }
 
@@ -157,7 +161,7 @@ const InicioSesion = (props) => {
 
       if (!userRes.ok) {
         setLoading(false);
-        Alert.alert("Error", "No se pudieron recuperar los datos del perfil.");
+        Alert.alert(t("common.error"), t("login.alerts.profileDataError"));
         return;
       }
 
@@ -170,8 +174,9 @@ const InicioSesion = (props) => {
       setLoading(false); // ✅ Apagamos carga si hay error de red
       Alert.alert(t("login.alerts.errorTitle"), t("login.alerts.connectionError"));
     } finally {
-        // En caso de éxito, la navegación se encarga, si no, nos aseguramos de apagar el loader
-        // aunque el try/catch ya lo maneja.
+      // En caso de éxito, la navegación se encarga, si no, nos aseguramos de apagar el loader
+      // aunque el try/catch ya lo maneja.
+      setLoading(false);
     }
   };
 
@@ -275,22 +280,22 @@ const InicioSesion = (props) => {
             <Text style={styles.forgotPassText}>{t("login.forgotPassword")}</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity 
-            style={[styles.primaryBtn, loading && styles.btnDisabled]} 
-            activeOpacity={0.8} 
+          <TouchableOpacity
+            style={[styles.primaryBtn, loading && styles.btnDisabled]}
+            activeOpacity={0.8}
             onPress={handleLogin}
             disabled={loading} // Desactivamos botón si carga
           >
             {loading ? (
-                <ActivityIndicator color={COLORS?.backgroundDark || "#102217"} />
+              <ActivityIndicator color={COLORS?.backgroundDark || "#102217"} />
             ) : (
-                <Text style={styles.primaryBtnText}>{t("login.buttons.login")}</Text>
+              <Text style={styles.primaryBtnText}>{t("login.buttons.login")}</Text>
             )}
           </TouchableOpacity>
 
-          <TouchableOpacity 
-            style={styles.secondaryBtn} 
-            activeOpacity={0.8} 
+          <TouchableOpacity
+            style={styles.secondaryBtn}
+            activeOpacity={0.8}
             onPress={handleBiometricAuth}
             disabled={loading}
           >

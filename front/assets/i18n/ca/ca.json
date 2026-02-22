@@ -99,6 +99,30 @@
       "updated": "Perfil actualitzat"
     }
   },
+  "home": {
+    "searchPlaceholder": "Buscar moneda...",
+    "filters": {
+      "all": "Totes",
+      "favorites": "Favorits",
+      "gainers": "Guanyadores",
+      "losers": "Perdedors"
+    },
+    "sections": {
+      "trending": "Tendències",
+      "cryptos": "Criptomonedes",
+      "topFilter": "Top {{filter}}"
+    },
+    "actions": {
+      "loadMore": "Carregar més monedes"
+    },
+    "empty": {
+      "noData": "No hi ha dades disponibles"
+    },
+    "alerts": {
+      "couldNotSaveFavorite": "No s'ha pogut guardar",
+      "couldNotRemoveFavorite": "No s'ha pogut eliminar"
+    }
+  },
   "register": {
     "title": "Crea el teu compte",
     "subtitle": "Uneix-te al futur de les finances cripto hui.\nRegistra't per a començar a operar.",
@@ -174,12 +198,16 @@
       "successMsg": "Benvingut/da",
       "notAuthTitle": "No autenticat",
       "cancelled": "Cancel·lat",
-      "criticalTitle": "Error crític"
+      "criticalTitle": "Error crític",
+      "reason": "Motiu: {{reason}}"
     },
     "alerts": {
       "errorTitle": "Error",
       "fillAllFields": "Per favor, ompli tots els camps",
-      "connectionError": "Error de connexió. Intenta-ho més tard."
+      "connectionError": "Error de connexió. Intenta-ho més tard.",
+      "loginOkNoId": "Login OK, però no s'ha pogut obtindre l'ID.",
+      "invalidIdResponse": "Login OK, però la resposta no porta un ID vàlid.",
+      "profileDataError": "No s'han pogut recuperar les dades del perfil."
     }
   },
   "profile": {

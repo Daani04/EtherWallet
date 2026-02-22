@@ -99,6 +99,30 @@
       "updated": "Perfil actualizado"
     }
   },
+  "home": {
+    "searchPlaceholder": "Buscar moneda...",
+    "filters": {
+      "all": "Todas",
+      "favorites": "Favoritos",
+      "gainers": "Ganadoras",
+      "losers": "Perdedoras"
+    },
+    "sections": {
+      "trending": "Tendencias",
+      "cryptos": "Criptomonedas",
+      "topFilter": "Top {{filter}}"
+    },
+    "actions": {
+      "loadMore": "Cargar más monedas"
+    },
+    "empty": {
+      "noData": "No hay datos disponibles"
+    },
+    "alerts": {
+      "couldNotSaveFavorite": "No se pudo guardar",
+      "couldNotRemoveFavorite": "No se pudo eliminar"
+    }
+  },
   "register": {
     "title": "Crea tu cuenta",
     "subtitle": "Únete al futuro de las finanzas cripto hoy.\nRegístrate para comenzar a operar.",
@@ -174,12 +198,16 @@
       "successMsg": "Bienvenido",
       "notAuthTitle": "No autenticado",
       "cancelled": "Cancelado",
-      "criticalTitle": "Error crítico"
+      "criticalTitle": "Error crítico",
+      "reason": "Motivo: {{reason}}"
     },
     "alerts": {
       "errorTitle": "Error",
       "fillAllFields": "Por favor, rellena todos los campos",
-      "connectionError": "Error de conexión. Inténtalo más tarde."
+      "connectionError": "Error de conexión. Inténtalo más tarde.",
+      "loginOkNoId": "Login OK, pero no se pudo obtener el ID.",
+      "invalidIdResponse": "Login OK, pero la respuesta no trae un ID válido.",
+      "profileDataError": "No se pudieron recuperar los datos del perfil."
     }
   },
   "profile": {

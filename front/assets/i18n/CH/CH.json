@@ -99,6 +99,30 @@
       "updated": "资料已更新"
     }
   },
+  "home": {
+    "searchPlaceholder": "搜索货币...",
+    "filters": {
+      "all": "全部",
+      "favorites": "收藏",
+      "gainers": "涨幅榜",
+      "losers": "跌幅榜"
+    },
+    "sections": {
+      "trending": "趋势",
+      "cryptos": "加密货币",
+      "topFilter": "Top {{filter}}"
+    },
+    "actions": {
+      "loadMore": "加载更多币种"
+    },
+    "empty": {
+      "noData": "暂无可用数据"
+    },
+    "alerts": {
+      "couldNotSaveFavorite": "无法保存收藏",
+      "couldNotRemoveFavorite": "无法删除收藏"
+    }
+  },
   "register": {
     "title": "创建您的账户",
     "subtitle": "加入加密金融的未来。\n注册以开始交易。",
@@ -174,12 +198,16 @@
       "successMsg": "欢迎",
       "notAuthTitle": "未认证",
       "cancelled": "已取消",
-      "criticalTitle": "严重错误"
+      "criticalTitle": "严重错误",
+      "reason": "原因: {{reason}}"
     },
     "alerts": {
       "errorTitle": "错误",
       "fillAllFields": "请填写所有字段",
-      "connectionError": "连接错误，请稍后重试。"
+      "connectionError": "连接错误，请稍后重试。",
+      "loginOkNoId": "登录成功，但无法获取用户ID。",
+      "invalidIdResponse": "登录成功，但响应中没有有效的ID。",
+      "profileDataError": "无法获取个人资料数据。"
     }
   },
   "profile": {

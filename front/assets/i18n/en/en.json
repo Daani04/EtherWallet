@@ -99,6 +99,30 @@
       "updated": "Profile updated"
     }
   },
+  "home": {
+    "searchPlaceholder": "Search coin...",
+    "filters": {
+      "all": "All",
+      "favorites": "Favorites",
+      "gainers": "Gainers",
+      "losers": "Losers"
+    },
+    "sections": {
+      "trending": "Trending",
+      "cryptos": "Cryptocurrencies",
+      "topFilter": "Top {{filter}}"
+    },
+    "actions": {
+      "loadMore": "Load more coins"
+    },
+    "empty": {
+      "noData": "No data available"
+    },
+    "alerts": {
+      "couldNotSaveFavorite": "Could not save",
+      "couldNotRemoveFavorite": "Could not remove"
+    }
+  },
   "register": {
     "title": "Create your account",
     "subtitle": "Join the future of crypto finance today.\nSign up to start trading.",
@@ -174,12 +198,16 @@
       "successMsg": "Welcome",
       "notAuthTitle": "Not authenticated",
       "cancelled": "Cancelled",
-      "criticalTitle": "Critical error"
+      "criticalTitle": "Critical error",
+      "reason": "Reason: {{reason}}"
     },
     "alerts": {
       "errorTitle": "Error",
       "fillAllFields": "Please fill in all fields",
-      "connectionError": "Connection error. Please try again later."
+      "connectionError": "Connection error. Please try again later.",
+      "loginOkNoId": "Login OK, but the user ID could not be retrieved.",
+      "invalidIdResponse": "Login OK, but the response does not contain a valid ID.",
+      "profileDataError": "Could not retrieve profile data."
     }
   },
   "profile": {
