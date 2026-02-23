@@ -14,7 +14,7 @@ import {
   Pressable,
   SafeAreaView,
   Modal,
-  ActivityIndicator, // ✅ Importado para la barra de carga
+  ActivityIndicator, 
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { MaterialIcons } from "@expo/vector-icons";
@@ -30,13 +30,13 @@ const COLORS = theme?.colors || theme?.COLORS || theme;
 const { width } = Dimensions.get("window");
 const isWeb = Platform.OS === "web";
 
-const BASE_URL = "http://35.170.12.68:8080";
+const BASE_URL = "http://192.168.1.143:8080";
 
 const InicioSesion = (props) => {
   const [isBiometricSupported, setIsBiometricSupported] = useState(false);
   const { t, i18n } = useTranslation();
   const [showPassword, setShowPassword] = useState(false);
-  const [loading, setLoading] = useState(false); // ✅ Estado para controlar la carga
+  const [loading, setLoading] = useState(false); 
 
   const { loginUser, setUserId } = useContext(Context);
 
