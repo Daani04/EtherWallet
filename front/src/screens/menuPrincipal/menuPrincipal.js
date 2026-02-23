@@ -23,7 +23,7 @@ import { useFocusEffect } from "@react-navigation/native";
 import { useTranslation } from "react-i18next";
 
 const { width } = Dimensions.get("window");
-const BASE_URL = "http://192.168.1.143:8080"; 
+const BASE_URL = "http://35.170.12.68:8080"; 
 const isWeb = Platform.OS === 'web';
 const NAV_HEIGHT = 90;
 
