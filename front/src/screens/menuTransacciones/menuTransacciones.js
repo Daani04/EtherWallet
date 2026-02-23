@@ -253,14 +253,16 @@ export default function MenuTransacciones({ navigation }) {
   );
 
   return (
-    <SafeAreaView style={[common.safe, { backgroundColor: C.bg }]}>
-      <View style={styles.flex1}>
-        {renderContent()}
-        <Nav />
+      <View style={[styles.flex1, { backgroundColor: C.bg }]}>
+          <SafeAreaView style={{ flex: 1 }}>
+              {renderContent()}
+          </SafeAreaView>
+          <View style={styles.mobileNavFixed}>
+              <Nav />
+          </View>
       </View>
-    </SafeAreaView>
-  );
-}
+    );
+  }
 
 const makeStyles = (C) => StyleSheet.create({
   flex1: {

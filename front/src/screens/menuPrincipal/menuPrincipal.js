@@ -400,60 +400,260 @@ const MarketItem = ({ item, isFav, onFavPress, C, styles, currencySymbol }) => {
 };
 
 const makeStyles = (C) => StyleSheet.create({
-  safeWeb: { height: "100vh", overflow: "hidden" },
-  page: { flex: 1, position: "relative" },
-  webScroll: { position: "absolute", top: 0, left: 0, right: 0, bottom: NAV_HEIGHT },
-  navWrap: { left: 0, right: 0, bottom: 0, height: NAV_HEIGHT, zIndex: 9999 },
-  navWrapWeb: { position: "fixed" },
-  
+  flex1: {
+    flex: 1,
+  },
+  page: {
+    flex: 1,
+    position: "relative",
+    backgroundColor: C.bg,
+  },
+  safeWeb: {
+    height: "100vh",
+    overflow: "hidden",
+  },
+
+  webScroll: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: NAV_HEIGHT,
+  },
+  navWrap: {
+    left: 0,
+    right: 0,
+    bottom: 0,
+    height: NAV_HEIGHT,
+    zIndex: 9999,
+  },
+  navWrapWeb: {
+    position: "fixed",
+  },
   mobileNavFixed: {
-    position: 'absolute',
+    position: "absolute",
     bottom: 0,
     left: 0,
     right: 0,
-    backgroundColor: C.cardBg, 
+    backgroundColor: C.cardBg,
+    zIndex: 10,
   },
 
-  flex1: { flex: 1 },
-  searchContainer: { paddingHorizontal: 24, paddingTop: 15, paddingBottom: 10 },
-  searchBox: { flexDirection: "row", alignItems: "center", backgroundColor: C.cardBg, borderRadius: 16, paddingHorizontal: 16, height: 54, borderWidth: 1, borderColor: C.border },
-  searchIcon: { marginRight: 10 },
-  input: { flex: 1, color: C.textMain, fontSize: 15, fontWeight: "500" },
-  chipsScroll: { paddingHorizontal: 24, paddingVertical: 15 },
-  chip: { paddingHorizontal: 20, paddingVertical: 10, borderRadius: 999, backgroundColor: C.cardBg, borderWidth: 1, borderColor: C.border, marginRight: 12 },
-  chipActive: { backgroundColor: C.primary, borderColor: C.primarySoft || C.primary },
-  chipText: { color: C.textMuted, fontSize: 14, fontWeight: "600" },
-  chipTextActive: { color: "#000000" },
-  sectionHeader: { paddingHorizontal: 24, marginTop: 10 },
-  sectionHeaderList: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingHorizontal: 24, marginTop: 20, marginBottom: 10 },
-  sectionTitle: { fontSize: 20, fontWeight: "bold", color: C.textMain },
-  seeMoreBottom: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, marginTop: 20, paddingVertical: 15, backgroundColor: C.isDark ? "rgba(43,238,121,0.05)" : "rgba(43,238,121,0.1)", borderRadius: 16, marginHorizontal: 24, borderWidth: 1, borderColor: C.border },
-  seeMoreText: { color: C.primary, fontSize: 15, fontWeight: "700" },
-  trendingScroll: { paddingLeft: 24, paddingVertical: 15 },
-  trendingCard: { width: 280, backgroundColor: C.cardBg, borderRadius: 24, padding: 16, borderWidth: 1, borderColor: C.border, marginRight: 16 },
-  cardHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start" },
-  coinInfo: { flexDirection: "row", alignItems: "center", gap: 12 },
-  coinLogo: { width: 32, height: 32, borderRadius: 16 },
-  coinName: { color: C.textMain, fontSize: 16, fontWeight: "bold" },
-  coinSymbol: { color: C.textMuted, fontSize: 12 },
-  badge: { paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8 },
-  badgeText: { fontSize: 12, fontWeight: "bold" },
-  cardPrice: { fontSize: 24, fontWeight: "bold", color: C.textMain, marginTop: 15 },
-  marketSection: { marginTop: 10 },
-  marketList: { paddingHorizontal: 24 },
-  marketItem: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", padding: 16, borderRadius: 20, backgroundColor: C.cardBg, borderWidth: 1, borderColor: C.border, marginBottom: 10 },
-  marketInfo: { flexDirection: "row", alignItems: "center", gap: 12 },
-  marketIcon: { width: 40, height: 40, borderRadius: 20 },
-  marketName: { color: C.textMain, fontSize: 16, fontWeight: "bold" },
-  marketSymbol: { color: C.textMuted, fontSize: 13 },
-  rightAction: { flexDirection: "row", alignItems: "center", gap: 15 },
-  marketValues: { alignItems: "flex-end" },
-  marketPrice: { color: C.textMain, fontSize: 16, fontWeight: "bold" },
-  marketChange: { fontSize: 14, fontWeight: "600" },
-  starBtn: { padding: 5 },
-  emptyText: { color: C.textMuted, textAlign: "center", marginTop: 30, fontSize: 14 },
-  emptyContainer: { paddingVertical: 40 },
-  loadingMargin: { marginTop: 30 },
-  opacity05: { opacity: 0.5 },
-  bottomSpacer: { height: 110 }
+  searchContainer: {
+    paddingHorizontal: 24,
+    paddingTop: 15,
+    paddingBottom: 10,
+  },
+  searchBox: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: C.cardBg,
+    borderRadius: 16,
+    paddingHorizontal: 16,
+    height: 54,
+    borderWidth: 1,
+    borderColor: C.border,
+  },
+  searchIcon: {
+    marginRight: 10,
+  },
+  input: {
+    flex: 1,
+    color: C.textMain,
+    fontSize: 15,
+    fontWeight: "500",
+  },
+
+  chipsScroll: {
+    paddingHorizontal: 24,
+    paddingVertical: 15,
+  },
+  chip: {
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 999,
+    backgroundColor: C.cardBg,
+    borderWidth: 1,
+    borderColor: C.border,
+    marginRight: 12,
+  },
+  chipActive: {
+    backgroundColor: C.primary,
+    borderColor: C.primarySoft || C.primary,
+  },
+  chipText: {
+    color: C.textMuted,
+    fontSize: 14,
+    fontWeight: "600",
+  },
+  chipTextActive: {
+    color: "#000000",
+  },
+
+  sectionHeader: {
+    paddingHorizontal: 24,
+    marginTop: 10,
+  },
+  sectionHeaderList: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingHorizontal: 24,
+    marginTop: 20,
+    marginBottom: 10,
+  },
+  sectionTitle: {
+    fontSize: 20,
+    fontWeight: "bold",
+    color: C.textMain,
+  },
+
+  trendingScroll: {
+    paddingLeft: 24,
+    paddingVertical: 15,
+  },
+  trendingCard: {
+    width: 280,
+    backgroundColor: C.cardBg,
+    borderRadius: 24,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: C.border,
+    marginRight: 16,
+  },
+  cardHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
+  },
+  cardPrice: {
+    fontSize: 24,
+    fontWeight: "bold",
+    color: C.textMain,
+    marginTop: 15,
+  },
+
+  coinInfo: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+  },
+  coinLogo: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+  },
+  coinName: {
+    color: C.textMain,
+    fontSize: 16,
+    fontWeight: "bold",
+  },
+  coinSymbol: {
+    color: C.textMuted,
+    fontSize: 12,
+  },
+  badge: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 8,
+  },
+  badgeText: {
+    fontSize: 12,
+    fontWeight: "bold",
+  },
+
+  marketSection: {
+    marginTop: 10,
+  },
+  marketList: {
+    paddingHorizontal: 24,
+  },
+  marketItem: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    padding: 16,
+    borderRadius: 20,
+    backgroundColor: C.cardBg,
+    borderWidth: 1,
+    borderColor: C.border,
+    marginBottom: 10,
+  },
+  marketInfo: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+  },
+  marketIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+  },
+  marketName: {
+    color: C.textMain,
+    fontSize: 16,
+    fontWeight: "bold",
+  },
+  marketSymbol: {
+    color: C.textMuted,
+    fontSize: 13,
+  },
+  rightAction: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 15,
+  },
+  marketValues: {
+    alignItems: "flex-end",
+  },
+  marketPrice: {
+    color: C.textMain,
+    fontSize: 16,
+    fontWeight: "bold",
+  },
+  marketChange: {
+    fontSize: 14,
+    fontWeight: "600",
+  },
+  starBtn: {
+    padding: 5,
+  },
+
+  seeMoreBottom: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+    marginTop: 20,
+    paddingVertical: 15,
+    backgroundColor: C.isDark ? "rgba(43,238,121,0.05)" : "rgba(43,238,121,0.1)",
+    borderRadius: 16,
+    marginHorizontal: 24,
+    borderWidth: 1,
+    borderColor: C.border,
+  },
+  seeMoreText: {
+    color: C.primary,
+    fontSize: 15,
+    fontWeight: "700",
+  },
+
+  emptyContainer: {
+    paddingVertical: 40,
+  },
+  emptyText: {
+    color: C.textMuted,
+    textAlign: "center",
+    marginTop: 30,
+    fontSize: 14,
+  },
+  loadingMargin: {
+    marginTop: 30,
+  },
+  opacity05: {
+    opacity: 0.5,
+  },
+  bottomSpacer: {
+    height: 110,
+  },
 });

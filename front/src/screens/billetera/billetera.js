@@ -57,7 +57,7 @@ const Billetera = (props) => {
     if (!user?.walletAddress) return;
 
     try {
-      const url = `http://35.170.12.68:8080/api/blockchain/portfolio/${user.walletAddress}`;
+      const url = `http://192.168.1.143:8080/api/blockchain/portfolio/${user.walletAddress}`;
       const response = await fetch(url);
       if (!response.ok) throw new Error(t("wallet.errors.server"));
       const data = await response.json();
@@ -122,8 +122,8 @@ const Billetera = (props) => {
       <View style={styles.topRow}>
         <View>
           <Text style={styles.welcome}>
-  {t("wallet.greeting", { name: user?.firstName || "" })}
-</Text>
+            {t("wallet.greeting", { name: user?.firstName || "" })}
+          </Text>
           <Text style={styles.miniInfo}>{t("wallet.live")} • {lastUpdate}</Text>
         </View>
 
@@ -228,46 +228,57 @@ const Billetera = (props) => {
     </>
   );
 
-  return (
-    <SafeAreaView
-      style={[
-        common.safe,
-        { backgroundColor: C.bg, paddingTop: topInset },
-        isWeb && styles.safeWeb,
-      ]}
-    >
-      <View style={styles.page}>
-        {isWeb ? (
-          <View style={styles.webScroll}>
-            <View style={styles.scrollContainer}>{renderContent()}</View>
-          </View>
-
-        ) : (
-          <ScrollView
-            style={{ flex: 1, backgroundColor: C.bg }}
-            contentContainerStyle={styles.scrollContainer}
-            showsVerticalScrollIndicator={false}
-            showsHorizontalScrollIndicator={false}
-          >
-            {renderContent()}
-          </ScrollView>
-        )}
-
-        <View style={[styles.navWrap, isWeb ? styles.navWrapWeb : styles.navWrapNative]}>
-          <Nav />
+return (
+    <View style={[styles.page, { backgroundColor: C.bg }]}>
+      <SafeAreaView
+        style={[
+          common.safe,
+          { backgroundColor: C.bg, paddingTop: topInset },
+          isWeb && styles.safeWeb,
+        ]}
+      >
+        <View style={styles.flex1}>
+          {isWeb ? (
+            <View style={styles.webScroll}>
+              <View style={styles.scrollContainer}>{renderContent()}</View>
+            </View>
+          ) : (
+            <ScrollView
+              style={{ flex: 1, backgroundColor: C.bg }}
+              contentContainerStyle={styles.scrollContainer}
+              showsVerticalScrollIndicator={false}
+              showsHorizontalScrollIndicator={false}
+            >
+              {renderContent()}
+            </ScrollView>
+          )}
         </View>
+      </SafeAreaView>
+
+      <View style={[styles.navWrap, isWeb ? styles.navWrapWeb : styles.navWrapNative]}>
+        <Nav />
       </View>
-    </SafeAreaView>
+    </View>
   );
 
 };
-
 const makeStyles = (C) =>
   StyleSheet.create({
-
+    flex1: {
+      flex: 1,
+    },
+    page: {
+      flex: 1,
+      position: "relative",
+    },
     safeWeb: {
       height: "100vh",
       overflow: "hidden",
+    },
+    loaderContainer: {
+      flex: 1,
+      justifyContent: "center",
+      alignItems: "center",
     },
 
     webScroll: {
@@ -275,20 +286,9 @@ const makeStyles = (C) =>
       top: 0,
       left: 0,
       right: 0,
-      bottom: 90,   // para que no se tape con el Nav
+      bottom: 90,
       overflowY: "auto",
-      overflowX: "hidden",
-
-      // ocultar barrita donde se pueda
       scrollbarWidth: "none",
-      msOverflowStyle: "none",
-    },
-
-
-    page: {
-      flex: 1,
-      position: "relative",
-      backgroundColor: C.bg,
     },
     navWrap: {
       left: 0,
@@ -296,23 +296,19 @@ const makeStyles = (C) =>
       bottom: 0,
       height: 90,
       zIndex: 9999,
-      elevation: 50,
     },
     navWrapWeb: {
       position: "fixed",
     },
     navWrapNative: {
       position: "absolute",
+      backgroundColor: C.bg, 
     },
     scrollContainer: {
       padding: 20,
-      paddingBottom: 90 + 20,
+      paddingBottom: 110, 
     },
-    loaderContainer: {
-      flex: 1,
-      justifyContent: "center",
-      alignItems: "center",
-    },
+
     topRow: {
       flexDirection: "row",
       justifyContent: "space-between",
@@ -338,8 +334,8 @@ const makeStyles = (C) =>
       justifyContent: "center",
       borderWidth: 1,
       borderColor: C.border,
-      elevation: 2,
     },
+
     balanceCardMain: {
       backgroundColor: C.cardBg,
       borderRadius: 28,
@@ -347,7 +343,6 @@ const makeStyles = (C) =>
       borderWidth: 1,
       borderColor: C.border,
       marginBottom: 25,
-      elevation: 2,
       overflow: "hidden",
     },
     balanceGlow: {
@@ -378,13 +373,14 @@ const makeStyles = (C) =>
       marginTop: 15,
       fontFamily: Platform.OS === "ios" ? "Courier" : "monospace",
     },
+
+    // --- Lista de Activos ---
     card: {
       backgroundColor: C.cardBg,
       borderRadius: 24,
       padding: 20,
       borderWidth: 1,
       borderColor: C.border,
-      elevation: 2,
     },
     sectionHeader: {
       flexDirection: "row",
