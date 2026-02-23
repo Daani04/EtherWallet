@@ -318,5 +318,11 @@
       "enabled": "Activat",
       "kycLevel2": "Verificat nivell 2"
     }
+  },
+  "nav": {
+    "home": "Inici",
+    "wallet": "Billetera",
+    "news": "Notícies",
+    "profile": "Perfil"
   }
 }

@@ -91,71 +91,71 @@
       "bank": "银行"
     }
   },
-"editProfile": {
-  "title": "编辑个人资料",
-  "helpImageUrl": "粘贴图片网址 ",
-  "help": {
-    "imageUrl": "粘贴图片网址 "
-  },
-  "labels": {
-    "image": "图片 (userImage)",
-    "firstName": "名字 (firstName)",
-    "lastName": "姓氏 (lastName)",
-    "birthDate": "出生日期 (birthDate)",
-    "newPassword": "新密码（可选）"
-  },
-  "dateModal": {
-    "title": "出生日期",
+  "editProfile": {
+    "title": "编辑个人资料",
+    "helpImageUrl": "粘贴图片网址 ",
+    "help": {
+      "imageUrl": "粘贴图片网址 "
+    },
     "labels": {
-      "day": "日",
-      "month": "月",
-      "year": "年"
+      "image": "图片 (userImage)",
+      "firstName": "名字 (firstName)",
+      "lastName": "姓氏 (lastName)",
+      "birthDate": "出生日期 (birthDate)",
+      "newPassword": "新密码（可选）"
+    },
+    "dateModal": {
+      "title": "出生日期",
+      "labels": {
+        "day": "日",
+        "month": "月",
+        "year": "年"
+      },
+      "actions": {
+        "apply": "应用"
+      },
+      "alerts": {
+        "invalidDateTitle": "日期无效",
+        "invalidDateMessage": "请使用有效格式 dd/mm/yyyy。"
+      }
+    },
+    "placeholders": {
+      "imageUrl": "https://...",
+      "firstName": "名字",
+      "lastName": "姓氏",
+      "birthDate": "dd/mm/yyyy",
+      "passwordOptional": "留空则不修改",
+      "newPassword": "留空则不修改"
+    },
+    "buttons": {
+      "save": "保存更改",
+      "cancel": "取消",
+      "changePhoto": "更换照片"
     },
     "actions": {
-      "apply": "应用"
+      "save": "保存更改",
+      "openDateModal": "打开"
     },
     "alerts": {
-      "invalidDateTitle": "日期无效",
-      "invalidDateMessage": "请使用有效格式 dd/mm/yyyy。"
+      "errorTitle": "错误",
+      "okTitle": "确定",
+      "missingId": "我没有用户ID（缺少 user.id）。",
+      "fillFields": "请填写 firstName、lastName、birthDate 和 userImage。",
+      "updated": "个人资料已更新",
+      "serverError": "无法连接到服务器",
+      "permissionDeniedTitle": "权限被拒绝",
+      "permissionDeniedMsg": "我需要权限才能访问你的照片。",
+      "imageLoadError": "无法加载图片。"
+    },
+    "errors": {
+      "missingUserId": "我没有用户ID（缺少 user.id）。",
+      "fillAllRequired": "请填写 firstName、lastName、birthDate 和 userImage。",
+      "serverConnection": "无法连接到服务器"
+    },
+    "success": {
+      "updated": "个人资料已更新"
     }
   },
-  "placeholders": {
-    "imageUrl": "https://...",
-    "firstName": "名字",
-    "lastName": "姓氏",
-    "birthDate": "dd/mm/yyyy",
-    "passwordOptional": "留空则不修改",
-    "newPassword": "留空则不修改"
-  },
-  "buttons": {
-    "save": "保存更改",
-    "cancel": "取消",
-    "changePhoto": "更换照片"
-  },
-  "actions": {
-    "save": "保存更改",
-    "openDateModal": "打开"
-  },
-  "alerts": {
-    "errorTitle": "错误",
-    "okTitle": "确定",
-    "missingId": "我没有用户ID（缺少 user.id）。",
-    "fillFields": "请填写 firstName、lastName、birthDate 和 userImage。",
-    "updated": "个人资料已更新",
-    "serverError": "无法连接到服务器",
-    "permissionDeniedTitle": "权限被拒绝",
-    "permissionDeniedMsg": "我需要权限才能访问你的照片。",
-    "imageLoadError": "无法加载图片。"
-  },
-  "errors": {
-    "missingUserId": "我没有用户ID（缺少 user.id）。",
-    "fillAllRequired": "请填写 firstName、lastName、birthDate 和 userImage。",
-    "serverConnection": "无法连接到服务器"
-  },
-  "success": {
-    "updated": "个人资料已更新"
-  }
-},
   "home": {
     "searchPlaceholder": "搜索货币...",
     "filters": {
@@ -318,5 +318,11 @@
       "enabled": "已启用",
       "kycLevel2": "已验证等级 2"
     }
+  },
+  "nav": {
+    "home": "首页",
+    "wallet": "钱包",
+    "news": "新闻",
+    "profile": "个人资料"
   }
 }
