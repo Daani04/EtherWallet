@@ -9,7 +9,7 @@
     "error": "Error"
   },
   "news": {
-    "headerTitle": "Geopolítica & Mercados",
+    "headerTitle": "Ultimas noticias",
     "loading": "Analizando el mercado...",
     "sentiment": {
       "optimistic": "Optimista",
@@ -18,6 +18,43 @@
     }
   },
   "transactions": {
+    "sendFunds": {
+      "title": "Enviar fondos",
+      "subtitle": "Red Ethereum Sepolia"
+    },
+    "movement": {
+      "sent": "Dinero enviado",
+      "received": "Dinero recibido",
+      "to": "A",
+      "from": "De",
+      "recent": "Reciente"
+    },
+    "empty": {
+      "noTransactions": "No hay transacciones registradas"
+    },
+    "modal": {
+      "title": "Nueva transferencia",
+      "destinationAddress": "Dirección de destino",
+      "amount": "Cantidad (ETH)",
+      "privateKey": "Tu clave privada",
+      "confirm": "Firmar y enviar",
+      "close": "Cerrar",
+      "placeholders": {
+        "destination": "0x...",
+        "amount": "0.00",
+        "privateKey": "Clave para firmar"
+      }
+    },
+    "alerts": {
+      "fillAllFields": "Rellena todos los campos",
+      "successTitle": "Éxito",
+      "transferOk": "Transferencia realizada correctamente",
+      "transactionError": "Error en la transacción",
+      "serverError": "No se pudo conectar con el servidor"
+    },
+    "errors": {
+      "fetchTransactions": "Error cargando transacciones:"
+    },
     "headerTitle": "Transacciones",
     "searchPlaceholder": "Buscar destinatario o movimiento…",
     "sections": {
@@ -67,6 +104,21 @@
       "birthDate": "Fecha nacimiento (birthDate)",
       "newPassword": "Nueva contraseña (opcional)"
     },
+    "dateModal": {
+      "title": "Fecha de nacimiento",
+      "labels": {
+        "day": "Día",
+        "month": "Mes",
+        "year": "Año"
+      },
+      "actions": {
+        "apply": "Aplicar"
+      },
+      "alerts": {
+        "invalidDateTitle": "Fecha inválida",
+        "invalidDateMessage": "Usa un formato válido dd/mm/yyyy."
+      }
+    },
     "placeholders": {
       "imageUrl": "https://...",
       "firstName": "Nombre",
@@ -77,10 +129,12 @@
     },
     "buttons": {
       "save": "Guardar cambios",
-      "cancel": "Cancelar"
+      "cancel": "Cancelar",
+      "changePhoto": "Cambiar foto"
     },
     "actions": {
-      "save": "Guardar cambios"
+      "save": "Guardar cambios",
+      "openDateModal": "Abrir"
     },
     "alerts": {
       "errorTitle": "Error",
@@ -88,7 +142,10 @@
       "missingId": "No tengo el id del usuario (falta user.id).",
       "fillFields": "Rellena firstName, lastName, birthDate y userImage.",
       "updated": "Perfil actualizado",
-      "serverError": "No se pudo conectar con el servidor"
+      "serverError": "No se pudo conectar con el servidor",
+      "permissionDeniedTitle": "Permiso denegado",
+      "permissionDeniedMsg": "Necesito permiso para acceder a tus fotos.",
+      "imageLoadError": "No se pudo cargar la imagen."
     },
     "errors": {
       "missingUserId": "No tengo el id del usuario (falta user.id).",
@@ -97,6 +154,41 @@
     },
     "success": {
       "updated": "Perfil actualizado"
+    }
+  },
+  "home": {
+    "searchPlaceholder": "Buscar moneda...",
+    "filters": {
+      "all": "Todas",
+      "favorites": "Favoritos",
+      "gainers": "Ganadoras",
+      "losers": "Perdedoras"
+    },
+    "sections": {
+      "trending": "Tendencias",
+      "cryptos": "Criptomonedas",
+      "topFilter": "Top {{filter}}"
+    },
+    "actions": {
+      "loadMore": "Cargar más monedas"
+    },
+    "empty": {
+      "noData": "No hay datos disponibles"
+    },
+    "alerts": {
+      "couldNotSaveFavorite": "No se pudo guardar",
+      "couldNotRemoveFavorite": "No se pudo eliminar"
+    }
+  },
+  "wallet": {
+    "greeting": "Hola, {{name}}",
+    "live": "En vivo",
+    "totalBalance": "Balance total",
+    "noWallet": "Sin wallet",
+    "yourAssets": "Tus activos",
+    "errors": {
+      "server": "Error en el servidor",
+      "fetchPortfolio": "Error al obtener el portfolio"
     }
   },
   "register": {
@@ -174,15 +266,36 @@
       "successMsg": "Bienvenido",
       "notAuthTitle": "No autenticado",
       "cancelled": "Cancelado",
-      "criticalTitle": "Error crítico"
+      "criticalTitle": "Error crítico",
+      "reason": "Motivo: {{reason}}"
     },
     "alerts": {
       "errorTitle": "Error",
       "fillAllFields": "Por favor, rellena todos los campos",
-      "connectionError": "Error de conexión. Inténtalo más tarde."
+      "connectionError": "Error de conexión. Inténtalo más tarde.",
+      "loginOkNoId": "Login OK, pero no se pudo obtener el ID.",
+      "invalidIdResponse": "Login OK, pero la respuesta no trae un ID válido.",
+      "profileDataError": "No se pudieron recuperar los datos del perfil."
     }
   },
   "profile": {
+    "fallbackUser": "Usuario",
+    "privateKey": {
+      "prefix": "PK:",
+      "noKey": "Sin clave"
+    },
+    "deleteAccount": {
+      "button": "Eliminar cuenta",
+      "title": "Eliminar",
+      "confirmMessage": "¿Seguro?",
+      "actions": {
+        "no": "No",
+        "yes": "Sí"
+      },
+      "alerts": {
+        "connectionError": "No se pudo conectar"
+      }
+    },
     "settingsTitle": "Configuración",
     "versionPrefix": "Versión",
     "sections": {

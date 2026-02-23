@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useContext, useEffect } from "react";
+import React, { useMemo, useState, useContext, useEffect, useCallback } from "react";
 import {
   View,
   Text,
@@ -7,87 +7,40 @@ import {
   ScrollView,
   TextInput,
   Platform,
-  useWindowDimensions,
   Modal,
   Alert,
   ActivityIndicator,
   SafeAreaView,
-  Pressable,
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
+import { useSettings } from "../../context/SettingsContext";
 
 import Nav from "../../components/Nav";
 import common from "../../styles/common";
-import theme from "../../styles/theme";
 import Context from "../../context/Context";
 
-const BREAKPOINT_MD = 768;
-const BASE_URL = "http://10.10.6.84:8080";
-
-const THEME = theme?.colors || theme?.COLORS || theme || {};
-const NAV_HEIGHT = 90;
-const isWeb = Platform.OS === "web";
-
-const COLORS = {
-  primary: THEME.primary || "#2bee79",
-  backgroundDark: THEME.bg || THEME.backgroundDark || "#102217",
-  inputBg: THEME.cardBg || THEME.inputBg || "#1c2720",
-  border: THEME.border || "#3b5445",
-  textMuted: THEME.textMuted || "#9db9a8",
-  textMutedSoft: THEME.textSoft || "rgba(255,255,255,0.6)",
-  danger: THEME.danger || "#ff5a7a",
-};
+const BASE_URL = "http://35.170.12.68:8080";
 
 export default function MenuTransacciones({ navigation }) {
   const { t } = useTranslation();
-  const { user } = useContext(Context);
+  const { user, isLogged } = useContext(Context);
+  const { C } = useSettings();
 
-  const { width } = useWindowDimensions();
-  const isDesktop = width >= BREAKPOINT_MD;
+  const styles = useMemo(() => makeStyles(C), [C]);
 
-  // UI (tu parte)
   const [search, setSearch] = useState("");
-
-  // Datos (parte compañero)
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
+  const [sending, setSending] = useState(false); // Estado para la carga del envío
   const [transactions, setTransactions] = useState([]);
-
-  // Modal transferencia (parte compañero)
   const [modalVisible, setModalVisible] = useState(false);
+
   const [walletAddress, setWalletAddress] = useState("");
   const [amount, setAmount] = useState("");
   const [senderPrivKey, setSenderPrivKey] = useState("");
-  const [cryptoSymbol] = useState("ETH");
 
-  const goBack = () => navigation.goBack();
-  const goToScreen = (name, params) => navigation.navigate(name, params);
-
-  const normalize = (txt) => String(txt || "").toLowerCase();
-  const hasQuery = () => search && search.trim().length > 0;
-  const clearSearch = () => setSearch("");
-
-  const recentRecipients = useMemo(
-    () => [
-      { id: "1", initials: "CF", name: "Carlos Fernández Bou" },
-      { id: "2", initials: "AM", name: "Ana Martínez" },
-      { id: "3", initials: "JP", name: "Juan Pérez" },
-    ],
-    []
-  );
-
-  const filteredRecipients = useMemo(() => {
-    if (!hasQuery()) return recentRecipients;
-    const q = normalize(search);
-    return recentRecipients.filter((r) => normalize(r.name).includes(q));
-  }, [search, recentRecipients]);
-
-  const fetchTransactions = async () => {
-    if (!user?.userId) {
-      setLoading(false);
-      return;
-    }
-
+  const fetchTransactions = useCallback(async () => {
+    if (!user?.userId || !isLogged) return;
     setLoading(true);
     try {
       const response = await fetch(`${BASE_URL}/api/blockchain/MyTransactions/${user.userId}`);
@@ -97,555 +50,423 @@ export default function MenuTransacciones({ navigation }) {
           ? data.sort((a, b) => new Date(b.date) - new Date(a.date))
           : [];
         setTransactions(sorted);
-      } else {
-        setTransactions([]);
       }
     } catch (error) {
-      console.error("Error cargando transacciones:", error);
-      setTransactions([]);
+      console.warn(t("transactions.errors.fetchTransactions"), error);
     } finally {
       setLoading(false);
     }
-  };
+  }, [user?.userId, isLogged, t]);
 
   useEffect(() => {
     fetchTransactions();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user?.userId]);
+  }, [fetchTransactions]);
 
   const filteredTransactions = useMemo(() => {
-    if (!hasQuery()) return transactions;
-    const q = normalize(search);
-
-    return transactions.filter((tx) => {
-      const dir = tx?.senderId === user?.userId ? "envio" : "recibido";
-      const a = normalize(dir).includes(q);
-      const b = normalize(tx?.receiverId).includes(q);
-      const c = normalize(tx?.senderId).includes(q);
-      const d = normalize(tx?.crypto).includes(q);
-      return a || b || c || d;
-    });
-  }, [search, transactions, user?.userId]);
+    const q = search.toLowerCase().trim();
+    if (!q) return transactions;
+    return transactions.filter(tx =>
+      tx.receiverId?.toLowerCase().includes(q) ||
+      tx.senderId?.toLowerCase().includes(q)
+    );
+  }, [search, transactions]);
 
   const handleTransfer = async () => {
-    if (!user?.userId) {
-      Alert.alert("Error", "No hay usuario logueado");
+    if (!walletAddress || !amount || !senderPrivKey) {
+      Alert.alert(t("common.error"), t("transactions.alerts.fillAllFields"));
       return;
     }
 
-    if (!walletAddress || !amount || !senderPrivKey) {
-      Alert.alert("Error", "Rellena todos los campos, incluida tu clave privada");
-      return;
-    }
+    setSending(true); // Iniciamos carga
 
     try {
-      const newTransaction = {
-        senderId: user.userId,
-        receiverId: walletAddress,
-        amount: parseFloat(amount),
-        crypto: String(cryptoSymbol).toUpperCase(),
-        type: "TRANSFER",
-        privateKey: senderPrivKey,
-      };
-
-      const response = await fetch(`${BASE_URL}/api/blockchain/Transfer`, {
+      // Usamos la lógica directa que confirmaste que funciona
+      const res = await fetch(`${BASE_URL}/api/blockchain/Transfer`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(newTransaction),
+        body: JSON.stringify({
+          senderId: user.userId,
+          receiverId: walletAddress,
+          amount: parseFloat(amount),
+          crypto: "ETH",
+          type: "TRANSFER",
+          privateKey: senderPrivKey,
+        }),
       });
 
-      if (response.ok) {
-        Alert.alert("Éxito", "Transferencia firmada y enviada a Sepolia");
+      if (res.ok) {
+        Alert.alert(t("transactions.alerts.successTitle"), t("transactions.alerts.transferOk"));
         setModalVisible(false);
         setWalletAddress("");
         setAmount("");
         setSenderPrivKey("");
         fetchTransactions();
       } else {
-        const errorMsg = await response.text();
-        Alert.alert("Error", errorMsg || "Fondos insuficientes o clave incorrecta");
+        const msg = await res.text();
+        Alert.alert(t("common.error"), msg || t("transactions.alerts.transactionError"));
       }
-    } catch (error) {
-      console.error(error);
-      Alert.alert("Error", "Error de conexión con el servidor");
+    } catch (e) {
+      Alert.alert(t("common.error"), t("transactions.alerts.serverError"));
+    } finally {
+      setSending(false); // Finalizamos carga
     }
   };
 
-  const renderHeader = () => (
-    <View style={[styles.header, isDesktop && styles.headerDesktop]}>
-      <TouchableOpacity onPress={goBack} style={styles.iconBtn} activeOpacity={0.85}>
-        <MaterialIcons name="arrow-back" size={22} color="#fff" />
-      </TouchableOpacity>
-
-      <Text style={[styles.headerTitle, isDesktop && styles.headerTitleDesktop]}>
-        {t("transactions.headerTitle")}
-      </Text>
-
-      <TouchableOpacity
-        onPress={() => goToScreen("AyudaTransacciones")}
-        style={styles.iconBtn}
-        activeOpacity={0.85}
-      >
-        <MaterialIcons name="help-outline" size={22} color="#fff" />
-      </TouchableOpacity>
-    </View>
-  );
-
-  const renderSearch = () => (
-    <View style={styles.searchWrap}>
-      <MaterialIcons name="search" size={20} color={COLORS.textMutedSoft} />
-      <TextInput
-        value={search}
-        onChangeText={setSearch}
-        placeholder={t("transactions.searchPlaceholder")}
-        placeholderTextColor={COLORS.textMutedSoft}
-        style={styles.searchInput}
-      />
-      {hasQuery() && (
-        <TouchableOpacity onPress={clearSearch} activeOpacity={0.7} style={styles.clearBtn}>
-          <MaterialIcons name="close" size={18} color={COLORS.textMutedSoft} />
-        </TouchableOpacity>
-      )}
-    </View>
-  );
-
-  const renderQuickActions = () => (
-    <View style={styles.actionsGrid}>
-      {/* SOLO TRANSFERIR */}
-      <TouchableOpacity
-        style={styles.actionCard}
-        activeOpacity={0.85}
-        onPress={() => setModalVisible(true)}
-      >
-        <View style={styles.actionIcon}>
-          <MaterialIcons name="compare-arrows" size={20} color={COLORS.primary} />
-        </View>
-        <View style={{ flex: 1 }}>
-          <Text style={styles.actionTitle}>{t("transactions.quickActions.transfer.title")}</Text>
-          <Text style={styles.actionSubtitle}>{t("transactions.quickActions.transfer.subtitle")}</Text>
-        </View>
-        <MaterialIcons name="chevron-right" size={22} color={COLORS.textMutedSoft} />
-      </TouchableOpacity>
-    </View>
-  );
-
-  const renderRecipients = () => (
-    <View style={[styles.recipientsWrap, isDesktop && styles.recipientsWrapDesktop]}>
-      {filteredRecipients.map((r) => (
-        <TouchableOpacity
-          key={r.id}
-          style={styles.recipientCard}
-          activeOpacity={0.85}
-          onPress={() => {
-            // prefilla el campo para abrir el modal (si luego quieres address real, aquí pondrías r.address)
-            setWalletAddress(r.name);
-            setModalVisible(true);
-          }}
-        >
-          <View style={styles.recipientInfo}>
-            <View style={styles.initialsCircle}>
-              <Text style={styles.initialsText}>{r.initials}</Text>
-            </View>
-            <Text style={styles.recipientName} numberOfLines={1}>
-              {r.name}
-            </Text>
-          </View>
-          <MaterialIcons name="chevron-right" size={20} color={COLORS.textMutedSoft} />
-        </TouchableOpacity>
-      ))}
-    </View>
-  );
-
-  const renderTransactions = () => (
-    <View style={styles.listCard}>
-      {loading ? (
-        <ActivityIndicator color={COLORS.primary} style={{ margin: 20 }} />
-      ) : filteredTransactions.length === 0 ? (
-        <Text style={styles.emptyText}>No hay transacciones</Text>
-      ) : (
-        filteredTransactions.map((tx, idx) => {
-          const isSend = tx?.senderId === user?.userId;
-
-          const iconName = isSend ? "north-east" : "south-west";
-          const iconColor = isSend ? COLORS.danger : COLORS.primary;
-
-          const title = isSend ? "Envío" : "Recibido";
-          const sub = isSend ? `A: ${tx?.receiverId}` : `De: ${tx?.senderId}`;
-
-          return (
-            <View key={tx?.id ?? `${idx}-${tx?.date}`} style={[styles.txRow, idx !== 0 && styles.txRowBorder]}>
-              <View style={styles.txIcon}>
-                <MaterialIcons name={iconName} size={18} color={iconColor} />
-              </View>
-
-              <View style={{ flex: 1 }}>
-                <Text style={styles.txTitle}>{title}</Text>
-                <Text style={styles.txSubtitle} numberOfLines={1}>
-                  {sub}
-                </Text>
-                {!!tx?.date && (
-                  <Text style={styles.txSubtitle} numberOfLines={1}>
-                    {String(tx.date)}
-                  </Text>
-                )}
-              </View>
-
-              <Text style={[styles.txAmount, isSend ? styles.negative : styles.positive]}>
-                {isSend ? "-" : "+"}
-                {tx?.amount} {tx?.crypto}
-              </Text>
-            </View>
-          );
-        })
-      )}
-    </View>
-  );
-
   const renderContent = () => (
-    <View style={[styles.scroll, isDesktop && styles.scrollDesktop]}>
-      {renderHeader()}
-
-      <View style={[styles.container, isDesktop && styles.containerDesktop]}>
-        {renderSearch()}
-
-        <View style={[styles.layout, isDesktop && styles.layoutDesktop]}>
-          {/* LEFT */}
-          <View style={[styles.col, isDesktop && styles.leftCol]}>
-            <Text style={styles.sectionTitle}>{t("transactions.sections.quickActions")}</Text>
-            {renderQuickActions()}
-
-            <View style={styles.sectionRow}>
-              <Text style={styles.sectionTitle}>{t("transactions.sections.recentRecipients")}</Text>
-              <TouchableOpacity onPress={() => goToScreen("Destinatarios")} activeOpacity={0.85}>
-                <Text style={styles.link}>{t("transactions.viewAll")}</Text>
-              </TouchableOpacity>
-            </View>
-
-            {renderRecipients()}
-          </View>
-
-          {/* RIGHT */}
-          <View style={[styles.col, isDesktop && styles.rightCol]}>
-            <Text style={[styles.sectionTitle, isDesktop && { marginTop: 20 }]}>
-              {t("transactions.sections.recentMovements")}
-            </Text>
-
-            {renderTransactions()}
-
-            {/* Botón: abre el modal (no navega a pantalla inexistente) */}
-            <TouchableOpacity
-              style={[styles.primaryBtn, isDesktop && styles.primaryBtnDesktop]}
-              activeOpacity={0.9}
-              onPress={() => setModalVisible(true)}
-            >
-              <Text style={styles.primaryBtnText}>{t("transactions.newTransaction")}</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-
-        <View style={{ height: 18 }} />
+    <View style={styles.flex1}>
+      <View style={styles.header}>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.iconBtn}>
+          <MaterialIcons name="arrow-back" size={22} color={C.textMain} />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>{t("transactions.headerTitle")}</Text>
+        <View style={styles.headerSpacer} />
       </View>
 
-      {/* MODAL TRANSFER */}
-      <Modal
-        animationType="slide"
-        transparent
-        visible={modalVisible}
-        onRequestClose={() => setModalVisible(false)}
-      >
-        <Pressable style={styles.modalOverlay} onPress={() => setModalVisible(false)}>
-          <Pressable style={styles.modalContent} onPress={() => {}}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Nueva Transferencia</Text>
-              <TouchableOpacity onPress={() => setModalVisible(false)} activeOpacity={0.8}>
-                <MaterialIcons name="close" size={24} color="#fff" />
+      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+        <View style={styles.searchWrap}>
+          <MaterialIcons name="search" size={20} color={C.textMuted} />
+          <TextInput
+            value={search}
+            onChangeText={setSearch}
+            placeholder={t("transactions.searchPlaceholder")}
+            placeholderTextColor={C.textMuted}
+            style={styles.searchInput}
+          />
+        </View>
+
+        <Text style={styles.sectionTitle}>{t("transactions.sections.quickActions")}</Text>
+        <TouchableOpacity
+          style={styles.actionCard}
+          onPress={() => setModalVisible(true)}
+          activeOpacity={0.8}
+        >
+          <View style={styles.actionIcon}>
+            <MaterialIcons name="send" size={20} color={C.primary} />
+          </View>
+          <View style={styles.flex1}>
+            <Text style={styles.actionTitle}>{t("transactions.sendFunds.title")}</Text>
+            <Text style={styles.actionSub}>{t("transactions.sendFunds.subtitle")}</Text>
+          </View>
+          <MaterialIcons name="chevron-right" size={24} color={C.textMuted} />
+        </TouchableOpacity>
+
+        <Text style={styles.sectionTitle}>{t("transactions.sections.recentMovements")}</Text>
+        <View style={styles.listCard}>
+          {loading ? (
+            <ActivityIndicator color={C.primary} style={styles.loader} />
+          ) : filteredTransactions.length === 0 ? (
+            <Text style={styles.emptyText}>{t("transactions.empty.noTransactions")}</Text>
+          ) : (
+            filteredTransactions.map((tx, idx) => {
+              const isSend = tx.senderId === user?.userId;
+              return (
+                <View key={idx} style={[styles.txRow, idx !== 0 && styles.txBorder]}>
+                  <View style={[styles.txIconCircle, { backgroundColor: isSend ? 'rgba(255,51,51,0.1)' : 'rgba(0,255,136,0.1)' }]}>
+                    <MaterialIcons
+                      name={isSend ? "north-east" : "south-west"}
+                      size={20}
+                      color={isSend ? C.danger : C.primary}
+                    />
+                  </View>
+                  <View style={styles.txInfo}>
+                    <Text style={styles.txTitle}>
+                      {isSend ? t("transactions.movement.sent") : t("transactions.movement.received")}
+                    </Text>
+                    <Text style={styles.txWallet} numberOfLines={1}>
+                      {isSend
+                        ? `${t("transactions.movement.to")}: ${tx.receiverId}`
+                        : `${t("transactions.movement.from")}: ${tx.senderId}`}
+                    </Text>
+                    <Text style={styles.txDate}>
+                      {tx.date ? new Date(tx.date).toLocaleDateString() : t("transactions.movement.recent")}
+                    </Text>
+                  </View>
+                  <Text style={[styles.txAmount, { color: isSend ? C.danger : C.primary }]}>
+                    {isSend ? "-" : "+"}{tx.amount} ETH
+                  </Text>
+                </View>
+              );
+            })
+          )}
+        </View>
+      </ScrollView>
+
+      <Modal visible={modalVisible} animationType="slide" transparent>
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>{t("transactions.modal.title")}</Text>
+
+            <Text style={styles.modalLabel}>{t("transactions.modal.destinationAddress")}</Text>
+            <TextInput
+              placeholder={t("transactions.modal.placeholders.destination")}
+              style={styles.modalInput}
+              value={walletAddress}
+              onChangeText={setWalletAddress}
+              placeholderTextColor={C.textMuted}
+              autoCapitalize="none"
+              editable={!sending}
+            />
+
+            <Text style={styles.modalLabel}>{t("transactions.modal.amount")}</Text>
+            <TextInput
+              placeholder={t("transactions.modal.placeholders.amount")}
+              keyboardType="numeric"
+              style={styles.modalInput}
+              value={amount}
+              onChangeText={setAmount}
+              placeholderTextColor={C.textMuted}
+              editable={!sending}
+            />
+
+            <Text style={styles.modalLabel}>{t("transactions.modal.privateKey")}</Text>
+            <TextInput
+              placeholder={t("transactions.modal.placeholders.privateKey")}
+              secureTextEntry
+              style={styles.modalInput}
+              value={senderPrivKey}
+              onChangeText={setSenderPrivKey}
+              placeholderTextColor={C.textMuted}
+              editable={!sending}
+            />
+
+            <TouchableOpacity
+              style={[styles.confirmBtn, sending && styles.btnDisabled]}
+              onPress={handleTransfer}
+              disabled={sending}
+            >
+              {sending ? (
+                <ActivityIndicator color="#000" />
+              ) : (
+                <Text style={styles.confirmBtnText}>{t("transactions.modal.confirm")}</Text>
+              )}
+            </TouchableOpacity>
+
+            {!sending && (
+              <TouchableOpacity onPress={() => setModalVisible(false)} style={styles.cancelBtn}>
+                <Text style={styles.cancelBtnText}>{t("transactions.modal.close")}</Text>
               </TouchableOpacity>
-            </View>
-
-            <View style={styles.modalBody}>
-              <Text style={styles.label}>Tu Clave Privada (Firma)</Text>
-              <TextInput
-                style={styles.modalInput}
-                placeholder="Pega aquí tu clave privada"
-                placeholderTextColor={COLORS.textMutedSoft}
-                secureTextEntry
-                value={senderPrivKey}
-                onChangeText={setSenderPrivKey}
-              />
-
-              <Text style={styles.label}>Billetera Destino (Address)</Text>
-              <TextInput
-                style={styles.modalInput}
-                placeholder="0x..."
-                placeholderTextColor={COLORS.textMutedSoft}
-                value={walletAddress}
-                onChangeText={setWalletAddress}
-                autoCapitalize="none"
-              />
-
-              <Text style={styles.label}>Cantidad (ETH)</Text>
-              <TextInput
-                style={styles.modalInput}
-                placeholder="0.00"
-                placeholderTextColor={COLORS.textMutedSoft}
-                keyboardType="numeric"
-                value={amount}
-                onChangeText={setAmount}
-              />
-
-              <Text style={styles.label}>Cripto</Text>
-              <TextInput
-                value={cryptoSymbol}
-                editable={false}
-                style={[styles.modalInput, { opacity: 0.6, marginBottom: 18 }]}
-              />
-
-              <TouchableOpacity style={styles.confirmBtn} onPress={handleTransfer} activeOpacity={0.9}>
-                <Text style={styles.confirmBtnText}>Firmar y Enviar</Text>
-              </TouchableOpacity>
-            </View>
-          </Pressable>
-        </Pressable>
+            )}
+          </View>
+        </View>
       </Modal>
     </View>
   );
 
-  // ✅ Web: scroll con Nav fijo abajo (tu solución)
-  if (isWeb) {
-    return (
-      <SafeAreaView style={[common.safe, styles.safe, styles.safeWeb]}>
-        <View style={styles.page}>
-          <View style={styles.webScroll}>{renderContent()}</View>
-
-          <View style={[styles.navWrap, styles.navWrapWeb]}>
-            <Nav />
-          </View>
-        </View>
-      </SafeAreaView>
-    );
-  }
-
-  // ✅ Native
   return (
-    <SafeAreaView style={[common.safe, styles.safe]}>
-      <ScrollView showsVerticalScrollIndicator={false}>
+    <SafeAreaView style={[common.safe, { backgroundColor: C.bg }]}>
+      <View style={styles.flex1}>
         {renderContent()}
-        <View style={{ height: NAV_HEIGHT }} />
-      </ScrollView>
-      <Nav />
+        <Nav />
+      </View>
     </SafeAreaView>
   );
 }
 
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: COLORS.backgroundDark },
-
-  // --- WEB SCROLL FIX (tu parte)
-  safeWeb: { height: "100vh", overflow: "hidden" },
-  page: { flex: 1, position: "relative" },
-  webScroll: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: NAV_HEIGHT,
-    overflowY: "auto",
-    overflowX: "hidden",
+const makeStyles = (C) => StyleSheet.create({
+  flex1: {
+    flex: 1
   },
-  navWrap: {
-    left: 0,
-    right: 0,
-    bottom: 0,
-    height: NAV_HEIGHT,
-    zIndex: 9999,
-  },
-  navWrapWeb: { position: "fixed" },
-
-  // --- CONTENT
-  scroll: { paddingHorizontal: 16, paddingBottom: 20 },
-  scrollDesktop: { paddingHorizontal: 24 },
-
   header: {
-    paddingTop: Platform.OS === "ios" ? 56 : 18,
-    paddingBottom: 10,
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 24,
+    paddingVertical: 15,
+    justifyContent: 'space-between'
   },
-  headerDesktop: { paddingBottom: 20 },
-  headerTitle: { flex: 1, textAlign: "center", fontSize: 18, fontWeight: "900", color: "#fff" },
-  headerTitleDesktop: { fontSize: 22 },
+  headerTitle: {
+    fontSize: 20,
+    fontWeight: '900',
+    color: C.textMain
+  },
+  headerSpacer: {
+    width: 44
+  },
   iconBtn: {
     width: 44,
     height: 44,
     borderRadius: 22,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: COLORS.inputBg,
+    backgroundColor: C.cardBg,
+    alignItems: 'center',
+    justifyContent: 'center',
     borderWidth: 1,
-    borderColor: COLORS.border,
+    borderColor: C.border
   },
-
-  container: { width: "100%" },
-  containerDesktop: { alignSelf: "center", maxWidth: 1100 },
-
+  scrollContent: {
+    paddingHorizontal: 24,
+    paddingTop: 10,
+    paddingBottom: 120
+  },
   searchWrap: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 10,
-    backgroundColor: COLORS.inputBg,
-    borderWidth: 1,
-    borderColor: COLORS.border,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: C.cardBg,
     borderRadius: 16,
-    paddingHorizontal: 14,
-    height: 56,
-    marginTop: 6,
-    marginBottom: 14,
-  },
-  searchInput: { flex: 1, color: "#fff", fontSize: 16 },
-  clearBtn: { padding: 6 },
-
-  layout: { marginTop: 6 },
-  layoutDesktop: { flexDirection: "row", gap: 20 },
-
-  col: {},
-  leftCol: { flex: 1.2 },
-  rightCol: { flex: 1 },
-
-  sectionRow: {
-    marginTop: 16,
-    marginBottom: 10,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-  },
-  sectionTitle: { marginTop: 16, marginBottom: 12, fontSize: 16, fontWeight: "900", color: "#fff" },
-  link: { color: COLORS.primary, fontWeight: "900" },
-
-  actionsGrid: { gap: 10 },
-  actionCard: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-    padding: 16,
-    borderRadius: 18,
-    backgroundColor: COLORS.inputBg,
+    paddingHorizontal: 16,
+    height: 54,
+    marginTop: 10,
     borderWidth: 1,
-    borderColor: COLORS.border,
+    borderColor: C.border
   },
-  actionIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 12,
-    backgroundColor: "rgba(43,238,121,0.10)",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  actionTitle: { fontSize: 15, fontWeight: "900", color: "#fff" },
-  actionSubtitle: { color: COLORS.textMutedSoft, fontSize: 13 },
-
-  recipientsWrap: { gap: 10 },
-  recipientsWrapDesktop: { gap: 10 },
-  recipientCard: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    padding: 14,
-    borderRadius: 18,
-    backgroundColor: COLORS.inputBg,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-  },
-  recipientInfo: { flexDirection: "row", alignItems: "center", gap: 12, flex: 1 },
-  initialsCircle: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: "rgba(255,255,255,0.05)",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  initialsText: { color: "#fff", fontWeight: "900" },
-  recipientName: { color: "#fff", fontSize: 15, fontWeight: "700", flex: 1 },
-
-  listCard: {
-    backgroundColor: COLORS.inputBg,
-    borderRadius: 18,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    overflow: "hidden",
-  },
-  emptyText: { color: COLORS.textMutedSoft, padding: 16, textAlign: "center", fontWeight: "800" },
-
-  txRow: { flexDirection: "row", alignItems: "center", gap: 12, padding: 15 },
-  txRowBorder: { borderTopWidth: 1, borderTopColor: COLORS.border },
-  txIcon: {
-    width: 36,
-    height: 36,
-    borderRadius: 10,
-    backgroundColor: "rgba(43,238,121,0.05)",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  txTitle: { color: "#fff", fontWeight: "800" },
-  txSubtitle: { color: COLORS.textMutedSoft, fontSize: 12, marginTop: 2 },
-  txAmount: { fontWeight: "900" },
-  negative: { color: COLORS.danger },
-  positive: { color: COLORS.primary },
-
-  primaryBtn: {
-    backgroundColor: COLORS.primary,
-    height: 58,
-    borderRadius: 29,
-    alignItems: "center",
-    justifyContent: "center",
-    marginTop: 16,
-    shadowColor: COLORS.primary,
-    shadowOpacity: 0.35,
-    shadowRadius: 12,
-    shadowOffset: { width: 0, height: 4 },
-    elevation: 6,
-  },
-  primaryBtnDesktop: { height: 60, borderRadius: 30 },
-  primaryBtnText: { color: COLORS.backgroundDark, fontSize: 16, fontWeight: "900", letterSpacing: 0.4 },
-
-  // --- MODAL
-  modalOverlay: {
+  searchInput: {
     flex: 1,
-    backgroundColor: "rgba(0,0,0,0.7)",
-    justifyContent: "center",
-    alignItems: "center",
-    paddingHorizontal: 18,
+    marginLeft: 12,
+    color: C.textMain,
+    fontSize: 16
   },
-  modalContent: {
-    width: "100%",
-    maxWidth: 420,
-    backgroundColor: COLORS.backgroundDark,
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: '800',
+    color: C.textMain,
+    marginTop: 35,
+    marginBottom: 15
+  },
+  actionCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: C.cardBg,
+    padding: 20,
     borderRadius: 24,
     borderWidth: 1,
-    borderColor: COLORS.border,
-    overflow: "hidden",
+    borderColor: C.border
   },
-  modalHeader: {
-    padding: 18,
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.border,
+  actionIcon: {
+    width: 46,
+    height: 46,
+    borderRadius: 14,
+    backgroundColor: 'rgba(43,238,121,0.1)',
+    alignItems: 'center',
+    justifyContent: 'center'
   },
-  modalTitle: { color: "#fff", fontSize: 18, fontWeight: "900" },
-  modalBody: { padding: 18 },
-  label: { color: COLORS.textMuted, fontSize: 13, marginBottom: 8, fontWeight: "700" },
-  modalInput: {
-    backgroundColor: COLORS.inputBg,
+  actionTitle: {
+    marginLeft: 15,
+    fontWeight: '800',
+    color: C.textMain,
+    fontSize: 16
+  },
+  actionSub: {
+    marginLeft: 15,
+    color: C.textMuted,
+    fontSize: 13,
+    marginTop: 2
+  },
+  listCard: {
+    backgroundColor: C.cardBg,
+    borderRadius: 24,
     borderWidth: 1,
-    borderColor: COLORS.border,
-    borderRadius: 12,
-    padding: 12,
-    color: "#fff",
-    marginBottom: 16,
+    borderColor: C.border,
+    overflow: 'hidden'
   },
-  confirmBtn: { backgroundColor: COLORS.primary, padding: 16, borderRadius: 14, alignItems: "center" },
-  confirmBtnText: { color: COLORS.backgroundDark, fontWeight: "900", fontSize: 16 },
+  loader: {
+    margin: 30
+  },
+  txRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 18
+  },
+  txBorder: {
+    borderTopWidth: 1,
+    borderTopColor: C.border
+  },
+  txIconCircle: {
+    width: 42,
+    height: 42,
+    borderRadius: 21,
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
+  txInfo: {
+    flex: 1,
+    marginLeft: 15
+  },
+  txTitle: {
+    fontWeight: '800',
+    color: C.textMain,
+    fontSize: 15
+  },
+  txWallet: {
+    fontSize: 11,
+    color: C.textMuted,
+    marginTop: 2,
+    fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace'
+  },
+  txDate: {
+    fontSize: 11,
+    color: C.textMuted,
+    marginTop: 2
+  },
+  txAmount: {
+    fontWeight: '900',
+    fontSize: 16
+  },
+  emptyText: {
+    textAlign: 'center',
+    padding: 50,
+    color: C.textMuted,
+    fontWeight: '600'
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.85)',
+    justifyContent: 'center',
+    padding: 20
+  },
+  modalContent: {
+    backgroundColor: C.cardBg,
+    borderRadius: 35,
+    padding: 28,
+    borderWidth: 1,
+    borderColor: C.border
+  },
+  modalTitle: {
+    fontSize: 24,
+    fontWeight: '900',
+    color: C.textMain,
+    marginBottom: 30,
+    textAlign: 'center'
+  },
+  modalLabel: {
+    color: C.textMain,
+    fontSize: 14,
+    marginBottom: 8,
+    fontWeight: '700',
+    marginLeft: 4
+  },
+  modalInput: {
+    backgroundColor: C.bg,
+    borderRadius: 16,
+    padding: 18,
+    color: C.textMain,
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: C.border
+  },
+  confirmBtn: {
+    backgroundColor: C.primary,
+    padding: 18,
+    borderRadius: 18,
+    alignItems: 'center',
+    marginTop: 10,
+    shadowColor: C.primary,
+    shadowOpacity: 0.4,
+    shadowRadius: 10,
+    elevation: 5
+  },
+  confirmBtnText: {
+    color: '#000',
+    fontWeight: '900',
+    fontSize: 17
+  },
+  btnDisabled: {
+    opacity: 0.6
+  },
+  cancelBtn: {
+    marginTop: 20,
+    padding: 10
+  },
+  cancelBtnText: {
+    color: C.textMuted,
+    textAlign: 'center',
+    fontWeight: '700'
+  }
 });
