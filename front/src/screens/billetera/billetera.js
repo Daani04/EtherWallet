@@ -57,7 +57,7 @@ const Billetera = (props) => {
     if (!user?.walletAddress) return;
 
     try {
-      const url = `http://192.168.1.143:8080/api/blockchain/portfolio/${user.walletAddress}`;
+      const url = `http://35.170.12.68:8080/api/blockchain/portfolio/${user.walletAddress}`;
       const response = await fetch(url);
       if (!response.ok) throw new Error(t("wallet.errors.server"));
       const data = await response.json();

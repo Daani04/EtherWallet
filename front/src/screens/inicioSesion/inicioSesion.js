@@ -30,7 +30,7 @@ const COLORS = theme?.colors || theme?.COLORS || theme;
 const { width } = Dimensions.get("window");
 const isWeb = Platform.OS === "web";
 
-const BASE_URL = "http://192.168.1.143:8080";
+const BASE_URL = "http://35.170.12.68:8080";
 
 const InicioSesion = (props) => {
   const [isBiometricSupported, setIsBiometricSupported] = useState(false);
