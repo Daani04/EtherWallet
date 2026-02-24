@@ -23,6 +23,8 @@ npx expo install ethers@5.7.2 react-native-get-random-values @ethersproject/shim
 npx expo install expo-secure-store
 //IMAGENES
 npx expo install expo-image-picker
+//SPLASH-SCREEN
+npx expo install expo-splash-screen
 
 
 
