@@ -328,10 +328,11 @@ const InicioSesion = (props) => {
         ) : (
           <KeyboardAvoidingView
             behavior={Platform.OS === "ios" ? "padding" : "height"}
-            style={common.safe || styles.safe}
+            style={{ flex: 1 }}
           >
-            <ScrollView
-              contentContainerStyle={common.container || styles.scrollContainer}
+<ScrollView
+  style={{ flex: 1 }}
+  contentContainerStyle={styles.scrollContainer}
               bounces={false}
               showsVerticalScrollIndicator={false}
               showsHorizontalScrollIndicator={false}
@@ -353,6 +354,7 @@ const styles = StyleSheet.create({
   },
   scrollContainer: {
     flexGrow: 1,
+    minHeight: "100%",
   },
   webScroll: {
     position: "absolute",
@@ -385,7 +387,7 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
-    paddingVertical: 40,
+    paddingVertical: 16,
   },
   blob: {
     position: "absolute",

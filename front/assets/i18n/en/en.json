@@ -92,70 +92,70 @@
     }
   },
   "editProfile": {
-  "title": "Edit profile",
-  "helpImageUrl": "Paste an image URL ",
-  "help": {
-    "imageUrl": "Paste an image URL "
-  },
-  "labels": {
-    "image": "Image (userImage)",
-    "firstName": "First name (firstName)",
-    "lastName": "Last name (lastName)",
-    "birthDate": "Birth date (birthDate)",
-    "newPassword": "New password (optional)"
-  },
-  "dateModal": {
-    "title": "Birth date",
+    "title": "Edit profile",
+    "helpImageUrl": "Paste an image URL ",
+    "help": {
+      "imageUrl": "Paste an image URL "
+    },
     "labels": {
-      "day": "Day",
-      "month": "Month",
-      "year": "Year"
+      "image": "Image (userImage)",
+      "firstName": "First name (firstName)",
+      "lastName": "Last name (lastName)",
+      "birthDate": "Birth date (birthDate)",
+      "newPassword": "New password (optional)"
+    },
+    "dateModal": {
+      "title": "Birth date",
+      "labels": {
+        "day": "Day",
+        "month": "Month",
+        "year": "Year"
+      },
+      "actions": {
+        "apply": "Apply"
+      },
+      "alerts": {
+        "invalidDateTitle": "Invalid date",
+        "invalidDateMessage": "Use a valid format dd/mm/yyyy."
+      }
+    },
+    "placeholders": {
+      "imageUrl": "https://...",
+      "firstName": "First name",
+      "lastName": "Last name",
+      "birthDate": "dd/mm/yyyy",
+      "passwordOptional": "Leave empty to keep it unchanged",
+      "newPassword": "Leave empty to keep it unchanged"
+    },
+    "buttons": {
+      "save": "Save changes",
+      "cancel": "Cancel",
+      "changePhoto": "Change photo"
     },
     "actions": {
-      "apply": "Apply"
+      "save": "Save changes",
+      "openDateModal": "Open"
     },
     "alerts": {
-      "invalidDateTitle": "Invalid date",
-      "invalidDateMessage": "Use a valid format dd/mm/yyyy."
+      "errorTitle": "Error",
+      "okTitle": "OK",
+      "missingId": "I don't have the user ID (missing user.id).",
+      "fillFields": "Fill in firstName, lastName, birthDate and userImage.",
+      "updated": "Profile updated",
+      "serverError": "Could not connect to the server",
+      "permissionDeniedTitle": "Permission denied",
+      "permissionDeniedMsg": "I need permission to access your photos.",
+      "imageLoadError": "Could not load the image."
+    },
+    "errors": {
+      "missingUserId": "I don't have the user ID (missing user.id).",
+      "fillAllRequired": "Fill in firstName, lastName, birthDate and userImage.",
+      "serverConnection": "Could not connect to the server"
+    },
+    "success": {
+      "updated": "Profile updated"
     }
   },
-  "placeholders": {
-    "imageUrl": "https://...",
-    "firstName": "First name",
-    "lastName": "Last name",
-    "birthDate": "dd/mm/yyyy",
-    "passwordOptional": "Leave empty to keep it unchanged",
-    "newPassword": "Leave empty to keep it unchanged"
-  },
-  "buttons": {
-    "save": "Save changes",
-    "cancel": "Cancel",
-    "changePhoto": "Change photo"
-  },
-  "actions": {
-    "save": "Save changes",
-    "openDateModal": "Open"
-  },
-  "alerts": {
-    "errorTitle": "Error",
-    "okTitle": "OK",
-    "missingId": "I don't have the user ID (missing user.id).",
-    "fillFields": "Fill in firstName, lastName, birthDate and userImage.",
-    "updated": "Profile updated",
-    "serverError": "Could not connect to the server",
-    "permissionDeniedTitle": "Permission denied",
-    "permissionDeniedMsg": "I need permission to access your photos.",
-    "imageLoadError": "Could not load the image."
-  },
-  "errors": {
-    "missingUserId": "I don't have the user ID (missing user.id).",
-    "fillAllRequired": "Fill in firstName, lastName, birthDate and userImage.",
-    "serverConnection": "Could not connect to the server"
-  },
-  "success": {
-    "updated": "Profile updated"
-  }
-},
   "home": {
     "searchPlaceholder": "Search coin...",
     "filters": {
@@ -318,5 +318,11 @@
       "enabled": "Enabled",
       "kycLevel2": "Verified level 2"
     }
+  },
+  "nav": {
+    "home": "Home",
+    "wallet": "Wallet",
+    "news": "News",
+    "profile": "Profile"
   }
 }
