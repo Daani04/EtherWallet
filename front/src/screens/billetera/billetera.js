@@ -374,7 +374,6 @@ const makeStyles = (C) =>
       fontFamily: Platform.OS === "ios" ? "Courier" : "monospace",
     },
 
-    // --- Lista de Activos ---
     card: {
       backgroundColor: C.cardBg,
       borderRadius: 24,

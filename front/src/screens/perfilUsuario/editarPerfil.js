@@ -54,7 +54,6 @@ export default function EditarPerfil({ navigation, route }) {
   const [userImage, setUserImage] = useState(initialImage);
   const [password, setPassword] = useState("");
 
-  // Modal fecha (compañero)
   const [dateModalVisible, setDateModalVisible] = useState(false);
   const [dd, setDd] = useState("");
   const [mm, setMm] = useState("");
@@ -424,7 +423,6 @@ export default function EditarPerfil({ navigation, route }) {
               <Text style={styles.btnGhostText}>{t("common.cancel")}</Text>
             </TouchableOpacity>
 
-            {/* MODAL FECHA (compañero) */}
             <Modal
               transparent
               visible={dateModalVisible}

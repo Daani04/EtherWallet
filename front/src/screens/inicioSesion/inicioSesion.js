@@ -171,11 +171,9 @@ const InicioSesion = (props) => {
 
       props.navigation.navigate("HomeNav");
     } catch (error) {
-      setLoading(false); // ✅ Apagamos carga si hay error de red
+      setLoading(false); 
       Alert.alert(t("login.alerts.errorTitle"), t("login.alerts.connectionError"));
     } finally {
-      // En caso de éxito, la navegación se encarga, si no, nos aseguramos de apagar el loader
-      // aunque el try/catch ya lo maneja.
       setLoading(false);
     }
   };

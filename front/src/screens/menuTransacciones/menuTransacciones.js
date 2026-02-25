@@ -31,7 +31,7 @@ export default function MenuTransacciones({ navigation }) {
 
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(false);
-  const [sending, setSending] = useState(false); // Estado para la carga del envío
+  const [sending, setSending] = useState(false); 
   const [transactions, setTransactions] = useState([]);
   const [modalVisible, setModalVisible] = useState(false);
 
@@ -77,10 +77,9 @@ export default function MenuTransacciones({ navigation }) {
       return;
     }
 
-    setSending(true); // Iniciamos carga
+    setSending(true); 
 
     try {
-      // Usamos la lógica directa que confirmaste que funciona
       const res = await fetch(`${BASE_URL}/api/blockchain/Transfer`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
