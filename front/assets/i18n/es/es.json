@@ -333,5 +333,18 @@
     "wallet": "Billetera",
     "news": "Noticias",
     "profile": "Perfil"
+  },
+  "newFeatures": {
+    "noAssets": "Sin activos",
+    "assetsLabel": "Activos",
+    "overview": "Resumen",
+    "totalReceived": "Total Recibido",
+    "totalSent": "Total Enviado",
+    "marketSentiment": "Sentimiento",
+    "bullish": "Alcista",
+    "bearish": "Bajista",
+    "neutral": "Neutral",
+    "breaking": "ÚLTIMA HORA",
+    "latestStories": "Últimas Noticias"
   }
 }

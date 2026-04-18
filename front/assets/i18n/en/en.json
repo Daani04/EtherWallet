@@ -333,5 +333,18 @@
     "wallet": "Wallet",
     "news": "News",
     "profile": "Profile"
+  },
+  "newFeatures": {
+    "noAssets": "No assets",
+    "assetsLabel": "Assets",
+    "overview": "Overview",
+    "totalReceived": "Total Received",
+    "totalSent": "Total Sent",
+    "marketSentiment": "Market Sentiment",
+    "bullish": "Bullish",
+    "bearish": "Bearish",
+    "neutral": "Neutral",
+    "breaking": "BREAKING",
+    "latestStories": "Latest Stories"
   }
 }

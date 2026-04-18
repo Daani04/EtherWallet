@@ -12,7 +12,8 @@ import {
   ActivityIndicator,
   SafeAreaView,
 } from "react-native";
-import { MaterialIcons } from "@expo/vector-icons";
+import { MaterialIcons, Feather } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
 import { useTranslation } from "react-i18next";
 import { useSettings } from "../../context/SettingsContext";
 
@@ -71,6 +72,24 @@ export default function MenuTransacciones({ navigation }) {
     );
   }, [search, transactions]);
 
+  // Cálculos de Insights Financieros
+  const { totalIn, totalOut } = useMemo(() => {
+     let inAmount = 0;
+     let outAmount = 0;
+     transactions.forEach(tx => {
+         if (tx.senderId === user?.userId) {
+             outAmount += parseFloat(tx.amount || 0);
+         } else {
+             inAmount += parseFloat(tx.amount || 0);
+         }
+     });
+     return { totalIn: inAmount, totalOut: outAmount };
+  }, [transactions, user]);
+
+  const totalVolume = totalIn + totalOut;
+  const inWidth = totalVolume > 0 ? (totalIn / totalVolume) * 100 : 50;
+  const outWidth = totalVolume > 0 ? (totalOut / totalVolume) * 100 : 50;
+
   const handleTransfer = async () => {
     if (!walletAddress || !amount || !senderPrivKey) {
       Alert.alert(t("common.error"), t("transactions.alerts.fillAllFields"));
@@ -107,7 +126,7 @@ export default function MenuTransacciones({ navigation }) {
     } catch (e) {
       Alert.alert(t("common.error"), t("transactions.alerts.serverError"));
     } finally {
-      setSending(false); // Finalizamos carga
+      setSending(false);
     }
   };
 
@@ -122,6 +141,59 @@ export default function MenuTransacciones({ navigation }) {
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+        
+        {/* Panel de Estadísticas Mensuales / Insights */}
+        <Text style={[styles.sectionTitle, {marginTop: 10}]}>{t("newFeatures.overview")}</Text>
+        <View style={styles.insightCard}>
+            <LinearGradient
+                colors={["rgba(168, 85, 247, 0.15)", "transparent"]}
+                style={StyleSheet.absoluteFillObject}
+            />
+            <View style={styles.insightRow}>
+                <View style={styles.insightBox}>
+                    <View style={[styles.insightIcon, {backgroundColor: 'rgba(34,197,94,0.1)'}]}>
+                       <MaterialIcons name="arrow-downward" size={16} color="#22C55E" />
+                    </View>
+                    <View>
+                        <Text style={styles.insightLabel}>{t("newFeatures.totalReceived")}</Text>
+                        <Text style={[styles.insightValue, {color: "#22C55E"}]}>+{totalIn.toFixed(4)} ETH</Text>
+                    </View>
+                </View>
+
+                <View style={styles.insightBox}>
+                    <View style={[styles.insightIcon, {backgroundColor: 'rgba(239,68,68,0.1)'}]}>
+                       <MaterialIcons name="arrow-upward" size={16} color="#EF4444" />
+                    </View>
+                    <View>
+                        <Text style={styles.insightLabel}>{t("newFeatures.totalSent")}</Text>
+                        <Text style={[styles.insightValue, {color: "#EF4444"}]}>-{totalOut.toFixed(4)} ETH</Text>
+                    </View>
+                </View>
+            </View>
+            
+            {/* Gráfica de Barras Horizontal */}
+            <View style={styles.barGraphContainer}>
+                <View style={[styles.barIn, {width: `${inWidth}%`}]} />
+                <View style={[styles.barOut, {width: `${outWidth}%`}]} />
+            </View>
+        </View>
+
+        <Text style={styles.sectionTitle}>{t("transactions.sections.quickActions")}</Text>
+        <TouchableOpacity style={styles.actionCard} onPress={() => setModalVisible(true)} activeOpacity={0.8}>
+          <LinearGradient
+              colors={[C.primary, C.primaryDark]}
+              start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
+              style={styles.actionIcon}
+          >
+              <Feather name="send" size={20} color="#FFF" />
+          </LinearGradient>
+          <View style={styles.flex1}>
+            <Text style={styles.actionTitle}>{t("transactions.sendFunds.title")}</Text>
+            <Text style={styles.actionSub}>{t("transactions.sendFunds.subtitle")}</Text>
+          </View>
+          <MaterialIcons name="chevron-right" size={24} color={C.textMuted} />
+        </TouchableOpacity>
+
         <View style={styles.searchWrap}>
           <MaterialIcons name="search" size={20} color={C.textMuted} />
           <TextInput
@@ -132,22 +204,6 @@ export default function MenuTransacciones({ navigation }) {
             style={styles.searchInput}
           />
         </View>
-
-        <Text style={styles.sectionTitle}>{t("transactions.sections.quickActions")}</Text>
-        <TouchableOpacity
-          style={styles.actionCard}
-          onPress={() => setModalVisible(true)}
-          activeOpacity={0.8}
-        >
-          <View style={styles.actionIcon}>
-            <MaterialIcons name="send" size={20} color={C.primary} />
-          </View>
-          <View style={styles.flex1}>
-            <Text style={styles.actionTitle}>{t("transactions.sendFunds.title")}</Text>
-            <Text style={styles.actionSub}>{t("transactions.sendFunds.subtitle")}</Text>
-          </View>
-          <MaterialIcons name="chevron-right" size={24} color={C.textMuted} />
-        </TouchableOpacity>
 
         <Text style={styles.sectionTitle}>{t("transactions.sections.recentMovements")}</Text>
         <View style={styles.listCard}>
@@ -160,11 +216,11 @@ export default function MenuTransacciones({ navigation }) {
               const isSend = tx.senderId === user?.userId;
               return (
                 <View key={idx} style={[styles.txRow, idx !== 0 && styles.txBorder]}>
-                  <View style={[styles.txIconCircle, { backgroundColor: isSend ? 'rgba(255,51,51,0.1)' : 'rgba(0,255,136,0.1)' }]}>
+                  <View style={[styles.txIconCircle, { backgroundColor: isSend ? 'rgba(239,68,68,0.1)' : 'rgba(34,197,94,0.1)' }]}>
                     <MaterialIcons
                       name={isSend ? "north-east" : "south-west"}
                       size={20}
-                      color={isSend ? C.danger : C.primary}
+                      color={isSend ? "#EF4444" : "#22C55E"}
                     />
                   </View>
                   <View style={styles.txInfo}>
@@ -180,7 +236,7 @@ export default function MenuTransacciones({ navigation }) {
                       {tx.date ? new Date(tx.date).toLocaleDateString() : t("transactions.movement.recent")}
                     </Text>
                   </View>
-                  <Text style={[styles.txAmount, { color: isSend ? C.danger : C.primary }]}>
+                  <Text style={[styles.txAmount, { color: isSend ? "#EF4444" : "#22C55E" }]}>
                     {isSend ? "-" : "+"}{tx.amount} ETH
                   </Text>
                 </View>
@@ -190,54 +246,70 @@ export default function MenuTransacciones({ navigation }) {
         </View>
       </ScrollView>
 
+      {/* Modal Modernizado */}
       <Modal visible={modalVisible} animationType="slide" transparent>
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>{t("transactions.modal.title")}</Text>
+            
+            <View style={styles.modalHeader}>
+               <View style={styles.modalIconWrap}>
+                   <Feather name="send" size={24} color={C.primary} />
+               </View>
+               <Text style={styles.modalTitle}>{t("transactions.modal.title")}</Text>
+            </View>
 
             <Text style={styles.modalLabel}>{t("transactions.modal.destinationAddress")}</Text>
-            <TextInput
-              placeholder={t("transactions.modal.placeholders.destination")}
-              style={styles.modalInput}
-              value={walletAddress}
-              onChangeText={setWalletAddress}
-              placeholderTextColor={C.textMuted}
-              autoCapitalize="none"
-              editable={!sending}
-            />
+            <View style={styles.modalInputWrap}>
+                <TextInput
+                  placeholder={t("transactions.modal.placeholders.destination")}
+                  style={styles.modalInput}
+                  value={walletAddress}
+                  onChangeText={setWalletAddress}
+                  placeholderTextColor={C.textMuted}
+                  autoCapitalize="none"
+                  editable={!sending}
+                />
+            </View>
 
             <Text style={styles.modalLabel}>{t("transactions.modal.amount")}</Text>
-            <TextInput
-              placeholder={t("transactions.modal.placeholders.amount")}
-              keyboardType="text"
-              style={styles.modalInput}
-              value={amount}
-              onChangeText={setAmount}
-              placeholderTextColor={C.textMuted}
-              editable={!sending}
-            />
+            <View style={styles.modalInputWrap}>
+                <TextInput
+                  placeholder={t("transactions.modal.placeholders.amount")}
+                  keyboardType="numeric"
+                  style={styles.modalInput}
+                  value={amount}
+                  onChangeText={setAmount}
+                  placeholderTextColor={C.textMuted}
+                  editable={!sending}
+                />
+                <Text style={styles.currencyTag}>ETH</Text>
+            </View>
 
             <Text style={styles.modalLabel}>{t("transactions.modal.privateKey")}</Text>
-            <TextInput
-              placeholder={t("transactions.modal.placeholders.privateKey")}
-              secureTextEntry
-              style={styles.modalInput}
-              value={senderPrivKey}
-              onChangeText={setSenderPrivKey}
-              placeholderTextColor={C.textMuted}
-              editable={!sending}
-            />
+            <View style={styles.modalInputWrap}>
+                <TextInput
+                  placeholder={t("transactions.modal.placeholders.privateKey")}
+                  secureTextEntry
+                  style={styles.modalInput}
+                  value={senderPrivKey}
+                  onChangeText={setSenderPrivKey}
+                  placeholderTextColor={C.textMuted}
+                  editable={!sending}
+                />
+            </View>
 
             <TouchableOpacity
               style={[styles.confirmBtn, sending && styles.btnDisabled]}
               onPress={handleTransfer}
               disabled={sending}
             >
-              {sending ? (
-                <ActivityIndicator color="#000" />
-              ) : (
-                <Text style={styles.confirmBtnText}>{t("transactions.modal.confirm")}</Text>
-              )}
+              <LinearGradient colors={[C.primary, C.primaryDark]} start={{x:0, y:0}} end={{x:1, y:1}} style={styles.confirmBtnGradient}>
+                  {sending ? (
+                    <ActivityIndicator color="#FFF" />
+                  ) : (
+                    <Text style={styles.confirmBtnText}>{t("transactions.modal.confirm")}</Text>
+                  )}
+              </LinearGradient>
             </TouchableOpacity>
 
             {!sending && (
@@ -275,7 +347,7 @@ const makeStyles = (C) => StyleSheet.create({
     justifyContent: 'space-between'
   },
   headerTitle: {
-    fontSize: 20,
+    fontSize: 22,
     fontWeight: '900',
     color: C.textMain
   },
@@ -297,6 +369,47 @@ const makeStyles = (C) => StyleSheet.create({
     paddingTop: 10,
     paddingBottom: 120
   },
+  insightCard: {
+      backgroundColor: C.cardBg,
+      borderRadius: 24,
+      padding: 20,
+      borderWidth: 1,
+      borderColor: C.border,
+      overflow: "hidden",
+      marginBottom: 10
+  },
+  insightRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      marginBottom: 20
+  },
+  insightBox: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 12
+  },
+  insightIcon: {
+      width: 36, height: 36, borderRadius: 18, alignItems: 'center', justifyContent: 'center'
+  },
+  insightLabel: {
+      fontSize: 12, color: C.textMuted, fontWeight: "700"
+  },
+  insightValue: {
+      fontSize: 16, fontWeight: "900", marginTop: 2
+  },
+  barGraphContainer: {
+      height: 8,
+      backgroundColor: "rgba(255,255,255,0.05)",
+      borderRadius: 4,
+      flexDirection: 'row',
+      overflow: 'hidden'
+  },
+  barIn: {
+      backgroundColor: "#22C55E", height: "100%"
+  },
+  barOut: {
+      backgroundColor: "#EF4444", height: "100%"
+  },
   searchWrap: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -304,7 +417,7 @@ const makeStyles = (C) => StyleSheet.create({
     borderRadius: 16,
     paddingHorizontal: 16,
     height: 54,
-    marginTop: 10,
+    marginTop: 20,
     borderWidth: 1,
     borderColor: C.border
   },
@@ -318,23 +431,26 @@ const makeStyles = (C) => StyleSheet.create({
     fontSize: 18,
     fontWeight: '800',
     color: C.textMain,
-    marginTop: 35,
+    marginTop: 25,
     marginBottom: 15
   },
   actionCard: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: C.cardBg,
-    padding: 20,
+    padding: 16,
     borderRadius: 24,
     borderWidth: 1,
-    borderColor: C.border
+    borderColor: C.border,
+    shadowColor: C.primary,
+    shadowOpacity: 0.1,
+    shadowRadius: 10,
+    elevation: 5
   },
   actionIcon: {
-    width: 46,
-    height: 46,
-    borderRadius: 14,
-    backgroundColor: 'rgba(168, 85, 247, 0.1)',
+    width: 50,
+    height: 50,
+    borderRadius: 25,
     alignItems: 'center',
     justifyContent: 'center'
   },
@@ -417,44 +533,70 @@ const makeStyles = (C) => StyleSheet.create({
     borderRadius: 35,
     padding: 28,
     borderWidth: 1,
-    borderColor: C.border
+    borderColor: C.border,
+    shadowColor: C.primary,
+    shadowOpacity: 0.2,
+    shadowRadius: 30,
+    elevation: 20
+  },
+  modalHeader: {
+    alignItems: "center",
+    marginBottom: 30
+  },
+  modalIconWrap: {
+    width: 60, height: 60, borderRadius: 30, backgroundColor: "rgba(168, 85, 247, 0.15)",
+    alignItems: 'center', justifyContent: 'center', marginBottom: 15
   },
   modalTitle: {
     fontSize: 24,
     fontWeight: '900',
     color: C.textMain,
-    marginBottom: 30,
     textAlign: 'center'
   },
   modalLabel: {
-    color: C.textMain,
-    fontSize: 14,
+    color: C.textMuted,
+    fontSize: 13,
     marginBottom: 8,
     fontWeight: '700',
-    marginLeft: 4
+    marginLeft: 4,
+    textTransform: "uppercase"
+  },
+  modalInputWrap: {
+    backgroundColor: "rgba(0,0,0,0.2)",
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: C.border,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 18,
+    marginBottom: 20,
   },
   modalInput: {
-    backgroundColor: C.bg,
-    borderRadius: 16,
-    padding: 18,
+    flex: 1,
+    height: 56,
     color: C.textMain,
-    marginBottom: 20,
-    borderWidth: 1,
-    borderColor: C.border
+    fontSize: 16,
+    fontWeight: "600"
+  },
+  currencyTag: {
+    color: C.primary,
+    fontWeight: "900",
+    fontSize: 16
   },
   confirmBtn: {
-    backgroundColor: C.primary,
-    padding: 18,
-    borderRadius: 18,
-    alignItems: 'center',
     marginTop: 10,
     shadowColor: C.primary,
     shadowOpacity: 0.4,
     shadowRadius: 10,
     elevation: 5
   },
+  confirmBtnGradient: {
+    padding: 18,
+    borderRadius: 18,
+    alignItems: 'center',
+  },
   confirmBtnText: {
-    color: '#000',
+    color: '#FFF',
     fontWeight: '900',
     fontSize: 17
   },
@@ -469,5 +611,9 @@ const makeStyles = (C) => StyleSheet.create({
     color: C.textMuted,
     textAlign: 'center',
     fontWeight: '700'
+  },
+  mobileNavFixed: {
+    position: 'absolute',
+    bottom: 0, left: 0, right: 0
   }
 });
