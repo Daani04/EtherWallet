@@ -169,6 +169,15 @@
       "cryptos": "Cryptocurrencies",
       "topFilter": "Top {{filter}}"
     },
+    "bento": {
+      "globalMarket": "Global Market Cap",
+      "fearGreed": "Fear & Greed",
+      "topGainer": "Top Gainer",
+      "flashNews": "Flash News",
+      "btcDominance": "BTC Dominance:",
+      "greeting": "Hey {{name}},",
+      "subtitle": "Here is your market brief today."
+    },
     "actions": {
       "loadMore": "Load more coins"
     },

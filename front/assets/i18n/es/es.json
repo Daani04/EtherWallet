@@ -169,6 +169,15 @@
       "cryptos": "Criptomonedas",
       "topFilter": "Top {{filter}}"
     },
+    "bento": {
+      "globalMarket": "Capitalización Global",
+      "fearGreed": "Miedo y Codicia",
+      "topGainer": "Mayor Subida",
+      "flashNews": "Noticias Flash",
+      "btcDominance": "Dominancia BTC:",
+      "greeting": "Hola {{name}},",
+      "subtitle": "Aquí tienes tu resumen del mercado hoy."
+    },
     "actions": {
       "loadMore": "Cargar más monedas"
     },
