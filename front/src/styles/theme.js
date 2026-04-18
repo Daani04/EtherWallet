@@ -1,20 +1,23 @@
 const theme = {
   colors: {
-    backgroundDark: "#102217",
-    cardBg: "#1f2e26",
-    inputBg: "#1c2720",
-    border: "#355b49",
+    backgroundDark: "#0D0E15",
+    cardBg: "rgba(255, 255, 255, 0.05)",
+    inputBg: "rgba(255, 255, 255, 0.03)",
+    border: "rgba(255, 255, 255, 0.1)",
 
-    primary: "#2bee79",
-    primarySoft: "rgba(43,238,121,0.18)",
-    primaryDark: "#1bbf63",
+    primary: "#A855F7",
+    primarySoft: "rgba(168, 85, 247, 0.18)",
+    primaryDark: "#9333EA",
 
-    danger: "#ff5c5c",
-    dangerSoft: "rgba(255,92,92,0.15)",
+    secondary: "#06B6D4",
+    secondarySoft: "rgba(6, 182, 212, 0.18)",
 
-    textMain: "#ffffff",
-    textMuted: "#9db9a8",
-    textSoft: "rgba(255,255,255,0.65)",
+    danger: "#EF4444",
+    dangerSoft: "rgba(239, 68, 68, 0.15)",
+
+    textMain: "#F8FAFC",
+    textMuted: "#94A3B8",
+    textSoft: "rgba(248, 250, 252, 0.65)",
 
     backgroundLight: "#ffffff",
     cardBgLight: "#f6f7f8",

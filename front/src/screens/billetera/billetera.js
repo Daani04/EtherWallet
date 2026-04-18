@@ -57,7 +57,7 @@ const Billetera = (props) => {
     if (!user?.walletAddress) return;
 
     try {
-      const url = `http://35.170.12.68:8080/api/blockchain/portfolio/${user.walletAddress}`;
+      const url = `http://192.168.1.138:8080/api/blockchain/portfolio/${user.walletAddress}`;
       const response = await fetch(url);
       if (!response.ok) throw new Error(t("wallet.errors.server"));
       const data = await response.json();
@@ -139,7 +139,7 @@ const Billetera = (props) => {
       <View style={styles.balanceCardMain}>
         <LinearGradient
           colors={[
-            C.isDark ? "rgba(43,238,121,0.05)" : "rgba(43,238,121,0.10)",
+            C.isDark ? "rgba(168, 85, 247, 0.05)" : "rgba(168, 85, 247, 0.10)",
             "transparent",
           ]}
           style={styles.balanceGlow}
@@ -409,12 +409,10 @@ const makeStyles = (C) =>
       width: 45,
       height: 45,
       borderRadius: 14,
-      backgroundColor: C.isDark ? "rgba(43,238,121,0.10)" : "rgba(43,238,121,0.14)",
-      alignItems: "center",
-      justifyContent: "center",
+      backgroundColor: C.isDark ? "rgba(168, 85, 247, 0.10)" : "rgba(168, 85, 247, 0.14)",
+      borderColor: C.isDark ? "rgba(168, 85, 247, 0.20)" : "rgba(168, 85, 247, 0.28)",
       marginRight: 15,
       borderWidth: 1,
-      borderColor: C.isDark ? "rgba(43,238,121,0.20)" : "rgba(43,238,121,0.28)",
     },
     coinBadgeText: {
       color: C.primary,

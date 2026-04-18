@@ -23,7 +23,7 @@ import { useFocusEffect } from "@react-navigation/native";
 import { useTranslation } from "react-i18next";
 
 const { width } = Dimensions.get("window");
-const BASE_URL = "http://35.170.12.68:8080"; 
+const BASE_URL = "http://192.168.1.138:8080"; 
 const isWeb = Platform.OS === 'web';
 const NAV_HEIGHT = 90;
 
@@ -358,7 +358,7 @@ const TrendingCard = ({ item, C, styles, currencySymbol }) => {
             <Text style={styles.coinSymbol}>{String(item.symbol || "").toUpperCase()}</Text>
           </View>
         </View>
-        <View style={[styles.badge, { backgroundColor: isPositive ? "rgba(43,238,121,0.15)" : "rgba(255,92,92,0.15)" }]}>
+        <View style={[styles.badge, { backgroundColor: isPositive ? "rgba(168, 85, 247, 0.15)" : "rgba(239, 68, 68, 0.15)" }]}>
           <Text style={[styles.badgeText, { color: isPositive ? C.primary : C.danger }]}>
             {isPositive ? "↑" : "↓"} {Number(item.price_change_percentage_24h || 0).toFixed(2)}%
           </Text>
@@ -626,7 +626,7 @@ const makeStyles = (C) => StyleSheet.create({
     gap: 8,
     marginTop: 20,
     paddingVertical: 15,
-    backgroundColor: C.isDark ? "rgba(43,238,121,0.05)" : "rgba(43,238,121,0.1)",
+    backgroundColor: C.isDark ? "rgba(168, 85, 247, 0.05)" : "rgba(168, 85, 247, 0.1)",
     borderRadius: 16,
     marginHorizontal: 24,
     borderWidth: 1,

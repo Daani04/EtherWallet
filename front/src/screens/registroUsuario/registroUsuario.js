@@ -32,7 +32,7 @@ import LegalModal from "./LegalModal";
 const COLORS = theme?.colors || theme?.COLORS || theme;
 const isWeb = Platform.OS === "web";
 
-const API_BASE = "http://35.170.12.68:8080";
+const API_BASE = "http://192.168.1.138:8080";
 
 const RegistroUsuario = (props) => {
   const { t } = useTranslation();
@@ -550,7 +550,7 @@ const styles = StyleSheet.create({
   scroll: { flex: 1 },
   scrollContainer: { flexGrow: 1, paddingBottom: 120 },
   root: { alignItems: "center" },
-  blob: { position: "absolute", backgroundColor: "rgba(43,238,121,0.08)", borderRadius: 999 },
+  blob: { position: "absolute", backgroundColor: "rgba(168, 85, 247, 0.08)", borderRadius: 999 },
   blobTopRight: { width: 400, height: 400, top: -110, right: -120 },
   blobBottomLeft: { width: 300, height: 300, bottom: -60, left: -120 },
   container: { width: "100%", maxWidth: 450, paddingHorizontal: 24 },

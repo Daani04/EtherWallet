@@ -19,8 +19,8 @@ const BottomBar = () => {
       <TabItem icon="account-balance-wallet" label={t("nav.wallet")} active={isActive("Billetera")} onPress={() => navigation.navigate("Billetera")} C={C} />
 
       <Pressable onPress={() => navigation.navigate("MenuTransacciones")}>
-        <View style={[styles.centerButton, { backgroundColor: C.primary, shadowColor: C.primary }]}>
-          <Icon name="swap-vert" size={28} color="#000" />
+        <View style={[styles.centerButton, { backgroundColor: C.primary, shadowColor: C.primary, borderColor: "rgba(255,255,255,0.2)", borderWidth: 1 }]}>
+          <Icon name="swap-vert" size={28} color="#FFF" />
         </View>
       </Pressable>
 

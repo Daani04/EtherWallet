@@ -30,7 +30,7 @@ const COLORS = theme?.colors || theme?.COLORS || theme;
 const { width } = Dimensions.get("window");
 const isWeb = Platform.OS === "web";
 
-const BASE_URL = "http://35.170.12.68:8080";
+const BASE_URL = "http://192.168.1.138:8080";
 
 const InicioSesion = (props) => {
   const [isBiometricSupported, setIsBiometricSupported] = useState(false);
@@ -196,7 +196,7 @@ const InicioSesion = (props) => {
             >
               <Text style={styles.langText}>{lng}</Text>
               {currentLng === lng && (
-                <MaterialIcons name="check" size={20} color={COLORS.primary || "#2bee79"} />
+                <MaterialIcons name="check" size={20} color={COLORS.primary || "#A855F7"} />
               )}
             </TouchableOpacity>
           ))}
@@ -218,7 +218,7 @@ const InicioSesion = (props) => {
             activeOpacity={0.85}
             style={styles.langBtn}
           >
-            <MaterialIcons name="language" size={22} color={COLORS.primary || "#2bee79"} />
+            <MaterialIcons name="language" size={22} color={COLORS.primary || "#A855F7"} />
           </TouchableOpacity>
         </View>
 
@@ -285,7 +285,7 @@ const InicioSesion = (props) => {
             disabled={loading} // Desactivamos botón si carga
           >
             {loading ? (
-              <ActivityIndicator color={COLORS?.backgroundDark || "#102217"} />
+              <ActivityIndicator color={COLORS?.backgroundDark || "#0D0E15"} />
             ) : (
               <Text style={styles.primaryBtnText}>{t("login.buttons.login")}</Text>
             )}
@@ -348,7 +348,7 @@ const InicioSesion = (props) => {
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
-    backgroundColor: COLORS?.backgroundDark || "#102217",
+    backgroundColor: COLORS?.backgroundDark || "#0D0E15",
   },
   scrollContainer: {
     flexGrow: 1,
@@ -389,7 +389,7 @@ const styles = StyleSheet.create({
   },
   blob: {
     position: "absolute",
-    backgroundColor: "rgba(43,238,121,0.08)",
+    backgroundColor: "rgba(168, 85, 247, 0.08)",
     borderRadius: 999,
   },
   blobTopRight: {
@@ -422,9 +422,9 @@ const styles = StyleSheet.create({
     borderRadius: 22,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: COLORS?.cardBg || "#1c2720",
+    backgroundColor: COLORS?.cardBg || "rgba(255, 255, 255, 0.05)",
     borderWidth: 1,
-    borderColor: COLORS?.border || "#3b5445",
+    borderColor: COLORS?.border || "rgba(255, 255, 255, 0.1)",
   },
   heroWrap: {
     marginBottom: 20,
@@ -473,10 +473,10 @@ const styles = StyleSheet.create({
   inputContainer: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: COLORS?.cardBg || "#1c2720",
+    backgroundColor: COLORS?.cardBg || "rgba(255, 255, 255, 0.05)",
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: COLORS?.border || "#3b5445",
+    borderColor: COLORS?.border || "rgba(255, 255, 255, 0.1)",
     height: 60,
     paddingHorizontal: 16,
   },
@@ -496,18 +496,18 @@ const styles = StyleSheet.create({
     marginTop: -8,
   },
   forgotPassText: {
-    color: COLORS?.primary || "#2bee79",
+    color: COLORS?.primary || "#A855F7",
     fontSize: 14,
     fontWeight: "500",
   },
   primaryBtn: {
-    backgroundColor: COLORS?.primary || "#2bee79",
+    backgroundColor: COLORS?.primary || "#A855F7",
     height: 58,
     borderRadius: 29,
     alignItems: "center",
     justifyContent: "center",
     marginTop: 12,
-    shadowColor: COLORS?.primary || "#2bee79",
+    shadowColor: COLORS?.primary || "#A855F7",
     shadowOpacity: 0.4,
     shadowRadius: 12,
     shadowOffset: {
@@ -517,7 +517,7 @@ const styles = StyleSheet.create({
     elevation: 6,
   },
   primaryBtnText: {
-    color: COLORS?.backgroundDark || "#102217",
+    color: COLORS?.backgroundDark || "#0D0E15",
     fontSize: 18,
     fontWeight: "700",
   },
@@ -529,7 +529,7 @@ const styles = StyleSheet.create({
     height: 58,
     borderRadius: 29,
     borderWidth: 1,
-    borderColor: COLORS?.border || "#3b5445",
+    borderColor: COLORS?.border || "rgba(255, 255, 255, 0.1)",
     alignItems: "center",
     justifyContent: "center",
     gap: 10,
@@ -548,7 +548,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
   footerLink: {
-    color: COLORS?.primary || "#2bee79",
+    color: COLORS?.primary || "#A855F7",
     fontWeight: "700",
   },
   langOverlay: {

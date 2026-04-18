@@ -38,7 +38,7 @@ const common = StyleSheet.create({
     marginBottom: 20,
     overflow: "hidden",
     borderWidth: 1,
-    borderColor: "rgba(59,84,69,0.5)",
+    borderColor: theme.colors.border,
   },
   newsImage: { width: "100%", height: 180, resizeMode: "cover" },
   newsCardContent: { padding: 16 },
@@ -52,7 +52,7 @@ const common = StyleSheet.create({
 
   topicContainer: { flexDirection: "row", marginTop: 12, gap: 8 },
   topicTag: {
-    backgroundColor: "rgba(43,238,121,0.1)",
+    backgroundColor: theme.colors.primarySoft,
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 6,

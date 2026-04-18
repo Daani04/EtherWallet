@@ -23,7 +23,7 @@ import Context from "../../context/Context";
 import common from "../../styles/common";
 import Nav from "../../components/Nav";
 
-const BASE_URL = "http://35.170.12.68:8080";
+const BASE_URL = "http://192.168.1.138:8080";
 
 export default function PerfilUsuario(props) {
   const { t, i18n } = useTranslation();

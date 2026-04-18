@@ -20,7 +20,7 @@ import Nav from "../../components/Nav";
 import common from "../../styles/common";
 import Context from "../../context/Context";
 
-const BASE_URL = "http://35.170.12.68:8080";
+const BASE_URL = "http://192.168.1.138:8080";
 
 export default function MenuTransacciones({ navigation }) {
   const { t } = useTranslation();
@@ -209,7 +209,7 @@ export default function MenuTransacciones({ navigation }) {
             <Text style={styles.modalLabel}>{t("transactions.modal.amount")}</Text>
             <TextInput
               placeholder={t("transactions.modal.placeholders.amount")}
-              keyboardType="numeric"
+              keyboardType="text"
               style={styles.modalInput}
               value={amount}
               onChangeText={setAmount}
@@ -334,7 +334,7 @@ const makeStyles = (C) => StyleSheet.create({
     width: 46,
     height: 46,
     borderRadius: 14,
-    backgroundColor: 'rgba(43,238,121,0.1)',
+    backgroundColor: 'rgba(168, 85, 247, 0.1)',
     alignItems: 'center',
     justifyContent: 'center'
   },

@@ -5,7 +5,7 @@ import i18n from "../../assets/i18n";
 
 const SettingsContext = createContext(null);
 
-const BASE_URL = "http://35.170.12.68:8080";
+const BASE_URL = "http://192.168.1.138:8080";
 
 function buildPalette(isDark) {
   if (isDark) {
