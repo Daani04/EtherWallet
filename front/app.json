@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "CryptoBit",
-    "slug": "CryptoBit",
+    "name": "EtherWallet",
+    "slug": "EtherWallet",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/logo.png",
@@ -13,7 +13,7 @@
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "bundleIdentifier": "com.cryptobit",
+      "bundleIdentifier": "com.EtherWallet",
       "supportsTablet": true,
       "infoPlist": {
         "NSFaceIDUsageDescription": "Necesitamos usar Face ID para desbloquear tu cartera de forma segura.",
@@ -21,7 +21,7 @@
       }
     },
     "android": {
-      "package": "com.cryptobit.front",
+      "package": "com.EtherWallet.front",
       "adaptiveIcon": {
         "foregroundImage": "./assets/logo.png",
         "backgroundColor": "#ffffff"
